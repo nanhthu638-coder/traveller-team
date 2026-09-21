@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Traveller Team | Đồng hành cùng mọi hành trình</title>
+	<style>
+		:root {
+			--ink: #172b3a;
+			--muted: #607482;
+			--teal: #087f8c;
+			--teal-dark: #05636e;
+			--coral: #ec775f;
+			--cream: #f6f2e9;
+			--paper: #fffdf8;
+			--line: #dce5e3;
+			--shadow: 0 22px 70px rgba(23, 43, 58, .14);
+		}
+
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			color: var(--ink);
+			background: var(--cream);
+			font-family: Georgia, "Times New Roman", serif;
+		}
+		button, input, textarea, select { font: inherit; }
+		button { cursor: pointer; }
+		.page { min-height: 100vh; overflow: hidden; }
+		.topbar {
+			width: min(1160px, calc(100% - 48px));
+			margin: 0 auto;
+			padding: 27px 0;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 20px;
+		}
+		.brand { display: flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; }
+		.brand-mark { width: 38px; height: 38px; border-radius: 50% 50% 50% 8px; background: var(--coral); transform: rotate(-45deg); position: relative; }
+		.brand-mark::after { content: ""; width: 11px; height: 11px; border: 2px solid var(--paper); border-radius: 50%; position: absolute; inset: 11px; }
+		.brand-name { font-size: 20px; letter-spacing: .02em; font-weight: bold; }
+		.actions { display: flex; align-items: center; gap: 11px; }
+		.button { border: 0; border-radius: 8px; padding: 12px 19px; font-weight: bold; transition: transform .2s, background .2s, color .2s; }
+		.button:hover { transform: translateY(-2px); }
+		.button-quiet { background: transparent; color: var(--ink); }
+		.button-quiet:hover { background: rgba(8, 127, 140, .1); }
+		.button-primary { color: white; background: var(--teal); box-shadow: 0 8px 18px rgba(8, 127, 140, .19); }
+		.button-primary:hover { background: var(--teal-dark); }
+		.button-coral { background: var(--coral); color: white; }
+
+		.hero { width: min(1160px, calc(100% - 48px)); margin: 42px auto 80px; display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 72px; }
+		.eyebrow { display: inline-flex; align-items: center; gap: 9px; color: var(--teal); text-transform: uppercase; letter-spacing: .14em; font: bold 12px Arial, sans-serif; }
+		.eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--coral); }
+		h1 { max-width: 650px; margin: 20px 0 20px; font-size: clamp(46px, 6vw, 79px); line-height: .98; letter-spacing: -.045em; font-weight: 500; }
+		h1 em { color: var(--teal); font-style: italic; }
+		.intro { max-width: 510px; color: var(--muted); font: 17px/1.7 Arial, sans-serif; }
+		.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+		.feature-list { display: flex; gap: 26px; margin: 38px 0 0; padding: 0; list-style: none; color: var(--muted); font: 13px Arial, sans-serif; }
+		.feature-list li { display: flex; align-items: center; gap: 8px; }
+		.feature-list span { color: var(--coral); font-size: 18px; }
+		.visual { position: relative; min-height: 460px; }
+		.visual::before { content: ""; position: absolute; width: 380px; height: 380px; top: 20px; right: 20px; border-radius: 46% 54% 44% 56%; background: #d2e9df; transform: rotate(22deg); }
+		.visual-card { position: absolute; width: 72%; right: 0; top: 53px; padding: 27px; color: white; border-radius: 14px; background: var(--teal); box-shadow: var(--shadow); transform: rotate(4deg); }
+		.visual-card small { font: 12px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; opacity: .75; }
+		.visual-card h2 { margin: 52px 0 27px; font-size: 42px; line-height: 1.04; font-weight: 500; }
+		.visual-card p { margin: 0; font: 14px/1.6 Arial, sans-serif; opacity: .88; }
+		.stamp { position: absolute; z-index: 2; left: 7%; bottom: 40px; width: 142px; height: 142px; display: grid; place-items: center; text-align: center; border: 2px solid var(--coral); border-radius: 50%; color: var(--coral); background: var(--cream); font-size: 19px; line-height: 1.05; transform: rotate(-14deg); }
+		.stamp strong { display: block; font-size: 28px; }
+		.section { padding: 68px max(24px, calc((100% - 1160px) / 2)); background: var(--paper); }
+		.section-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 30px; }
+		h3 { margin: 0; font-size: 36px; font-weight: 500; }
+		.section-head p { max-width: 380px; margin: 0; color: var(--muted); font: 14px/1.6 Arial, sans-serif; }
+		.service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+		.service { min-height: 156px; padding: 23px; border: 1px solid var(--line); border-radius: 10px; background: white; }
+		.service b { display: block; margin-bottom: 16px; color: var(--coral); font: bold 12px Arial, sans-serif; }
+		.service h4 { margin: 0 0 9px; font-size: 23px; font-weight: 500; }
+		.service p { margin: 0; color: var(--muted); font: 13px/1.5 Arial, sans-serif; }
+		footer { padding: 26px max(24px, calc((100% - 1160px) / 2)); color: var(--muted); font: 12px Arial, sans-serif; background: var(--paper); border-top: 1px solid var(--line); }
+
+		.modal-backdrop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: rgba(23, 43, 58, .56); opacity: 0; visibility: hidden; transition: opacity .2s, visibility .2s; }
+		.modal-backdrop.is-open { opacity: 1; visibility: visible; }
+		.modal { position: relative; width: min(100%, 470px); max-height: calc(100vh - 40px); overflow: auto; padding: 34px; border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); transform: translateY(15px); transition: transform .2s; }
+		.is-open .modal { transform: translateY(0); }
+		.modal-close { position: absolute; top: 13px; right: 15px; width: 34px; height: 34px; border: 0; border-radius: 50%; color: var(--muted); background: transparent; font-size: 25px; line-height: 1; }
+		.modal-close:hover { background: #eaf1ef; }
+		.modal h2 { margin: 0 0 8px; font-size: 32px; font-weight: 500; }
+		.modal-lead { margin: 0 0 25px; color: var(--muted); font: 14px/1.5 Arial, sans-serif; }
+		.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+		.field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+		.field label { font: bold 12px Arial, sans-serif; color: var(--ink); }
+		.field input, .field textarea, .field select { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 12px 13px; outline: none; color: var(--ink); background: white; }
+		.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(8, 127, 140, .12); }
+		.field textarea { min-height: 118px; resize: vertical; }
+		.form-submit { width: 100%; margin-top: 3px; }
+		.form-message { min-height: 20px; margin: 13px 0 0; font: 13px/1.4 Arial, sans-serif; }
+		.form-message.success { color: #19714c; }
+		.form-message.error { color: #bd4b40; }
+		.switch { margin-top: 17px; text-align: center; color: var(--muted); font: 13px Arial, sans-serif; }
+		.text-button { padding: 0; border: 0; color: var(--teal); background: transparent; font-weight: bold; }
+		@media (max-width: 760px) {
+			.topbar, .hero { width: min(100% - 32px, 560px); }
+			.topbar { padding: 18px 0; }
+			.brand-name { font-size: 17px; }
+			.actions .button-quiet { display: none; }
+			.hero { display: block; margin-top: 35px; margin-bottom: 55px; }
+			h1 { font-size: 53px; }
+			.feature-list { gap: 12px; flex-wrap: wrap; }
+			.visual { min-height: 390px; margin-top: 30px; }
+			.visual::before { width: 300px; height: 300px; right: 5%; }
+			.visual-card { width: 82%; top: 48px; }
+			.visual-card h2 { margin-top: 38px; font-size: 34px; }
+			.stamp { left: 2%; bottom: 24px; width: 118px; height: 118px; font-size: 16px; }
+			.stamp strong { font-size: 23px; }
+			.section { padding: 48px 16px; }
+			.section-head { display: block; }
+			.section-head p { margin-top: 10px; }
+			.service-grid { grid-template-columns: 1fr; }
+			.modal { padding: 29px 20px 22px; }
+			.form-row { grid-template-columns: 1fr; gap: 0; }
+		}
+	</style>
+</head>
+<body>
+	<main class="page">
+		<header class="topbar">
+			<a class="brand" href="#top" aria-label="Traveller Team - Trang chủ">
+				<span class="brand-mark" aria-hidden="true"></span><span class="brand-name">Traveller Team</span>
+			</a>
+			<div class="actions">
+				<button class="button button-quiet" type="button" data-modal="login-modal">Đăng nhập</button>
+				<button class="button button-primary" type="button" data-modal="register-modal">Đăng ký</button>
+			</div>
+		</header>
+
+		<section class="hero" id="top">
+			<div>
+				<div class="eyebrow">Cùng nhau đi xa hơn</div>
+				<h1>Hành trình đẹp bắt đầu từ một <em>lời chào.</em></h1>
+				<p class="intro">Traveller Team kết nối những người yêu trải nghiệm, chia sẻ cảm hứng và biến mỗi chuyến đi thành một câu chuyện đáng nhớ.</p>
+				<div class="hero-actions">
+					<button class="button button-primary" type="button" data-modal="contact-modal">Gửi liên hệ <span aria-hidden="true">↗</span></button>
+					<button class="button button-quiet" type="button" data-modal="register-modal">Tham gia cộng đồng</button>
+				</div>
+				<ul class="feature-list" aria-label="Điểm nổi bật">
+					<li><span>✦</span> Tận tâm</li><li><span>✦</span> Cởi mở</li><li><span>✦</span> Đồng hành</li>
+				</ul>
+			</div>
+			<div class="visual" aria-hidden="true">
+				<div class="visual-card"><small>Góc cảm hứng / 01</small><h2>Đi để thấy thế giới rộng hơn.</h2><p>Một cộng đồng nhỏ cho những hành trình thật lớn.</p></div>
+				<div class="stamp"><div><strong>24/7</strong>luôn lắng nghe</div></div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-head"><h3>Chúng ta có thể giúp gì?</h3><p>Mọi kết nối đều bắt đầu bằng một cuộc trò chuyện. Hãy để lại lời nhắn cho Traveller Team.</p></div>
+			<div class="service-grid">
+				<article class="service"><b>01 / KẾT NỐI</b><h4>Tham gia cùng chúng mình</h4><p>Tạo tài khoản để bắt đầu hành trình cùng cộng đồng.</p></article>
+				<article class="service"><b>02 / TRUY CẬP</b><h4>Trở lại không gian riêng</h4><p>Đăng nhập nhanh chóng để tiếp tục những điều đang dang dở.</p></article>
+				<article class="service"><b>03 / LẮNG NGHE</b><h4>Chia sẻ điều bạn nghĩ</h4><p>Gửi câu hỏi, góp ý hoặc một lời chào đến đội ngũ.</p></article>
+			</div>
+		</section>
+		<footer>© 2026 Traveller Team · Đi cùng nhau, xa hơn.</footer>
+	</main>
+
+	<div class="modal-backdrop" id="register-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
+		<div class="modal"><button class="modal-close" type="button" aria-label="Đóng">×</button><h2 id="register-title">Tạo tài khoản</h2><p class="modal-lead">Bắt đầu kết nối với Traveller Team hôm nay.</p>
+			<form data-form="register">
+				<div class="form-row"><div class="field"><label for="register-name">Họ và tên</label><input id="register-name" name="name" autocomplete="name" required></div><div class="field"><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" required></div></div>
+				<div class="field"><label for="register-password">Mật khẩu</label><input id="register-password" name="password" type="password" minlength="6" autocomplete="new-password" required></div>
+				<button class="button button-primary form-submit" type="submit">Đăng ký ngay</button><p class="form-message" aria-live="polite"></p>
+			</form>
+			<div class="switch">Đã có tài khoản? <button class="text-button" type="button" data-switch="login-modal">Đăng nhập</button></div>
+		</div>
+	</div>
+
+	<div class="modal-backdrop" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+		<div class="modal"><button class="modal-close" type="button" aria-label="Đóng">×</button><h2 id="login-title">Chào mừng trở lại</h2><p class="modal-lead">Đăng nhập để tiếp tục hành trình của bạn.</p>
+			<form data-form="login"><div class="field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="email" required></div><div class="field"><label for="login-password">Mật khẩu</label><input id="login-password" name="password" type="password" autocomplete="current-password" required></div><button class="button button-primary form-submit" type="submit">Đăng nhập</button><p class="form-message" aria-live="polite"></p></form>
+			<div class="switch">Chưa có tài khoản? <button class="text-button" type="button" data-switch="register-modal">Đăng ký</button></div>
+		</div>
+	</div>
+
+	<div class="modal-backdrop" id="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
+		<div class="modal"><button class="modal-close" type="button" aria-label="Đóng">×</button><h2 id="contact-title">Gửi lời nhắn</h2><p class="modal-lead">Thắc mắc hay góp ý của bạn đều rất đáng quý.</p>
+			<form data-form="contact"><div class="form-row"><div class="field"><label for="contact-name">Tên của bạn</label><input id="contact-name" name="name" autocomplete="name" required></div><div class="field"><label for="contact-email">Email</label><input id="contact-email" name="email" type="email" autocomplete="email" required></div></div><div class="field"><label for="contact-topic">Chủ đề</label><select id="contact-topic" name="topic" required><option value="">Chọn chủ đề</option><option>Hỏi về tài khoản</option><option>Góp ý trải nghiệm</option><option>Hợp tác cùng Traveller Team</option><option>Khác</option></select></div><div class="field"><label for="contact-message">Nội dung</label><textarea id="contact-message" name="message" placeholder="Bạn muốn chia sẻ điều gì?" required></textarea></div><button class="button button-coral form-submit" type="submit">Gửi biểu mẫu ↗</button><p class="form-message" aria-live="polite"></p></form>
+		</div>
+	</div>
+
+	<script>
+		const modalBackdrops = document.querySelectorAll('.modal-backdrop');
+		const openModal = (id) => { document.getElementById(id).classList.add('is-open'); document.body.style.overflow = 'hidden'; document.getElementById(id).querySelector('input, textarea, select').focus(); };
+		const closeModal = (modal) => { modal.classList.remove('is-open'); document.body.style.overflow = ''; };
+		document.querySelectorAll('[data-modal]').forEach((button) => button.addEventListener('click', () => openModal(button.dataset.modal)));
+		document.querySelectorAll('.modal-close').forEach((button) => button.addEventListener('click', () => closeModal(button.closest('.modal-backdrop'))));
+		document.querySelectorAll('[data-switch]').forEach((button) => button.addEventListener('click', () => { closeModal(button.closest('.modal-backdrop')); openModal(button.dataset.switch); }));
+		modalBackdrops.forEach((modal) => modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(modal); }));
+		document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { const open = document.querySelector('.modal-backdrop.is-open'); if (open) closeModal(open); } });
+
+		document.querySelector('[data-form="register"]').addEventListener('submit', (event) => {
+			event.preventDefault();
+			const form = event.currentTarget; const data = Object.fromEntries(new FormData(form));
+			const users = JSON.parse(localStorage.getItem('traveller-users') || '[]');
+			const message = form.querySelector('.form-message');
+			if (users.some((user) => user.email === data.email)) { message.textContent = 'Email này đã được đăng ký. Hãy đăng nhập nhé.'; message.className = 'form-message error'; return; }
+			users.push(data); localStorage.setItem('traveller-users', JSON.stringify(users)); message.textContent = 'Đăng ký thành công! Chào mừng bạn đến với Traveller Team.'; message.className = 'form-message success'; form.reset();
+		});
+		document.querySelector('[data-form="login"]').addEventListener('submit', (event) => {
+			event.preventDefault(); const form = event.currentTarget; const data = Object.fromEntries(new FormData(form)); const users = JSON.parse(localStorage.getItem('traveller-users') || '[]'); const user = users.find((item) => item.email === data.email && item.password === data.password); const message = form.querySelector('.form-message');
+			message.textContent = user ? `Xin chào ${user.name}! Bạn đã đăng nhập thành công.` : 'Email hoặc mật khẩu chưa chính xác.'; message.className = `form-message ${user ? 'success' : 'error'}`; if (user) form.reset();
+		});
+		document.querySelector('[data-form="contact"]').addEventListener('submit', (event) => { event.preventDefault(); const form = event.currentTarget; const message = form.querySelector('.form-message'); form.reset(); message.textContent = 'Đã nhận được lời nhắn. Traveller Team sẽ phản hồi bạn sớm nhất!'; message.className = 'form-message success'; });
+	</script>
+</body>
+</html>
