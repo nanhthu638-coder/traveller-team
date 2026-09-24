@@ -38,6 +38,34 @@
       </div>
     </section>
 
+    <section class="section" id="tours">
+      <div class="section-head"><h3>Khám phá Tour</h3><p>Tìm chuyến đi phù hợp với bạn theo từ khóa, ngân sách và ngày khởi hành.</p></div>
+
+      <div class="tour-toolbar">
+        <div class="field field-search">
+          <label for="tour-search">Tìm kiếm</label>
+          <input id="tour-search" type="text" placeholder="Tên tour hoặc địa điểm (VD: Đà Lạt, biển...)">
+        </div>
+        <div class="field">
+          <label for="tour-price-min">Giá từ</label>
+          <input id="tour-price-min" type="number" min="0" step="100000" placeholder="0đ">
+        </div>
+        <div class="field">
+          <label for="tour-price-max">Đến</label>
+          <input id="tour-price-max" type="number" min="0" step="100000" placeholder="Không giới hạn">
+        </div>
+        <div class="field">
+          <label for="tour-date">Khởi hành từ ngày</label>
+          <input id="tour-date" type="date">
+        </div>
+        <button class="button button-quiet" type="button" id="tour-reset">Xóa lọc</button>
+      </div>
+
+      <p class="tour-result-count" id="tour-result-count" aria-live="polite"></p>
+      <div class="tour-grid" id="tour-grid"></div>
+      <p class="tour-empty" id="tour-empty" hidden>Không tìm thấy tour phù hợp. Hãy thử từ khóa hoặc bộ lọc khác nhé.</p>
+    </section>
+
     <section class="section">
       <div class="section-head"><h3>Chúng ta có thể giúp gì?</h3><p>Mọi kết nối đều bắt đầu bằng một cuộc trò chuyện. Hãy để lại lời nhắn cho Traveller Team.</p></div>
       <div class="service-grid">
@@ -73,6 +101,8 @@
     </div>
   </div>
 
+  <script src="js/tours-data.js"></script>
+  <script src="js/tours.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
