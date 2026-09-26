@@ -1,0 +1,904 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Traveller Team | Đồng hành cùng mọi hành trình</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#0B2545',
+              blue: '#134074',
+              accent: '#0066FF',
+              coral: '#EE4266',
+              amber: '#F59E0B',
+              softBg: '#F8FAFC'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .badge-glow {
+      box-shadow: 0 0 15px rgba(238, 66, 102, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
+<!-- TOP BAR / PROMO NOTIFICATION -->
+<div class="bg-slate-950 text-slate-300 text-xs py-2 px-4 border-b border-slate-800 tracking-normal">
+  <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <span class="bg-rose-500/20 text-rose-400 font-bold px-2.5 py-0.5 rounded-full border border-rose-500/30 flex items-center gap-1.5 text-[11px] shadow-xs">
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span> MÙA DU LỊCH 2025
+      </span>
+      <span class="text-slate-300 hidden md:inline font-normal">
+        Nhập mã <span class="text-amber-400 font-bold font-mono px-1 py-0.5 rounded bg-white/10">TRAVELLER500</span> giảm ngay 500.000đ cho đơn hàng từ 20 triệu
+      </span>
+    </div>
+    <div class="flex items-center gap-4 sm:gap-6 text-slate-300 shrink-0 text-[11px]">
+      <a class="hover:text-white flex items-center gap-1.5 transition text-slate-200 font-medium" href="tel:1800646888">
+        <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.036 11.036 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg>
+        <span class="">Hotline: <strong class="text-white font-bold tracking-wide">1800 646 888</strong> (Miễn phí 24/7)</span>
+      </a>
+      <span class="text-slate-700 hidden sm:inline">|</span>
+      <div class="hidden sm:flex items-center gap-3">
+        <button class="hover:text-white transition flex items-center gap-1 cursor-pointer">
+          <span class="">🇻🇳 VNĐ</span>
+          <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </button>
+        <span class="text-slate-700">|</span>
+        <button class="hover:text-white transition flex items-center gap-1 cursor-pointer">
+          <span class="">Tiếng Việt</span>
+          <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ================= 1. LUXURY HEADER ================= -->
+<header class="bg-white/95 backdrop-blur-md sticky top-0 w-full z-50 border-b border-slate-100 shadow-[0_4px_25px_-5px_rgba(0,0,0,0.05)]"><div class="max-w-7xl mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-6">
+  <!-- Brand Logo & Sleek Tagline -->
+  <div class="flex items-center gap-6 shrink-0">
+    <a class="group flex flex-col items-start leading-none" href="./index.html" data-home-link="true">
+      <div class="flex items-center font-serif text-3xl font-extrabold tracking-tight">
+        <span class="text-[#0B2545] transition-colors group-hover:text-blue-600">Traveller</span>
+        <span class="text-xs text-blue-600 font-sans font-bold ml-1.5 bg-blue-50 px-2 py-0.5 rounded tracking-normal border border-blue-100">LUXURY</span>
+      </div>
+      <span class="text-[10px] text-slate-400 tracking-[0.25em] uppercase font-bold mt-1.5 font-sans">ĐỒNG HÀNH CÙNG MỌI HÀNH TRÌNH</span>
+    </a>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="hidden lg:flex items-center gap-6 text-[14px] font-semibold text-slate-600">
+    <a class="text-blue-600 font-bold transition flex items-center gap-1.5 py-1 border-b-2 border-blue-600" href="./danh-sach-tour.html">
+      <span class="">Tour trọn gói</span>
+    </a>
+    <a class="hover:text-blue-600 transition py-1" href="#">Vé máy bay</a>
+    <a class="hover:text-blue-600 transition py-1" href="#">Khách sạn 5★</a>
+    <a class="hover:text-blue-600 transition flex items-center gap-1 py-1" href="#">
+      <span class="">Combo Du Lịch</span>
+      <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">Tiết kiệm</span>
+    </a>
+    <a class="flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:shadow-lg hover:shadow-indigo-500/25 transition active:scale-95 shadow-sm" href="#">
+      <svg class="w-3.5 h-3.5 text-amber-300 animate-spin" fill="currentColor" style="animation-duration: 8s" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.6-6.2-4.5-6.2 4.5 2.4-7.6L2 9.6h7.6L12 2z"></path></svg>
+      AI Lên Lịch Trình
+    </a>
+  </nav>
+
+  <!-- User Actions Right -->
+  <div class="flex items-center gap-3 text-sm font-medium shrink-0">
+    <!-- Search Trigger / Compact Box -->
+    <div class="hidden xl:flex items-center bg-slate-50 hover:bg-slate-100 rounded-full px-3.5 py-2 w-64 border border-slate-200/90 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition duration-200">
+      <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      <input class="bg-transparent w-full outline-none px-2.5 text-xs text-slate-800 placeholder-slate-400" placeholder="Tìm tour, khách sạn..." type="text">
+      <kbd class="text-[10px] bg-white border border-slate-200 text-slate-400 rounded px-1.5 py-0.5 font-mono shadow-xs">⌘K</kbd>
+    </div>
+
+    <!-- Departure Location Switcher -->
+    <div class="hidden sm:flex items-center gap-1.5 cursor-pointer bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-full border border-slate-200 transition text-slate-700">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+      <span class="text-xs font-bold">TP.HCM</span>
+      <svg class="w-3 h-3 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+    </div>
+
+    <!-- Login / Member Button -->
+    <button class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-full transition font-semibold text-xs shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer shrink-0" onclick="document.getElementById('loginModal').classList.remove('hidden')">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      <span class="">Đăng nhập / Hội viên</span>
+    </button>
+  </div>
+</div></header>
+<!-- ================= 2. HERO LUXURY & FLOATING SEARCH ================= -->
+<main class="relative pb-20" id="top">
+<!-- Hero Banner with Cinematic Layer -->
+<section class="relative w-full h-[520px] lg:h-[620px] overflow-hidden">
+<img alt="Du lịch trải nghiệm thiên nhiên hùng vĩ" class="w-full h-full object-cover transform scale-105 transition-transform duration-1000" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<!-- Gradient Overlays for Luxury Contrast -->
+<div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-slate-900/20"></div>
+<div class="absolute inset-0 bg-radial from-transparent via-black/20 to-black/60"></div>
+<!-- Hero Captions -->
+<div class="absolute inset-0 flex flex-col justify-center items-center text-center px-4 max-w-4xl mx-auto -translate-y-12">
+<span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-semibold tracking-widest uppercase mb-4 border border-white/30">
+<span class="w-2 h-2 rounded-full bg-amber-400"></span> Khám Phá Thế Giới Theo Phong Cách Của Riêng Bạn
+        </span>
+<h1 class="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-white tracking-tight leading-tight drop-shadow-sm">
+          Chạm Vào Vẻ Đẹp <br class="hidden sm:inline"><span class="italic text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-amber-100">Kỳ Quan Hoàn Mỹ</span>
+</h1>
+<p class="text-slate-200 text-sm md:text-base max-w-2xl mt-4 font-light leading-relaxed drop-shadow">
+          Hơn 500+ hành trình du lịch cao cấp chuẩn 4-5 sao trong &amp; ngoài nước với dịch vụ chăm sóc tận tâm từ đội ngũ chuyên gia Traveller Team.
+        </p>
+</div>
+<!-- Live Highlights strip at bottom -->
+<div class="absolute bottom-28 w-full hidden md:block">
+<div class="max-w-7xl mx-auto px-6 flex justify-between items-center text-white/80 text-xs font-medium border-t border-white/10 pt-3">
+<div class="flex items-center gap-6">
+<span class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg> Cam kết giá tốt nhất thị trường</span>
+<span class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg> Bảo hiểm du lịch quốc tế tới 2 tỷ đồng</span>
+<span class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg> Hỗ trợ visa nhanh chóng 99% đậu</span>
+</div>
+<div class="flex items-center gap-2 text-amber-300 font-bold">
+            ★★★★★ 4.9/5 (Hơn 128.000+ du khách đánh giá)
+          </div>
+</div>
+</div>
+</section>
+<!-- FLOATING SEARCH BOX (Designed for high conversion & ergonomics) -->
+<div class="max-w-6xl mx-auto px-4 relative z-30 -mt-20 md:-mt-24">
+<div class="glass-card rounded-3xl p-5 md:p-8 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.18)] border border-slate-200/80">
+<!-- Category Tabs -->
+<div class="flex items-center justify-between border-b border-slate-200/80 pb-4 mb-6 flex-wrap gap-4">
+<div class="flex overflow-x-auto no-scrollbar gap-2 sm:gap-4">
+<button class="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-blue-600 text-white font-bold text-xs tracking-wide shadow-md shadow-blue-500/25 transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              TOUR TRỌN GÓI
+            </button>
+<button class="flex items-center gap-2.5 px-4 py-2.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-100 font-semibold text-xs tracking-wide transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              VÉ MÁY BAY + PHÒNG
+            </button>
+<button class="flex items-center gap-2.5 px-4 py-2.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-100 font-semibold text-xs tracking-wide transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              KHÁCH SẠN NGHỈ DƯỠNG
+            </button>
+<button class="flex items-center gap-2.5 px-4 py-2.5 rounded-full text-slate-600 hover:text-blue-600 hover:bg-slate-100 font-semibold text-xs tracking-wide transition">
+<svg class="w-4 h-4 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              VÉ MÁY BAY GIÁ RẺ
+            </button>
+</div>
+<!-- Radio Switch Mode -->
+<div class="flex items-center bg-slate-100 p-1 rounded-full border border-slate-200">
+<button class="px-3 py-1 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Trong nước</button>
+<button class="px-3 py-1 rounded-full text-xs font-bold bg-white text-blue-700 shadow-xs">Quốc tế (Tour Hot)</button>
+</div>
+</div>
+<!-- Search Input Bar 4 Columns Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+<!-- Điểm khởi hành -->
+<div class="lg:col-span-3 bg-white p-3.5 rounded-2xl border border-slate-200 hover:border-blue-400 focus-within:border-blue-500 transition cursor-pointer flex items-center gap-3 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="flex flex-col flex-1">
+<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Khởi hành từ</span>
+<select class="bg-transparent font-bold text-slate-900 text-sm outline-none cursor-pointer">
+<option selected="">TP. Hồ Chí Minh (SGN)</option>
+<option>Hà Nội (HAN)</option>
+<option>Đà Nẵng (DAD)</option>
+<option>Cần Thơ (VCA)</option>
+</select>
+</div>
+</div>
+<!-- Điểm đến -->
+<div class="lg:col-span-4 bg-white p-3.5 rounded-2xl border border-slate-200 hover:border-blue-400 focus-within:border-blue-500 transition cursor-text flex items-center gap-3 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="flex flex-col flex-1">
+<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bạn muốn đi đâu?</span>
+<input class="bg-transparent font-bold text-slate-900 text-sm outline-none placeholder:font-normal placeholder:text-slate-400" placeholder="Thái Lan, Nhật Bản, Châu Âu, Phú Quốc..." type="text" value="Nhật Bản mùa hoa anh đào">
+</div>
+</div>
+<!-- Ngày khởi hành -->
+<div class="lg:col-span-3 bg-white p-3.5 rounded-2xl border border-slate-200 hover:border-blue-400 focus-within:border-blue-500 transition cursor-pointer flex items-center gap-3 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="flex flex-col flex-1">
+<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Thời gian</span>
+<input class="bg-transparent font-bold text-slate-900 text-sm outline-none cursor-pointer" type="text" value="Tháng 3 - Tháng 4/2025">
+</div>
+</div>
+<!-- Nút hành động tìm kiếm -->
+<div class="lg:col-span-2">
+<button class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold p-3.5 rounded-2xl transition duration-200 shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 group active:scale-[0.98]">
+<svg class="w-5 h-5 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+<span class="">Tìm Tour</span>
+</button>
+</div>
+</div>
+<!-- Hot Keyword Tags -->
+<div class="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100 overflow-x-auto no-scrollbar">
+<span class="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center gap-1">
+<svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.544 1.05-.722 1.63a15.402 15.402 0 00-.51 2.373c-.085.666-.134 1.348-.152 2.023-.338-.287-.714-.54-1.127-.743a4.015 4.015 0 00-1.748-.415c-.443 0-.877.067-1.28.196a4.032 4.032 0 00-2.48 2.373 4.02 4.02 0 00-.23 2.193c.12.756.44 1.488.94 2.12a6.046 6.046 0 003.542 2.164c.594.133 1.203.176 1.81.128a8.03 8.03 0 003.74-1.344 8.01 8.01 0 002.668-3.085c.576-1.114.887-2.355.918-3.619.03-1.264-.22-2.522-.734-3.69a10.02 10.02 0 00-2.073-2.997 12.015 12.015 0 00-2.32-1.996z"></path></svg>
+            Gợi ý hot:
+          </span>
+<div class="flex gap-2">
+<a class="text-xs font-medium bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 px-3 py-1 rounded-full transition whitespace-nowrap" href="#">🌸 Tour Ngắm Hoa Anh Đào</a>
+<a class="text-xs font-medium bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 px-3 py-1 rounded-full transition whitespace-nowrap" href="#">🏝️ Phú Quốc Nghỉ Dưỡng 5★</a>
+<a class="text-xs font-medium bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 px-3 py-1 rounded-full transition whitespace-nowrap" href="#">🏮 Trương Gia Giới - Phượng Hoàng Cổ Trấn</a>
+<a class="text-xs font-medium bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 px-3 py-1 rounded-full transition whitespace-nowrap" href="#">🏰 Tour Tây Âu 5 Nước Mùa Xuân</a>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= 3. EXCLUSIVE VOUCHERS ================= -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mt-14">
+<div class="flex items-center justify-between mb-6">
+<div>
+<span class="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full">Đặc quyền đặt tour</span>
+<h2 class="text-2xl lg:text-3xl font-serif font-bold text-slate-900 mt-2">Mã Giảm Giá Độc Quyền</h2>
+</div>
+<a class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1" href="#">
+          Xem tất cả mã ưu đãi <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Voucher 1 -->
+<div class="relative bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-blue-50 rounded-full pointer-events-none"></div>
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center text-lg shrink-0 shadow-sm">
+              500K
+            </div>
+<div>
+<div class="inline-block bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded">Áp dụng Tour Quốc Tế</div>
+<h3 class="font-bold text-slate-900 text-base mt-1">Giảm trực tiếp 500.000đ</h3>
+<p class="text-xs text-slate-500 mt-0.5">Cho đơn hàng trực tuyến từ 20.000.000đ</p>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex items-center justify-between">
+<div>
+<span class="text-[10px] text-slate-400 block font-semibold">MÃ CODE:</span>
+<span class="font-mono font-bold text-slate-800 text-sm tracking-wider">TRAVELLER500</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition" onclick="navigator.clipboard.writeText('TRAVELLER500'); alert('Đã sao chép mã TRAVELLER500!')">
+              Sao chép
+            </button>
+</div>
+</div>
+<!-- Voucher 2 -->
+<div class="relative bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-rose-50 rounded-full pointer-events-none"></div>
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white font-bold flex items-center justify-center text-lg shrink-0 shadow-sm">
+              300K
+            </div>
+<div>
+<div class="inline-block bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded">Áp dụng Tour Trong Nước</div>
+<h3 class="font-bold text-slate-900 text-base mt-1">Giảm trực tiếp 300.000đ</h3>
+<p class="text-xs text-slate-500 mt-0.5">Cho đơn tour nội địa từ 10.000.000đ</p>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-dashed border-slate-200 flex items-center justify-between">
+<div>
+<span class="text-[10px] text-slate-400 block font-semibold">MÃ CODE:</span>
+<span class="font-mono font-bold text-slate-800 text-sm tracking-wider">TRAVELLER300</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition" onclick="navigator.clipboard.writeText('TRAVELLER300'); alert('Đã sao chép mã TRAVELLER300!')">
+              Sao chép
+            </button>
+</div>
+</div>
+<!-- Voucher 3 -->
+<div class="relative bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-lg shrink-0 shadow-sm">
+              1TR
+            </div>
+<div>
+<div class="inline-block bg-white/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded">Đặc quyền Hạng Kim Cương</div>
+<h3 class="font-bold text-white text-base mt-1">Voucher Tour Châu Âu/Mỹ</h3>
+<p class="text-xs text-slate-300 mt-0.5">Giảm 1.000.000đ khi đi nhóm từ 4 khách</p>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-dashed border-slate-700 flex items-center justify-between">
+<div>
+<span class="text-[10px] text-slate-400 block font-semibold">MÃ CODE:</span>
+<span class="font-mono font-bold text-amber-300 text-sm tracking-wider">VIPLUXURY</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition border border-white/20" onclick="navigator.clipboard.writeText('VIPLUXURY'); alert('Đã sao chép mã VIPLUXURY!')">
+              Nhận mã
+            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= 4. MAIN TOURS SHOWCASE (PREMIUM GRID) ================= -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mt-16" id="tours">
+<div class="bg-white rounded-3xl p-6 lg:p-10 shadow-sm border border-slate-200/80">
+<!-- Section Header with Filters -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between pb-6 border-b border-slate-100 gap-6">
+<div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+<span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Hành trình trải nghiệm</span>
+</div>
+<h2 class="text-2xl lg:text-4xl font-serif font-bold text-slate-900 mt-2">Tour Trọn Gói Hấp Dẫn 2025</h2>
+<p class="text-slate-500 text-sm mt-1 max-w-2xl leading-relaxed">Trải nghiệm du lịch chuyên nghiệp, tiêu chuẩn khách sạn 4-5 sao, hướng dẫn viên tận tâm suốt hành trình.</p>
+</div>
+<!-- Quick Filters Pills -->
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-white shadow-xs whitespace-nowrap">Tất cả điểm đến</button>
+<button class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition whitespace-nowrap">Miền Bắc</button>
+<button class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition whitespace-nowrap">Miền Trung</button>
+<button class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition whitespace-nowrap">Miền Nam</button>
+<button class="px-4 py-2 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition whitespace-nowrap">Tour Nước Ngoài</button>
+</div>
+</div>
+<!-- Tours 4 Columns Grid Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+<!-- TOUR CARD 1 -->
+<div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-slate-300 transition duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img alt="Đà Nẵng" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+<!-- Badges -->
+<span class="absolute top-3 left-3 bg-blue-600/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                4 Sao Cao Cấp
+              </span>
+<span class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                🌱 ESG: 80
+              </span>
+<div class="absolute bottom-3 left-3 right-3 text-white text-xs flex items-center justify-between">
+<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"></path></svg> Khởi hành: Hàng ngày</span>
+<span class="bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">Bay VNA</span>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mb-2">
+<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700">4N3Đ</span>
+<span class="">•</span>
+<span class="">Từ: TP.HCM</span>
+<span class="">•</span>
+<span class="text-amber-500 flex items-center gap-0.5">★ 4.9 (420)</span>
+</div>
+<h3 class="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-600 transition line-clamp-2">
+                Đà Nẵng - Bà Nà Hills - Cầu Vàng - Phố Cổ Hội An
+              </h3>
+<p class="text-xs text-slate-500 mt-2 line-clamp-2">
+                Khám phá đường lên tiên cảnh Bà Nà, thả đèn hoa đăng sông Hoài và thưởng thức ẩm thực xứ Quảng.
+              </p>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between">
+<div>
+<span class="text-[11px] text-slate-400 block line-through">5.590.000đ</span>
+<div class="text-rose-600 font-extrabold text-lg leading-tight">
+                    4.990.000<span class="text-xs underline">đ</span>
+</div>
+</div>
+<a href="./tour-detail.html?id=T01" class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-sm">
+                  Xem chi tiết
+                </a>
+</div>
+</div>
+</div>
+<!-- TOUR CARD 2 -->
+<div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-slate-300 transition duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img alt="Miền Tây" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+<span class="absolute top-3 left-3 bg-purple-600/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                Sinh Thái Xanh
+              </span>
+<span class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                🌱 ESG: 85
+              </span>
+<div class="absolute bottom-3 left-3 right-3 text-white text-xs flex items-center justify-between">
+<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"></path></svg> Khởi hành: T3, T5</span>
+<span class="bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">Xe Limousine</span>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mb-2">
+<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700">4N3Đ</span>
+<span class="">•</span>
+<span class="">Từ: TP.HCM</span>
+<span class="">•</span>
+<span class="text-amber-500 flex items-center gap-0.5">★ 4.8 (310)</span>
+</div>
+<h3 class="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-600 transition line-clamp-2">
+                Hành Trình Miền Tây: Châu Đốc - Rừng Tràm Trà Sư - Cần Thơ
+              </h3>
+<p class="text-xs text-slate-500 mt-2 line-clamp-2">
+                Trải nghiệm đi tắc ráng len lỏi rừng tràm, viếng Miếu Bà Chúa Xứ và chợ nổi Cái Răng rực rỡ sắc màu.
+              </p>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between">
+<div>
+<span class="text-[11px] text-slate-400 block line-through">5.200.000đ</span>
+<div class="text-rose-600 font-extrabold text-lg leading-tight">
+                    4.690.000<span class="text-xs underline">đ</span>
+</div>
+</div>
+<a href="./tour-detail.html?id=T02" class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-sm">
+                  Xem chi tiết
+                </a>
+</div>
+</div>
+</div>
+<!-- TOUR CARD 3 -->
+<div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-slate-300 transition duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img alt="Tây Bắc" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+<span class="absolute top-3 left-3 bg-rose-600/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                Săn Mây Đỉnh Cao
+              </span>
+<span class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                🌱 ESG: 90
+              </span>
+<div class="absolute bottom-3 left-3 right-3 text-white text-xs flex items-center justify-between">
+<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"></path></svg> Khởi hành: Cuối tuần</span>
+<span class="bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">Homestay Cao Cấp</span>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mb-2">
+<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700">5N4Đ</span>
+<span class="">•</span>
+<span class="">Từ: Hà Nội / TP.HCM</span>
+<span class="">•</span>
+<span class="text-amber-500 flex items-center gap-0.5">★ 4.95 (580)</span>
+</div>
+<h3 class="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-600 transition line-clamp-2">
+                Kỳ Quan Tây Bắc: Hà Nội - Mộc Châu - Tà Xùa - Sa Pa
+              </h3>
+<p class="text-xs text-slate-500 mt-2 line-clamp-2">
+                Hành trình săn biển mây bồng bềnh, chinh phục sống lưng khủng long và ngắm ruộng bậc thang kỳ vĩ.
+              </p>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between">
+<div>
+<span class="text-[11px] text-slate-400 block line-through">7.200.000đ</span>
+<div class="text-rose-600 font-extrabold text-lg leading-tight">
+                    6.590.000<span class="text-xs underline">đ</span>
+</div>
+</div>
+<a href="./tour-detail.html?id=T03" class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-sm">
+                  Xem chi tiết
+                </a>
+</div>
+</div>
+</div>
+<!-- TOUR CARD 4 -->
+<div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-slate-300 transition duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<img alt="Phú Quốc" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+<span class="absolute top-3 left-3 bg-amber-500/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                Vinpearl 5 Sao
+              </span>
+<span class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                🌱 ESG: 95
+              </span>
+<div class="absolute bottom-3 left-3 right-3 text-white text-xs flex items-center justify-between">
+<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"></path></svg> Khởi hành: Hàng ngày</span>
+<span class="bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">Bao trọn vé vui chơi</span>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mb-2">
+<span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700">3N2Đ</span>
+<span class="">•</span>
+<span class="">Từ: TP.HCM</span>
+<span class="">•</span>
+<span class="text-amber-500 flex items-center gap-0.5">★ 5.0 (720)</span>
+</div>
+<h3 class="font-bold text-slate-900 text-base leading-snug group-hover:text-blue-600 transition line-clamp-2">
+                Phú Quốc Nghỉ Dưỡng: Grand World - VinWonders &amp; Safari 5 Sao
+              </h3>
+<p class="text-xs text-slate-500 mt-2 line-clamp-2">
+                Tận hưởng kỳ nghỉ biển thiên đường, cano 4 đảo câu cá lặn ngắm san hô và show diễn Tinh Hoa Việt Nam.
+              </p>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between">
+<div>
+<span class="text-[11px] text-slate-400 block line-through">9.800.000đ</span>
+<div class="text-rose-600 font-extrabold text-lg leading-tight">
+                    8.990.000<span class="text-xs underline">đ</span>
+</div>
+</div>
+<a href="./tour-detail.html?id=T04" class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-sm">
+                  Xem chi tiết
+                </a>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination or View More -->
+<div class="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+<p class="text-xs text-slate-500 font-medium">Hiển thị <span class="font-bold text-slate-800">4 / 158</span> hành trình du lịch mới nhất</p>
+<a class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white px-8 py-3 rounded-full text-xs font-bold transition shadow-sm" href="./danh-sach-tour.html">
+<span class="">Khám phá thêm tất cả tour</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+</div>
+</div>
+</section>
+<!-- ================= 5. LAST MINUTE FLASH DEALS ================= -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mt-16">
+<div class="bg-gradient-to-br from-rose-600 via-rose-700 to-red-800 rounded-3xl p-6 lg:p-10 text-white shadow-2xl relative overflow-hidden">
+<!-- Glow pattern decor -->
+<div class="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 relative z-10 gap-4">
+<div>
+<div class="inline-flex items-center gap-2 bg-black/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-amber-300 text-xs font-bold tracking-wide uppercase border border-white/10">
+<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Flash Sale Trong Ngày
+            </div>
+<h2 class="text-3xl lg:text-4xl font-serif font-bold text-white mt-3">Ưu Đãi Giờ Chót - Giá Tốt Nhất</h2>
+<p class="text-rose-100 text-sm mt-1 max-w-xl">Cơ hội săn vé tour quốc tế phút chót với mức giảm tới 35%, số lượng chỗ có hạn!</p>
+</div>
+<!-- Countdown timer mockup -->
+<div class="flex items-center gap-2 bg-black/30 backdrop-blur-md p-3 rounded-2xl border border-white/10">
+<span class="text-xs text-rose-200 font-semibold uppercase pr-2 border-r border-white/20">Kết thúc sau:</span>
+<div class="flex gap-1.5 text-center font-mono">
+<span class="bg-white text-rose-700 font-extrabold px-2 py-1 rounded text-sm">13</span>
+<span class="font-bold">:</span>
+<span class="bg-white text-rose-700 font-extrabold px-2 py-1 rounded text-sm">03</span>
+<span class="font-bold">:</span>
+<span class="bg-white text-rose-700 font-extrabold px-2 py-1 rounded text-sm">10</span>
+</div>
+</div>
+</div>
+<!-- Deals Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+<!-- Flash Deal 1 -->
+<div class="bg-white text-slate-900 rounded-2xl overflow-hidden flex flex-col shadow-lg group hover:-translate-y-1 transition duration-300">
+<div class="relative h-44 overflow-hidden">
+<span class="absolute top-2.5 left-2.5 bg-rose-600 text-white text-[10px] font-black px-2 py-1 rounded-md z-10 shadow-sm">
+                GIẢM 1.000.000đ
+              </span>
+<img alt="Singapore" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                Singapore - Malaysia: Đêm Nghỉ Tại Marina Bay Sands &amp; Sentosa
+              </h3>
+<div class="flex justify-between items-center text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
+<span class="">Khởi hành: <b class="text-slate-800">29/09</b></span>
+<span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded">Còn 5 chỗ</span>
+</div>
+<div class="mt-auto pt-2 border-t border-slate-100 flex items-end justify-between">
+<div>
+<p class="text-[11px] text-slate-400 line-through">16.490.000đ</p>
+<p class="text-rose-600 font-extrabold text-base leading-none">15.490.000<span class="text-xs">đ</span></p>
+</div>
+<button class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm">
+                  Đặt chỗ
+                </button>
+</div>
+</div>
+</div>
+<!-- Flash Deal 2 -->
+<div class="bg-white text-slate-900 rounded-2xl overflow-hidden flex flex-col shadow-lg group hover:-translate-y-1 transition duration-300">
+<div class="relative h-44 overflow-hidden">
+<span class="absolute top-2.5 left-2.5 bg-rose-600 text-white text-[10px] font-black px-2 py-1 rounded-md z-10 shadow-sm">
+                GIẢM 1.800.000đ
+              </span>
+<img alt="Thái Lan" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                Siêu Sale Thái Lan: Bangkok - Pattaya - Đảo San Hô Coral
+              </h3>
+<div class="flex justify-between items-center text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
+<span class="">Khởi hành: <b class="text-slate-800">15/10</b></span>
+<span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded">Còn 2 chỗ</span>
+</div>
+<div class="mt-auto pt-2 border-t border-slate-100 flex items-end justify-between">
+<div>
+<p class="text-[11px] text-slate-400 line-through">8.990.000đ</p>
+<p class="text-rose-600 font-extrabold text-base leading-none">7.190.000<span class="text-xs">đ</span></p>
+</div>
+<button class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm">
+                  Đặt chỗ
+                </button>
+</div>
+</div>
+</div>
+<!-- Flash Deal 3 -->
+<div class="bg-white text-slate-900 rounded-2xl overflow-hidden flex flex-col shadow-lg group hover:-translate-y-1 transition duration-300">
+<div class="relative h-44 overflow-hidden">
+<span class="absolute top-2.5 left-2.5 bg-rose-600 text-white text-[10px] font-black px-2 py-1 rounded-md z-10 shadow-sm">
+                GIẢM 2.500.000đ
+              </span>
+<img alt="Nhật Bản" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                Nhật Bản: Tokyo - Núi Phú Sĩ - Làng Cổ Oshino Hakkai 5N5Đ
+              </h3>
+<div class="flex justify-between items-center text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
+<span class="">Khởi hành: <b class="text-slate-800">24/10</b></span>
+<span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded">Còn 3 chỗ</span>
+</div>
+<div class="mt-auto pt-2 border-t border-slate-100 flex items-end justify-between">
+<div>
+<p class="text-[11px] text-slate-400 line-through">32.990.000đ</p>
+<p class="text-rose-600 font-extrabold text-base leading-none">30.490.000<span class="text-xs">đ</span></p>
+</div>
+<button class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm">
+                  Đặt chỗ
+                </button>
+</div>
+</div>
+</div>
+<!-- Flash Deal 4 -->
+<div class="bg-white text-slate-900 rounded-2xl overflow-hidden flex flex-col shadow-lg group hover:-translate-y-1 transition duration-300">
+<div class="relative h-44 overflow-hidden">
+<span class="absolute top-2.5 left-2.5 bg-rose-600 text-white text-[10px] font-black px-2 py-1 rounded-md z-10 shadow-sm">
+                GIẢM 3.000.000đ
+              </span>
+<img alt="Ý - Pháp - Thuỵ Sĩ" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                Châu Âu Cổ Kính: Pháp - Thụy Sĩ - Ý (Tặng Vé Du Thuyền Sông Seine)
+              </h3>
+<div class="flex justify-between items-center text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
+<span class="">Khởi hành: <b class="text-slate-800">05/11</b></span>
+<span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded">Còn 4 chỗ</span>
+</div>
+<div class="mt-auto pt-2 border-t border-slate-100 flex items-end justify-between">
+<div>
+<p class="text-[11px] text-slate-400 line-through">65.900.000đ</p>
+<p class="text-rose-600 font-extrabold text-base leading-none">62.900.000<span class="text-xs">đ</span></p>
+</div>
+<button class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-sm">
+                  Đặt chỗ
+                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= 6. REFINED SMART MOBILE APP DOWNLOAD ================= -->
+<section class="max-w-7xl mx-auto px-4 lg:px-8 mt-20">
+<div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl bg-gradient-to-br from-[#0B2545] via-[#134074] to-[#0A1128] border border-blue-900/50">
+<div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col lg:flex-row items-center relative z-10">
+<!-- LEFT CONTENT -->
+<div class="w-full lg:w-3/5 p-8 lg:p-14 text-white">
+<span class="inline-flex items-center gap-2 px-3.5 py-1 mb-5 rounded-full text-xs font-bold tracking-wider uppercase bg-white/10 backdrop-blur-md border border-white/20 text-amber-300">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Ứng dụng Traveller Super App
+            </span>
+<h2 class="text-3xl md:text-5xl font-serif font-bold mb-4 leading-tight">
+              Toàn bộ thế giới trong <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-100">tầm tay của bạn</span>
+</h2>
+<p class="text-slate-300 text-base mb-8 max-w-xl font-light leading-relaxed">
+              Tải ngay ứng dụng Traveller để quản lý vé điện tử, nhận thông báo giờ chót, tra cứu lịch trình offline và tích điểm hạng thẻ VIP trọn đời.
+            </p>
+<!-- Features List with Clean Check Icons -->
+<ul class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-sm text-slate-200">
+<li class="flex items-center gap-3">
+<span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+<span class="">Thông báo tour Flash Sale phút chót</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+<span class="">Lưu trữ vé máy bay &amp; bảo hiểm không cần mạng</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+<span class="">Tích luỹ điểm đổi quà tặng khách sạn</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+<span class="">Tổng đài CSKH khẩn cấp 24/7 toàn cầu</span>
+</li>
+</ul>
+<!-- QR & Download Buttons Box -->
+<div class="flex flex-wrap items-center gap-6 p-5 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl w-fit shadow-xl">
+<div class="bg-white p-2 rounded-xl shadow-inner shrink-0">
+<img alt="QR Code" class="w-20 h-20 rounded" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<span class="block text-[9px] text-slate-600 font-bold text-center mt-1">QUÉT MÃ TẢI APP</span>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex gap-6 items-center">
+<div>
+<span class="text-2xl font-bold block text-white">1.8M+</span>
+<span class="text-[10px] text-blue-200 uppercase tracking-wider font-semibold">Tải xuống</span>
+</div>
+<div class="w-px h-8 bg-white/20"></div>
+<div>
+<span class="text-2xl font-bold flex items-center gap-1 text-amber-300">4.8 <span class="text-sm">★</span></span>
+<span class="text-[10px] text-blue-200 uppercase tracking-wider font-semibold">App Store &amp; Google</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-2.5">
+<button class="bg-slate-900/90 hover:bg-black text-white px-4 py-2 rounded-xl flex items-center gap-2.5 transition border border-white/20 hover:-translate-y-0.5">
+<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.26-.74 3.58-.8 1.48-.05 2.76.51 3.56 1.43-3.15 1.73-2.6 5.86.36 7.15-.69 1.7-1.55 3.42-2.58 4.39zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.3 2.4-2.03 4.29-3.74 4.25z"></path></svg>
+<div class="text-left leading-tight"><span class="text-[9px] text-slate-400 block">Tải trên</span><span class="font-bold text-xs">App Store</span></div>
+</button>
+<button class="bg-slate-900/90 hover:bg-black text-white px-4 py-2 rounded-xl flex items-center gap-2.5 transition border border-white/20 hover:-translate-y-0.5">
+<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 20.5v-17c0-.83.67-1.5 1.5-1.5.38 0 .74.15 1.01.42l11.07 11.07c.56.56.56 1.46 0 2.02l-11.07 11.07A1.42 1.42 0 014.5 22 1.5 1.5 0 013 20.5z"></path></svg>
+<div class="text-left leading-tight"><span class="text-[9px] text-slate-400 block">Khám phá trên</span><span class="font-bold text-xs">Google Play</span></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PHONE MOCKUPS (Fixed clean layout) -->
+<div class="w-full lg:w-2/5 relative h-[420px] hidden md:flex items-center justify-center p-6">
+<div class="relative w-64 h-[380px] bg-slate-900 rounded-[2.5rem] border-[6px] border-slate-700 shadow-2xl overflow-hidden transform -rotate-3 hover:rotate-0 transition duration-500">
+<div class="absolute top-0 inset-x-0 h-4 bg-slate-800 rounded-b-xl w-24 mx-auto z-20"></div>
+<img alt="App Screen" class="w-full h-full object-cover" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg">
+<!-- Floating Alert Badge -->
+<div class="absolute bottom-5 inset-x-4 bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-white/50 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+</div>
+<div>
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Đặt tour thành công</span>
+<span class="text-xs font-bold text-slate-800">Phú Quốc 3N2Đ - 8.990.000đ</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- ================= 7. FOOTER CHUẨN VIETRAVEL / LUXURY ================= -->
+<footer class="bg-white border-t border-slate-200 pt-16 pb-12">
+<div class="max-w-7xl mx-auto px-4 lg:px-8">
+<!-- 4 Columns Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+<!-- Cột 1: Thông tin công ty & Liên hệ -->
+<div class="space-y-4">
+<div class="flex items-center font-serif text-3xl font-extrabold tracking-tight">
+<span class="text-[#0B2545]">Travel</span>
+<span class="text-[#0B2545]">l</span>
+<span class="text-[#EE4266]">e</span>
+<span class="text-[#0B2545]">r</span>
+</div>
+<p class="text-xs font-bold text-slate-400 tracking-widest uppercase">YOUR JOURNEY - YOUR VALUE</p>
+<h4 class="font-bold text-slate-900 text-sm">Công ty Cổ phần Du Lịch Traveller Team</h4>
+<ul class="text-xs text-slate-600 space-y-2.5">
+<li class="flex items-start gap-2.5">
+<svg class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">190 Pasteur, Phường Xuân Hòa, Quận 3, TP. Hồ Chí Minh</span>
+</li>
+<li class="flex items-center gap-2.5">
+<svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="">contact@traveller.com.vn</span>
+</li>
+</ul>
+<div class="pt-2">
+<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-600 to-red-600 text-white font-bold text-xs shadow-md shadow-rose-500/20 hover:opacity-95 transition" href="tel:1800646888">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.036 11.036 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg>
+<span class="">Hotline: 1800 646 888 (24/7)</span>
+</a>
+</div>
+</div>
+<!-- Cột 2: THÔNG TIN DỊCH VỤ -->
+<div>
+<h4 class="font-bold text-slate-900 mb-4 uppercase text-xs tracking-wider">THÔNG TIN HÀNH TRÌNH</h4>
+<ul class="text-xs space-y-3 text-slate-600 font-medium">
+<li class=""><a class="hover:text-blue-600 transition" href="#">Về Traveller Team</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Khảo sát &amp; Hỗ trợ Visa Quốc Tế</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Cẩm nang &amp; Kinh nghiệm du lịch</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Bảo hiểm du lịch toàn diện</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Hệ thống văn phòng toàn quốc</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Chính sách cam kết chất lượng</a></li>
+</ul>
+</div>
+<!-- Cột 3: ĐIỀU KHOẢN & BẢO MẬT -->
+<div>
+<h4 class="font-bold text-slate-900 mb-4 uppercase text-xs tracking-wider">ĐIỀU KIỆN &amp; CHÍNH SÁCH</h4>
+<ul class="text-xs space-y-3 text-slate-600 font-medium">
+<li class=""><a class="hover:text-blue-600 transition" href="#">Chính sách riêng tư và bảo mật</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Điều khoản sử dụng &amp; Đặt tour</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Chính sách hoàn tiền &amp; Huỷ chuyến</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Chương trình Khách hàng thân thiết</a></li>
+<li class=""><a class="hover:text-blue-600 transition" href="#">Quy chuẩn ứng xử văn minh du lịch</a></li>
+</ul>
+</div>
+<!-- Cột 4: CHẤP NHẬN THANH TOÁN & BẢO MẬT -->
+<div>
+<h4 class="font-bold text-slate-900 mb-4 uppercase text-xs tracking-wider">CHẤP NHẬN THANH TOÁN</h4>
+<div class="grid grid-cols-4 gap-2">
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-black text-blue-800 text-[11px]">VISA</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-black text-red-600 text-[10px]">MasterCard</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-bold text-blue-600 text-[10px]">VNPAY</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-bold text-pink-600 text-[10px]">MoMo</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-bold text-green-700 text-[11px]">JCB</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-bold text-blue-500 text-[10px]">ZaloPay</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-bold text-blue-900 text-[8px] text-center">AMEX</div>
+<div class="border border-slate-200 rounded-lg h-9 flex items-center justify-center p-1 bg-white shadow-2xs font-bold text-emerald-600 text-[9px] text-center">256-BIT SSL</div>
+</div>
+<div class="mt-6">
+<h5 class="text-xs font-bold text-slate-900 mb-2">Kết nối cùng chúng tôi:</h5>
+<div class="flex gap-2">
+<a class="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white flex items-center justify-center text-slate-600 transition" href="#">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg>
+</a>
+<a class="w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-600 hover:text-white flex items-center justify-center text-slate-600 transition" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect height="20" rx="5" ry="5" width="20" x="2" y="2"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01"></path></svg>
+</a>
+<a class="w-8 h-8 rounded-full bg-slate-100 hover:bg-red-600 hover:text-white flex items-center justify-center text-slate-600 transition" href="#">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Copyright -->
+<div class="mt-12 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+<p class="">© 2025 Traveller Team. Giấy phép kinh doanh Lữ hành Quốc tế số 79-021/2024/TCDL-GPLHNQT.</p>
+<div class="flex gap-4">
+<a class="hover:text-slate-600" href="#">Điều khoản</a>
+<a class="hover:text-slate-600" href="#">Bảo mật</a>
+<a class="hover:text-slate-600" href="#">Sitemap</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- ================= MODAL ĐĂNG NHẬP (CLEAN & WORKING) ================= -->
+<div class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" id="loginModal">
+<div class="bg-white rounded-3xl max-w-md w-full p-8 relative shadow-2xl animate-fade-in border border-slate-100">
+<button class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full p-2 transition" onclick="document.getElementById('loginModal').classList.add('hidden')">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<div class="text-center mb-6">
+<div class="flex items-center justify-center font-serif text-2xl font-extrabold tracking-tight mb-1">
+<span class="text-[#0B2545]">Travel</span>
+<span class="text-[#0B2545]">l</span>
+<span class="text-[#EE4266]">e</span>
+<span class="text-[#0B2545]">r</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 font-serif">Đăng nhập tài khoản</h3>
+<p class="text-xs text-slate-500 mt-1">Đăng nhập để nhận mã giảm giá thành viên và tích luỹ điểm</p>
+</div>
+<form class="space-y-4" onsubmit="event.preventDefault(); alert('Đăng nhập thành công!'); document.getElementById('loginModal').classList.add('hidden');">
+<div>
+<label class="text-xs font-bold text-slate-700 block mb-1">Số điện thoại hoặc Email</label>
+<input class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition" placeholder="name@example.com hoặc 090..." required="" type="text">
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="text-xs font-bold text-slate-700 block">Mật khẩu</label>
+<a class="text-[11px] text-blue-600 hover:underline" href="#">Quên mật khẩu?</a>
+</div>
+<input class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition" placeholder="••••••••" required="" type="password">
+</div>
+<button class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition active:scale-[0.99] text-sm" type="submit">
+          Đăng nhập ngay
+        </button>
+</form>
+<div class="mt-6 text-center text-xs text-slate-500">
+        Chưa có tài khoản? <a class="text-blue-600 font-bold hover:underline" href="#">Đăng ký thành viên mới</a>
+</div>
+</div>
+</div>
+
+
+
+</body></html>
