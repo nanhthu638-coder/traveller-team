@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8f3" />
+    <meta name="description" content="Traveller Team hỗ trợ bạn lên kế hoạch cho những chuyến đi đáng nhớ." />
+    <title>Traveller Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="m-0 bg-paper font-sans text-ink antialiased">
+    <header class="site-header flex min-h-[78px] items-center justify-between gap-7 bg-paper px-[7.1%]">
+      <a class="brand inline-flex shrink-0 items-center gap-3" href="#home" aria-label="Traveller Team, về đầu trang">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span><span></span>
+      </button>
+      <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
+        <a href="#home">Trang chủ</a>
+        <a href="#tours">Hành trình</a>
+        <a href="#contact">Liên hệ &amp; thắc mắc</a>
+        <button class="nav-auth" type="button" data-open-auth>Đăng nhập</button>
+        <button class="nav-signup" type="button" data-open-auth data-auth-mode="register">Tạo tài khoản <span aria-hidden="true">↗</span></button>
+        <button class="nav-user" type="button" hidden aria-label="Đăng xuất"></button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero relative h-[min(53vw,580px)] min-h-[470px] max-h-[580px] overflow-hidden bg-[#537365] text-white" id="home" aria-labelledby="hero-title">
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-content absolute left-[12.2%] top-1/2 max-w-[620px]">
+          <p class="eyebrow"><span></span> Đi chậm, cảm nhận nhiều hơn</p>
+          <h1 class="m-0 font-display text-[clamp(46px,6.4vw,82px)] font-medium leading-[1.08]">Traveller Team</h1>
+          <p class="hero-copy">Mỗi chuyến đi bắt đầu từ một câu hỏi nhỏ.<br />Tụi mình ở đây để cùng bạn tìm câu trả lời.</p>
+          <form class="hero-search" id="hero-search" role="search">
+          <input name="q" type="search" placeholder="Bạn muốn đi đâu? Hạ Long, Hội An, Đà Lạt..." aria-label="Tìm tour theo tên hoặc địa điểm" maxlength="100" autocomplete="off" />
+          <button type="submit">Tìm tour <span aria-hidden="true">↗</span></button>
+        </form>
+        <a class="hero-link inline-flex items-center gap-4" href="#contact">Kể tụi mình nghe nhé <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-caption absolute bottom-[27px] left-[7.1%] right-[7.1%] flex justify-between">
+          <span>01 / 03</span><span>VIỆT NAM, THEO CÁCH CỦA BẠN</span>
+        </div>
+      </section>
+
+      <section class="tours-section px-[12.2%] py-[92px]" id="tours" aria-labelledby="tours-title">
+        <div class="tours-head">
+          <div>
+            <p class="eyebrow eyebrow-dark"><span></span> Khám phá hành trình</p>
+            <h2 class="m-0 font-display text-[clamp(34px,4vw,48px)] font-medium leading-[1.17]" id="tours-title">Tìm chuyến đi<br />dành cho bạn</h2>
+          </div>
+          <p class="intro-copy">Tìm theo tên hoặc địa điểm, rồi lọc theo ngân sách và ngày khởi hành mong muốn.</p>
+        </div>
+
+        <form class="tour-filter" id="tour-filter" role="search" novalidate>
+          <label class="tour-search">
+            <span class="sr-only">Tìm tour theo tên hoặc địa điểm</span>
+            <input name="q" type="search" placeholder="Tên tour hoặc địa điểm, ví dụ: Hạ Long" maxlength="100" autocomplete="off" />
+          </label>
+          <div class="tour-filter-grid">
+            <fieldset>
+              <legend>Khoảng giá (VND)</legend>
+              <div class="price-chips">
+                <button type="button" class="chip" data-min="" data-max="2000000">Dưới 2 triệu</button>
+                <button type="button" class="chip" data-min="2000000" data-max="4000000">2 – 4 triệu</button>
+                <button type="button" class="chip" data-min="4000000" data-max="6000000">4 – 6 triệu</button>
+                <button type="button" class="chip" data-min="6000000" data-max="">Trên 6 triệu</button>
+              </div>
+              <div class="range-row">
+                <input name="minPrice" type="number" min="0" step="100000" inputmode="numeric" placeholder="Từ" aria-label="Giá tối thiểu" />
+                <span aria-hidden="true">–</span>
+                <input name="maxPrice" type="number" min="0" step="100000" inputmode="numeric" placeholder="Đến" aria-label="Giá tối đa" />
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Ngày khởi hành</legend>
+              <div class="range-row range-dates">
+                <label>Từ ngày<input name="from" type="date" /></label>
+                <span aria-hidden="true">–</span>
+                <label>Đến ngày<input name="to" type="date" /></label>
+              </div>
+            </fieldset>
+          </div>
+          <p class="filter-error" id="tour-filter-error" role="alert"></p>
+
+          <div class="tour-results-bar">
+            <p id="tour-count" role="status" aria-live="polite"></p>
+            <div class="tour-results-actions">
+              <button class="reset-button" id="tour-reset" type="button" hidden>Xóa bộ lọc</button>
+              <label class="sort-label">Sắp xếp
+                <select name="sort">
+                  <option value="default">Mặc định</option>
+                  <option value="price-asc">Giá thấp → cao</option>
+                  <option value="price-desc">Giá cao → thấp</option>
+                  <option value="date-asc">Khởi hành sớm nhất</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </form>
+
+        <div class="tour-grid" id="tour-list" aria-busy="true"></div>
+        <div class="tour-empty" id="tour-empty" hidden>
+          <strong>Không tìm thấy hành trình phù hợp</strong>
+          <span>Hãy thử đổi từ khóa, nới rộng khoảng giá hoặc chọn khoảng ngày khác.</span>
+          <button class="submit-button" id="tour-empty-reset" type="button">Xóa bộ lọc</button>
+        </div>
+        <p class="form-status" id="tour-notice" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="contact-section grid grid-cols-[minmax(250px,.83fr)_minmax(440px,1.17fr)] items-start gap-[9vw] px-[12.2%] py-[92px]" id="contact" aria-labelledby="contact-title">
+        <div class="section-intro">
+          <p class="eyebrow eyebrow-dark"><span></span> Tụi mình luôn lắng nghe</p>
+          <h2 class="m-0 font-display text-[clamp(34px,4vw,48px)] font-medium leading-[1.17]">Bạn đang nghĩ<br />đến chuyến đi nào?</h2>
+          <p class="intro-copy">Để lại lời nhắn hoặc câu hỏi. Đội ngũ Traveller Team sẽ liên hệ với bạn sớm nhất có thể.</p>
+          <div class="contact-details mt-[34px] grid gap-[18px] text-xs">
+            <a href="mailto:hello@travellerteam.vn"><span class="detail-label">Email</span>hello@travellerteam.vn</a>
+            <div><span class="detail-label">Thời gian hỗ trợ</span>Thứ Hai – Thứ Bảy, 08:30 – 17:30</div>
+          </div>
+        </div>
+
+        <form class="contact-form" id="contact-form">
+          <div class="form-heading"><span>01</span><p>Gửi lời nhắn cho Traveller Team</p></div>
+          <div class="form-row grid grid-cols-2 gap-[18px]">
+            <label>Họ và tên<input name="name" type="text" autocomplete="name" placeholder="Tên của bạn" required maxlength="80" /></label>
+            <label>Email<input name="email" type="email" autocomplete="email" placeholder="ban@email.com" required maxlength="120" /></label>
+          </div>
+          <label>Bạn cần hỗ trợ về<select name="topic" required>
+            <option value="" disabled selected>Chọn một chủ đề</option>
+            <option value="Tư vấn chuyến đi">Tư vấn chuyến đi</option>
+            <option value="Câu hỏi chung">Câu hỏi chung</option>
+            <option value="Góp ý dịch vụ">Góp ý dịch vụ</option>
+            <option value="Khác">Khác</option>
+          </select></label>
+          <label>Lời nhắn<textarea name="message" rows="4" placeholder="Chia sẻ câu hỏi hoặc điều bạn đang cần nhé..." required minlength="10" maxlength="2000"></textarea></label>
+          <div class="form-footer flex items-center justify-between gap-5">
+            <p class="privacy-note">Thông tin chỉ dùng để phản hồi lời nhắn của bạn.</p>
+            <button class="submit-button" type="submit">Gửi lời nhắn <span aria-hidden="true">↗</span></button>
+          </div>
+          <p class="form-status" id="contact-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer flex min-h-[94px] items-center justify-between gap-5 border-t border-line px-[7.1%] py-5">
+      <a class="brand brand-footer inline-flex items-center gap-3" href="#home"><span class="brand-mark" aria-hidden="true"><span></span></span><span class="brand-name font-display">Traveller<span>Team</span></span></a>
+      <p>Đi xa để thấy gần hơn.</p>
+      <span class="footer-note">© 2026 Traveller Team</span>
+    </footer>
+
+    <dialog class="auth-dialog relative w-[min(440px,calc(100%-32px))] max-h-[90vh] overflow-auto" id="auth-dialog" aria-labelledby="auth-title">
+      <button class="dialog-close" type="button" aria-label="Đóng">×</button>
+      <div class="auth-mark"><span class="brand-mark" aria-hidden="true"><span></span></span></div>
+      <p class="eyebrow eyebrow-dark"><span></span> Chào mừng bạn</p>
+      <h2 class="m-0 font-display text-[34px] font-medium" id="auth-title">Đăng nhập</h2>
+      <p class="auth-intro" id="auth-description">Đăng nhập để tiếp tục cùng Traveller Team.</p>
+      <div class="auth-tabs grid grid-cols-2" role="tablist" aria-label="Chọn hình thức tài khoản">
+        <button type="button" role="tab" aria-selected="true" data-auth-mode="login">Đăng nhập</button>
+        <button type="button" role="tab" aria-selected="false" data-auth-mode="register">Tạo tài khoản</button>
+      </div>
+      <form id="auth-form">
+        <label class="register-only" hidden>Họ và tên<input name="name" type="text" autocomplete="name" placeholder="Tên của bạn" maxlength="80" /></label>
+        <label>Email<input name="email" type="email" autocomplete="email" placeholder="ban@email.com" required maxlength="120" /></label>
+        <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /></label>
+        <label class="register-only" hidden>Nhập lại mật khẩu<input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /></label>
+        <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
+        <button class="submit-button auth-submit w-full" type="submit">Đăng nhập <span aria-hidden="true">↗</span></button>
+      </form>
+      <p class="demo-note">Mật khẩu được băm và lưu an toàn trên máy chủ.</p>
+    </dialog>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
