@@ -21,6 +21,7 @@
       </button>
       <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
         <a href="#home">Trang chủ</a>
+        <a href="#tours">Hành trình</a>
         <a href="#contact">Liên hệ &amp; thắc mắc</a>
         <button class="nav-auth" type="button" data-open-auth>Đăng nhập</button>
         <button class="nav-signup" type="button" data-open-auth data-auth-mode="register">Tạo tài khoản <span aria-hidden="true">↗</span></button>
@@ -35,11 +36,80 @@
           <p class="eyebrow"><span></span> Đi chậm, cảm nhận nhiều hơn</p>
           <h1 class="m-0 font-display text-[clamp(46px,6.4vw,82px)] font-medium leading-[1.08]">Traveller Team</h1>
           <p class="hero-copy">Mỗi chuyến đi bắt đầu từ một câu hỏi nhỏ.<br />Tụi mình ở đây để cùng bạn tìm câu trả lời.</p>
-          <a class="hero-link inline-flex items-center gap-4" href="#contact">Kể tụi mình nghe nhé <span aria-hidden="true">↓</span></a>
+          <form class="hero-search" id="hero-search" role="search">
+          <input name="q" type="search" placeholder="Bạn muốn đi đâu? Hạ Long, Hội An, Đà Lạt..." aria-label="Tìm tour theo tên hoặc địa điểm" maxlength="100" autocomplete="off" />
+          <button type="submit">Tìm tour <span aria-hidden="true">↗</span></button>
+        </form>
+        <a class="hero-link inline-flex items-center gap-4" href="#contact">Kể tụi mình nghe nhé <span aria-hidden="true">↓</span></a>
         </div>
         <div class="hero-caption absolute bottom-[27px] left-[7.1%] right-[7.1%] flex justify-between">
           <span>01 / 03</span><span>VIỆT NAM, THEO CÁCH CỦA BẠN</span>
         </div>
+      </section>
+
+      <section class="tours-section px-[12.2%] py-[92px]" id="tours" aria-labelledby="tours-title">
+        <div class="tours-head">
+          <div>
+            <p class="eyebrow eyebrow-dark"><span></span> Khám phá hành trình</p>
+            <h2 class="m-0 font-display text-[clamp(34px,4vw,48px)] font-medium leading-[1.17]" id="tours-title">Tìm chuyến đi<br />dành cho bạn</h2>
+          </div>
+          <p class="intro-copy">Tìm theo tên hoặc địa điểm, rồi lọc theo ngân sách và ngày khởi hành mong muốn.</p>
+        </div>
+
+        <form class="tour-filter" id="tour-filter" role="search" novalidate>
+          <label class="tour-search">
+            <span class="sr-only">Tìm tour theo tên hoặc địa điểm</span>
+            <input name="q" type="search" placeholder="Tên tour hoặc địa điểm, ví dụ: Hạ Long" maxlength="100" autocomplete="off" />
+          </label>
+          <div class="tour-filter-grid">
+            <fieldset>
+              <legend>Khoảng giá (VND)</legend>
+              <div class="price-chips">
+                <button type="button" class="chip" data-min="" data-max="2000000">Dưới 2 triệu</button>
+                <button type="button" class="chip" data-min="2000000" data-max="4000000">2 – 4 triệu</button>
+                <button type="button" class="chip" data-min="4000000" data-max="6000000">4 – 6 triệu</button>
+                <button type="button" class="chip" data-min="6000000" data-max="">Trên 6 triệu</button>
+              </div>
+              <div class="range-row">
+                <input name="minPrice" type="number" min="0" step="100000" inputmode="numeric" placeholder="Từ" aria-label="Giá tối thiểu" />
+                <span aria-hidden="true">–</span>
+                <input name="maxPrice" type="number" min="0" step="100000" inputmode="numeric" placeholder="Đến" aria-label="Giá tối đa" />
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Ngày khởi hành</legend>
+              <div class="range-row range-dates">
+                <label>Từ ngày<input name="from" type="date" /></label>
+                <span aria-hidden="true">–</span>
+                <label>Đến ngày<input name="to" type="date" /></label>
+              </div>
+            </fieldset>
+          </div>
+          <p class="filter-error" id="tour-filter-error" role="alert"></p>
+
+          <div class="tour-results-bar">
+            <p id="tour-count" role="status" aria-live="polite"></p>
+            <div class="tour-results-actions">
+              <button class="reset-button" id="tour-reset" type="button" hidden>Xóa bộ lọc</button>
+              <label class="sort-label">Sắp xếp
+                <select name="sort">
+                  <option value="default">Mặc định</option>
+                  <option value="price-asc">Giá thấp → cao</option>
+                  <option value="price-desc">Giá cao → thấp</option>
+                  <option value="date-asc">Khởi hành sớm nhất</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </form>
+
+        <div class="tour-grid" id="tour-list" aria-busy="true"></div>
+        <div class="tour-empty" id="tour-empty" hidden>
+          <strong>Không tìm thấy hành trình phù hợp</strong>
+          <span>Hãy thử đổi từ khóa, nới rộng khoảng giá hoặc chọn khoảng ngày khác.</span>
+          <button class="submit-button" id="tour-empty-reset" type="button">Xóa bộ lọc</button>
+        </div>
+        <p class="form-status" id="tour-notice" role="status" aria-live="polite"></p>
       </section>
 
       <section class="contact-section grid grid-cols-[minmax(250px,.83fr)_minmax(440px,1.17fr)] items-start gap-[9vw] px-[12.2%] py-[92px]" id="contact" aria-labelledby="contact-title">

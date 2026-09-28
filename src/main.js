@@ -1,9 +1,11 @@
 import "./style.css";
 import { initAuth } from "./features/auth.js";
 import { initContact } from "./features/contact.js";
+import { initTours } from "./features/tours.js";
 
 initAuth();
 initContact();
+initTours();
 
 const menuButton = document.querySelector(".menu-toggle");
 const navigation = document.querySelector(".site-nav");
