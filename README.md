@@ -1,5 +1,7 @@
 # Traveller Team
 
+Môn học: Congnghephanmem_NângCao
+
 Website du lịch tiếng Việt, dùng Tailwind CSS cho giao diện, Vite cho môi trường phát triển và Node.js/Express cho API.
 
 ## Chạy dự án
