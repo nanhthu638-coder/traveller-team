@@ -165,13 +165,15 @@
       <form id="auth-form">
         <label class="register-only" hidden>Họ và tên<input name="name" type="text" autocomplete="name" placeholder="Tên của bạn" maxlength="80" /></label>
         <label>Email<input name="email" type="email" autocomplete="email" placeholder="ban@email.com" required maxlength="120" /></label>
-        <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /></label>
-        <label class="register-only" hidden>Nhập lại mật khẩu<input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /></label>
+        <label>Mật khẩu<span class="password-field"><input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+        <label class="register-only" hidden>Nhập lại mật khẩu<span class="password-field"><input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
         <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
         <button class="submit-button auth-submit w-full" type="submit">Đăng nhập <span aria-hidden="true">↗</span></button>
       </form>
       <p class="demo-note">Mật khẩu được băm và lưu an toàn trên máy chủ.</p>
     </dialog>
+
+    <p class="auth-toast" id="auth-notice" role="status" aria-live="polite" hidden></p>
 
     <script type="module" src="/src/main.js"></script>
   </body>

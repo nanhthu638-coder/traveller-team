@@ -92,10 +92,6 @@ app.post("/api/auth/register", async (request, response, next) => {
 		const user = { id: randomUUID(), name, email, salt, hash, createdAt: new Date().toISOString() };
 		store.users.push(user);
 		await persistStore();
-
-		const token = randomBytes(32).toString("hex");
-		sessions.set(token, user.id);
-		setSessionCookie(response, token);
 		return response.status(201).json({ user: publicUser(user) });
 	} catch (error) {
 		return next(error);
