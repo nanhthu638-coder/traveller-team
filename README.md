@@ -19,32 +19,28 @@ Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localh
 
 - Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
 - Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
-<<<<<<< HEAD
-=======
-- Xem trang chủ với danh sách hành trình; tìm tour theo từ khóa (tên, địa điểm, không phân biệt dấu) và lọc theo khoảng giá, ngày khởi hành (kết hợp được với nhau, có sắp xếp).
->>>>>>> 46e42b6c0215400cef442b465e70110233442175
+- Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
 - Lưu tài khoản và lời nhắn trong tệp JSON cục bộ tại `server/data/app-data.json`.
 
 ## Cấu trúc
 
 ```text
 index.html
+tour-list.html
+tour-detail.html
 src/
   features/auth.js
   features/contact.js
-<<<<<<< HEAD
-  main.js
-  style.css
-server/index.js
-vite.config.js
-```
-
-=======
+  features/featured-tours.js
   features/tours.js
   main.js
   style.css
-server/index.js
-server/tours.js
+  tour-list.js
+  tour-detail.js
+server/
+  data/app-data.json
+  index.js
+  tours.js
 vite.config.js
 ```
 
@@ -61,9 +57,7 @@ vite.config.js
 
 Trả về `{ total, tours }`; mỗi tour có `departures` (mọi ngày khởi hành) và `matchedDepartures` (các ngày khớp bộ lọc ngày). Tham số sai trả về mã 400 kèm `{ error }`. Dữ liệu tour mẫu nằm ở `server/tours.js`.
 
-Trang chi tiết tour: nút "Xem chi tiết" phát sự kiện `tour:view` (`event.detail = { id, name }`) trên `document`; trang chi tiết chỉ cần lắng nghe và gọi `event.preventDefault()`.
-
->>>>>>> 46e42b6c0215400cef442b465e70110233442175
+Trang chi tiết tour dùng URL `/tour-detail.html?id=<tour-id>` và lấy dữ liệu qua API.
 Để chạy bản build bằng máy chủ Express: `npm run build` rồi `npm start`.
 
 Đây là bản nền tảng để chạy cục bộ. Trước khi triển khai công khai, cần bổ sung giới hạn lượt đăng nhập/gửi biểu mẫu, chính sách sao lưu dữ liệu và HTTPS.

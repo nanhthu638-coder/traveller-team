@@ -21,7 +21,7 @@
       </button>
       <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
         <a href="#home">Trang chủ</a>
-        <a href="#tours">Hành trình</a>
+        <a href="/tour-list.html">Hành trình</a>
         <a href="#contact">Liên hệ &amp; thắc mắc</a>
         <button class="nav-auth" type="button" data-open-auth>Đăng nhập</button>
         <button class="nav-signup" type="button" data-open-auth data-auth-mode="register">Tạo tài khoản <span aria-hidden="true">↗</span></button>
@@ -110,6 +110,17 @@
           <button class="submit-button" id="tour-empty-reset" type="button">Xóa bộ lọc</button>
         </div>
         <p class="form-status" id="tour-notice" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="featured-section px-[12.2%] py-[92px]" aria-labelledby="featured-title">
+        <div class="featured-top">
+          <div>
+            <p class="eyebrow eyebrow-dark"><span></span> Tour nổi bật</p>
+            <h2 class="m-0 font-display text-[clamp(34px,4vw,48px)] font-medium leading-[1.17]" id="featured-title">Những trải nghiệm<br />được yêu thích nhất</h2>
+          </div>
+          <a class="featured-more" href="/tour-list.html">Xem thêm tour <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="featured-grid" id="featured-list" aria-live="polite"></div>
       </section>
 
       <section class="contact-section grid grid-cols-[minmax(250px,.83fr)_minmax(440px,1.17fr)] items-start gap-[9vw] px-[12.2%] py-[92px]" id="contact" aria-labelledby="contact-title">

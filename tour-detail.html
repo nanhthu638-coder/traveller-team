@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Thông tin chi tiết tour Traveller Team" />
+    <title>Chi tiết tour | Traveller Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="m-0 bg-paper font-sans text-ink antialiased">
+    <header class="site-header flex min-h-[78px] items-center justify-between gap-7 bg-paper px-[7.1%]">
+      <a class="brand inline-flex shrink-0 items-center gap-3" href="/index.html#home" aria-label="Traveller Team, về đầu trang">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="site-nav"><span></span><span></span></button>
+      <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
+        <a href="/index.html#home">Trang chủ</a>
+        <a href="/tour-list.html">Hành trình</a>
+        <a href="/index.html#contact">Liên hệ &amp; thắc mắc</a>
+      </nav>
+    </header>
+    <main><div class="tour-detail-page" id="tour-detail-page" aria-live="polite"></div></main>
+    <script type="module" src="/src/tour-detail.js"></script>
+  </body>
+</html>
