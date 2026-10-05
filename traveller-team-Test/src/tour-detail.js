@@ -12,9 +12,8 @@ function calculateTourTotal(price, adults, children, infants) {
 }
 
 function getTourById(id) {
-  return fetch(`/api/tours`)
-    .then((response) => response.json())
-    .then((data) => data.tours.find((tour) => tour.id === id))
+  return fetch(`/api/tours/${encodeURIComponent(id)}`)
+    .then((response) => response.json().then((data) => response.ok ? data.tour : null))
     .catch(() => null);
 }
 
@@ -285,6 +284,18 @@ async function initTourDetailPage() {
 
   if (!tourId) {
     detailPage.innerHTML = '<div class="detail-empty">Không tìm thấy tour. <a href="/tour-list.html">Quay lại danh sách tour</a></div>';
+    return;
+  }
+
+  const sessionResponse = await fetch("/api/auth/session");
+  const session = await sessionResponse.json();
+  if (!sessionResponse.ok) {
+    detailPage.innerHTML = '<div class="detail-empty">Không thể kiểm tra đăng nhập. <a href="/tour-list.html">Quay lại danh sách tour</a></div>';
+    return;
+  }
+  if (!session.user) {
+    const returnTo = `${window.location.pathname}${window.location.search}`;
+    window.location.replace(`/index.html?auth=login&returnTo=${encodeURIComponent(returnTo)}`);
     return;
   }
 

@@ -165,7 +165,7 @@
       <span class="footer-note">© 2026 Traveller Team</span>
     </footer>
 
-    <dialog class="auth-dialog relative w-[min(440px,calc(100%-32px))] max-h-[90vh] overflow-auto" id="auth-dialog" aria-labelledby="auth-title">
+    <dialog class="auth-dialog w-[min(440px,calc(100%-32px))] max-h-[90vh] overflow-auto" id="auth-dialog" aria-labelledby="auth-title">
       <button class="dialog-close" type="button" aria-label="Đóng">×</button>
       <div class="auth-mark"><span class="brand-mark" aria-hidden="true"><span></span></span></div>
       <p class="eyebrow eyebrow-dark"><span></span> Chào mừng bạn</p>
@@ -181,7 +181,10 @@
         <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /></label>
         <label class="register-only" hidden>Nhập lại mật khẩu<input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /></label>
         <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
-        <button class="submit-button auth-submit w-full" type="submit">Đăng nhập <span aria-hidden="true">↗</span></button>
+        <div class="auth-actions">
+          <button class="submit-button auth-submit" type="submit">Đăng nhập <span aria-hidden="true">↗</span></button>
+          <button class="secondary-cta auth-cancel" type="button">Hủy</button>
+        </div>
       </form>
       <p class="demo-note">Mật khẩu được băm và lưu an toàn trên máy chủ.</p>
     </dialog>

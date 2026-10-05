@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+:root { --neon-mint: #53f0b9; --travel-green: #087e72; --travel-coral: #e66e4c; }
+
 @theme {
 	--font-sans: "DM Sans", "Segoe UI", sans-serif;
 	--font-display: "Playfair Display", Georgia, serif;
@@ -121,6 +123,14 @@
 
 @media (prefers-reduced-motion: reduce) {
 	*, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+@layer components {
+	.nav-signup, .submit-button, .hero-search button, .media-video button { background-color: var(--travel-green); }
+	.nav-signup:hover, .submit-button:hover, .hero-search button:hover { background-color: #0b6855; }
+	.nav-signup:focus-visible, .submit-button:focus-visible, .hero-search button:focus-visible, .chip:focus-visible { outline: 2px solid var(--neon-mint); outline-offset: 3px; box-shadow: 0 0 16px rgb(83 240 185 / 28%); }
+	.chip.is-active { border-color: var(--travel-green); background-color: var(--travel-green); }
+	.detail-back:hover, .tour-card-link:hover { color: var(--travel-green); }
 }
 /* ===== Trang chủ: tìm kiếm & lọc tour ===== */
 @layer components {
@@ -387,6 +397,81 @@
 .empty-state strong { color: #253735; font-size: 22px; }
 .detail-empty { padding: 60px 20px; text-align: center; color: #596a65; }
 .detail-empty a { color: #35645a; }
+
+.site-header { position: relative; z-index: 5; background: #075b55; color: #fff; box-shadow: 0 4px 18px rgba(7, 47, 44, .16); }
+.site-header .brand-mark { border-color: #a9f0d8; }
+.site-header .brand-mark::before, .site-header .brand-mark::after, .site-header .brand-mark span { background: #a9f0d8; }
+.site-header .brand-name { color: #fff; }
+.site-header .brand-name > span { color: #a9f0d8; }
+.site-nav > a, .site-nav .nav-auth, .site-nav .nav-user { color: rgba(255,255,255,.84); transition: color .18s ease, background .18s ease; }
+.site-nav > a:hover, .site-nav .nav-auth:hover, .site-nav .nav-user:hover { color: #a9f0d8; }
+.site-nav .nav-signup, .submit-button, .hero-search button { background: var(--travel-coral); box-shadow: 0 5px 14px rgba(142, 59, 39, .16); transition: background .18s ease, box-shadow .18s ease, transform .18s ease; }
+.site-nav .nav-signup:hover, .submit-button:hover, .hero-search button:hover { background: #c9573a; box-shadow: 0 8px 19px rgba(142, 59, 39, .24); transform: translateY(-1px); }
+.site-nav .nav-signup:focus-visible, .site-nav button:focus-visible, .submit-button:focus-visible, .hero-search button:focus-visible, .auth-cancel:focus-visible { outline: 2px solid var(--neon-mint); outline-offset: 3px; }
+.menu-toggle { border-color: rgba(255,255,255,.35); }
+.menu-toggle span { background: #a9f0d8; }
+.hero { background-size: 108% auto; animation: hero-drift 18s ease-in-out infinite alternate; }
+.hero-shade { z-index: 1; }
+.hero-content, .hero-caption { z-index: 3; }
+.hero::after { position: absolute; z-index: 2; top: -35%; bottom: -35%; left: -45%; width: 34%; background: linear-gradient(90deg, transparent, rgba(190,255,236,.13), transparent); content: ""; pointer-events: none; transform: skewX(-18deg); animation: hero-glint 9s ease-in-out infinite; }
+.tour-banner-slide img { animation: banner-drift 12s ease-in-out infinite alternate; }
+.auth-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.auth-actions .auth-submit { width: 100%; }
+.auth-cancel { padding: 0 18px; border-color: #b6cbc5; color: #087e72; transition: background .18s ease, border-color .18s ease, transform .18s ease; }
+.auth-cancel:hover { border-color: #087e72; background: #e8f5ef; transform: translateY(-1px); }
+.tour-card-link:hover, .listing-card-actions a:hover, .featured-card-link:hover { color: #c9573a; }
+.tour-banner-dot:hover { background: #a9f0d8; }
+body { background: radial-gradient(ellipse at 12% 8%, rgba(255,255,255,.88), transparent 34%), linear-gradient(135deg, #dff3ee 0%, #eaf3ef 48%, #f4eee1 100%); background-attachment: fixed; }
+.tours-section, .featured-section, .tour-detail-page, .tour-list-page { background: radial-gradient(ellipse at 92% 0%, rgba(255,255,255,.76), transparent 32%), linear-gradient(135deg, #e1f2ed, #f0f6f2 55%, #f4efe4); }
+.auth-dialog { position: fixed; inset: 0; width: min(480px, calc(100% - 32px)); max-height: 90vh; margin: auto; padding: 42px 44px 36px; border-color: rgba(48,132,111,.44); border-radius: 10px; background: radial-gradient(ellipse at 94% 0%, rgba(83,240,185,.3), transparent 40%), linear-gradient(145deg, #f4fff9, #d8f0e7); color: #183e39; box-shadow: 0 28px 90px rgba(7,47,44,.34), inset 0 1px 0 rgba(255,255,255,.98), 0 0 34px rgba(83,240,185,.2); }
+.auth-dialog::backdrop { background: rgba(8,48,45,.48); backdrop-filter: blur(3px); }
+.auth-dialog h2 { font-size: 38px; font-weight: 700; line-height: 1.12; }
+.auth-dialog form label { color: #294f49; font-size: 14px; font-weight: 700; }
+.auth-dialog input { background: rgba(255,255,255,.9); color: #183e39; font-size: 14px; font-weight: 500; }
+.auth-dialog input::placeholder { color: #718a82; opacity: 1; }
+.auth-intro { color: #526f68; font-size: 14px; font-weight: 600; }
+.auth-tabs button { color: #526f68; font-size: 14px; font-weight: 700; }
+.auth-error { font-size: 13px; font-weight: 700; }
+.demo-note { color: #526f68; font-size: 12px; font-weight: 600; }
+.auth-submit, .auth-cancel { min-height: 48px; font-size: 14px; font-weight: 700; }
+.dialog-close { color: #426b61; font-weight: 700; }
+
+@keyframes hero-drift {
+	from { background-position: 43% 48%; background-size: 108% auto; }
+	to { background-position: 63% 57%; background-size: 120% auto; }
+}
+
+@keyframes hero-glint {
+	0%, 18% { left: -45%; opacity: 0; }
+	35% { opacity: 1; }
+	62%, 100% { left: 115%; opacity: 0; }
+}
+
+@keyframes banner-drift {
+	from { transform: scale(1); }
+	to { transform: scale(1.055); }
+}
+
+@media (max-width: 800px) {
+	.site-nav { border-color: rgba(255,255,255,.15); background: #075b55; }
+	.site-nav > a, .site-nav .nav-auth, .site-nav .nav-user { color: #fff; }
+	.hero { background-size: auto 112%; }
+	@keyframes hero-drift {
+		from { background-position: 44% 50%; background-size: auto 112%; }
+		to { background-position: 60% 56%; background-size: auto 124%; }
+	}
+}
+
+@media (max-width: 520px) {
+	.auth-actions { grid-template-columns: 1fr; }
+	.auth-cancel { min-height: 42px; }
+	.auth-dialog { width: calc(100% - 28px); max-height: 92vh; padding: 34px 26px 28px; }
+	.auth-dialog h2 { font-size: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero, .hero::after, .tour-banner-slide img { animation: none; }
+}
 @media (max-width: 1000px) {
 	.featured-grid, .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.tour-list-shell { grid-template-columns: 1fr; }
@@ -423,3 +508,16 @@
 	.hero-search { padding-left: 12px; }
 	.hero-search button span { display: none; }
 }
+
+.contact-form { color: #243b36; }
+.contact-form label { color: #334d46; font-size: 14px; font-weight: 700; line-height: 1.5; }
+.contact-form input, .contact-form select, .contact-form textarea { border-color: #bdcec6; background: rgba(255,255,255,.88); color: #243b36; font-size: 15px; font-weight: 600; }
+.contact-form input, .contact-form select { height: 50px; }
+.contact-form textarea { min-height: 132px; line-height: 1.6; }
+.contact-form input::placeholder, .contact-form textarea::placeholder { color: #647c73; font-size: 14px; font-weight: 500; opacity: 1; }
+.contact-form select:invalid { color: #536c63; font-weight: 600; }
+.contact-form select option { background: #f4fbf7; color: #243b36; font-size: 15px; font-weight: 600; }
+.form-heading p { color: #243b36; font-size: 22px; font-weight: 700; }
+.privacy-note { color: #526b62; font-size: 12px; font-weight: 600; }
+.form-status { color: #176452; font-size: 14px; font-weight: 700; }
+.contact-form .submit-button { min-height: 50px; font-size: 14px; font-weight: 700; }

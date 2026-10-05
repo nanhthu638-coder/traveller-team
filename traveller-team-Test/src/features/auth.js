@@ -56,9 +56,14 @@ export function initAuth() {
 
   tabs.forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.authMode)));
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+  dialog.querySelector(".auth-cancel").addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   });
+  dialog.addEventListener("cancel", (event) => event.preventDefault());
 
   document.querySelector(".nav-user").addEventListener("click", async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -93,6 +98,11 @@ export function initAuth() {
       setUser(data.user);
       form.reset();
       dialog.close();
+      const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+      if (returnTo?.startsWith("/tour-detail.html?") && !returnTo.startsWith("//")) {
+        window.location.assign(returnTo);
+        return;
+      }
     } catch (error) {
       errorMessage.textContent = error.message || "Không thể kết nối máy chủ.";
     } finally {
@@ -101,4 +111,8 @@ export function initAuth() {
   });
 
   loadSession();
+  if (new URLSearchParams(window.location.search).get("auth") === "login") {
+    setMode("login");
+    dialog.showModal();
+  }
 }

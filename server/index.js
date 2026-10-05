@@ -70,6 +70,15 @@ app.get("/api/tours", (request, response) => {
 	return response.json({ total: result.tours.length, tours: result.tours });
 });
 
+app.get("/api/tours/:id", (request, response) => {
+	if (!currentUser(request)) return response.status(401).json({ error: "Vui lòng đăng nhập để xem chi tiết tour." });
+
+	const result = searchTours();
+	const tour = result.tours.find((item) => item.id === request.params.id);
+	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+	return response.json({ tour });
+});
+
 app.get("/api/auth/session", (request, response) => {
 	const user = currentUser(request);
 	response.json({ user: user ? publicUser(user) : null });

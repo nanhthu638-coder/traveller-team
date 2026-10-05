@@ -78,9 +78,14 @@ export function initAuth() {
     });
   });
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+  dialog.querySelector(".auth-cancel").addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   });
+  dialog.addEventListener("cancel", (event) => event.preventDefault());
 
   document.querySelector(".nav-user").addEventListener("click", async () => {
     if (!window.confirm("Bạn chắc muốn đăng xuất?")) return;
@@ -130,6 +135,11 @@ export function initAuth() {
         setUser(data.user);
         form.reset();
         dialog.close();
+        const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+        if (returnTo?.startsWith("/tour-detail.html?") && !returnTo.startsWith("//")) {
+          window.location.assign(returnTo);
+          return;
+        }
         showNotice("Đăng nhập thành công.");
       }
     } catch (error) {
@@ -140,4 +150,8 @@ export function initAuth() {
   });
 
   loadSession();
+  if (new URLSearchParams(window.location.search).get("auth") === "login") {
+    setMode("login");
+    dialog.showModal();
+  }
 }

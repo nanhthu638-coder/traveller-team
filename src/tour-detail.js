@@ -75,10 +75,19 @@ async function initTourDetailPage() {
   }
 
   try {
-    const response = await fetch("/api/tours");
+    const sessionResponse = await fetch("/api/auth/session");
+    const session = await sessionResponse.json();
+    if (!sessionResponse.ok) throw new Error("Không thể kiểm tra đăng nhập.");
+    if (!session.user) {
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      window.location.replace(`/index.html?auth=login&returnTo=${encodeURIComponent(returnTo)}`);
+      return;
+    }
+
+    const response = await fetch(`/api/tours/${encodeURIComponent(tourId)}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Không thể tải thông tin tour.");
-    const tour = (data.tours || []).find((item) => item.id === tourId);
+    const tour = data.tour;
     if (!tour) {
       showError(detailPage, "Tour này không tồn tại.");
       return;
