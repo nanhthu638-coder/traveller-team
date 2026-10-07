@@ -29,18 +29,18 @@ index.html
 tour-list.html
 tour-detail.html
 src/
-  features/auth.js
-  features/contact.js
-  features/featured-tours.js
-  features/tours.js
-  main.js
-  style.css
-  tour-list.js
-  tour-detail.js
+ ├── features/auth.js
+ ├── features/contact.js
+ ├── features/featured-tours.js
+ ├──features/tours.js
+ ├──main.js
+ ├──style.css
+ ├──tour-list.js
+ ├── tour-detail.js
 server/
-  data/app-data.json
-  index.js
-  tours.js
+ ├──data/app-data.json
+ ├── index.js
+ ├── tours.js
 vite.config.js
 ```
 
