@@ -4,19 +4,7 @@ const errorMessage = document.getElementById("auth-error");
 const tabs = Array.from(dialog.querySelectorAll("[data-auth-mode]"));
 const registerFields = Array.from(dialog.querySelectorAll(".register-only"));
 const submitButton = dialog.querySelector(".auth-submit");
-const authNotice = document.getElementById("auth-notice");
 let mode = "login";
-let noticeTimer;
-
-function showNotice(message, isError = false) {
-  window.clearTimeout(noticeTimer);
-  authNotice.textContent = message;
-  authNotice.classList.toggle("is-error", isError);
-  authNotice.hidden = false;
-  noticeTimer = window.setTimeout(() => {
-    authNotice.hidden = true;
-  }, 4000);
-}
 
 function setMode(nextMode) {
   mode = nextMode;
@@ -33,7 +21,6 @@ function setMode(nextMode) {
   });
   tabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.authMode === mode)));
   errorMessage.textContent = "";
-  errorMessage.classList.remove("is-success");
 }
 
 function setUser(user) {
@@ -68,15 +55,6 @@ export function initAuth() {
   });
 
   tabs.forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.authMode)));
-  dialog.querySelectorAll(".password-toggle").forEach((button) => {
-    button.addEventListener("click", () => {
-      const input = button.parentElement.querySelector("input");
-      const isVisible = input.type === "text";
-      input.type = isVisible ? "password" : "text";
-      button.setAttribute("aria-pressed", String(!isVisible));
-      button.setAttribute("aria-label", isVisible ? "Hiện mật khẩu" : "Ẩn mật khẩu");
-    });
-  });
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
   dialog.querySelector(".auth-cancel").addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
@@ -88,15 +66,8 @@ export function initAuth() {
   dialog.addEventListener("cancel", (event) => event.preventDefault());
 
   document.querySelector(".nav-user").addEventListener("click", async () => {
-    if (!window.confirm("Bạn chắc muốn đăng xuất?")) return;
-    try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (!response.ok) throw new Error("logout failed");
-      setUser(null);
-      showNotice("Bạn đã đăng xuất.");
-    } catch {
-      showNotice("Không thể đăng xuất lúc này. Vui lòng thử lại.", true);
-    }
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
   });
 
   form.addEventListener("submit", async (event) => {
@@ -124,23 +95,13 @@ export function initAuth() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Không thể xác thực tài khoản.");
-      if (mode === "register") {
-        const registeredEmail = payload.email;
-        form.reset();
-        form.elements.email.value = registeredEmail;
-        setMode("login");
-        errorMessage.textContent = "Đăng ký thành công. Mời bạn đăng nhập.";
-        errorMessage.classList.add("is-success");
-      } else {
-        setUser(data.user);
-        form.reset();
-        dialog.close();
-        const returnTo = new URLSearchParams(window.location.search).get("returnTo");
-        if (returnTo?.startsWith("/tour-detail.html?") && !returnTo.startsWith("//")) {
-          window.location.assign(returnTo);
-          return;
-        }
-        showNotice("Đăng nhập thành công.");
+      setUser(data.user);
+      form.reset();
+      dialog.close();
+      const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+      if (returnTo?.startsWith("/tour-detail.html?") && !returnTo.startsWith("//")) {
+        window.location.assign(returnTo);
+        return;
       }
     } catch (error) {
       errorMessage.textContent = error.message || "Không thể kết nối máy chủ.";

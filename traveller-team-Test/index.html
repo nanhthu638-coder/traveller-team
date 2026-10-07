@@ -112,6 +112,8 @@
         <p class="form-status" id="tour-notice" role="status" aria-live="polite"></p>
       </section>
 
+      <section class="tour-detail-page" id="tour-detail-page" hidden aria-live="polite"></section>
+
       <section class="featured-section px-[12.2%] py-[92px]" aria-labelledby="featured-title">
         <div class="featured-top">
           <div>
@@ -120,7 +122,7 @@
           </div>
           <a class="featured-more" href="/tour-list.html">Xem thêm tour <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="featured-grid" id="featured-list" aria-live="polite"></div>
+        <div class="featured-grid" id="featured-list"></div>
       </section>
 
       <section class="contact-section grid grid-cols-[minmax(250px,.83fr)_minmax(440px,1.17fr)] items-start gap-[9vw] px-[12.2%] py-[92px]" id="contact" aria-labelledby="contact-title">
@@ -163,8 +165,6 @@
       <span class="footer-note">© 2026 Traveller Team</span>
     </footer>
 
-    <a class="back-to-top" href="#home" aria-label="Lên đầu trang" title="Lên đầu trang">↑</a>
-
     <dialog class="auth-dialog w-[min(440px,calc(100%-32px))] max-h-[90vh] overflow-auto" id="auth-dialog" aria-labelledby="auth-title">
       <button class="dialog-close" type="button" aria-label="Đóng">×</button>
       <div class="auth-mark"><span class="brand-mark" aria-hidden="true"><span></span></span></div>
@@ -178,8 +178,8 @@
       <form id="auth-form">
         <label class="register-only" hidden>Họ và tên<input name="name" type="text" autocomplete="name" placeholder="Tên của bạn" maxlength="80" /></label>
         <label>Email<input name="email" type="email" autocomplete="email" placeholder="ban@email.com" required maxlength="120" /></label>
-        <label>Mật khẩu<span class="password-field"><input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
-        <label class="register-only" hidden>Nhập lại mật khẩu<span class="password-field"><input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+        <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /></label>
+        <label class="register-only" hidden>Nhập lại mật khẩu<input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /></label>
         <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
         <div class="auth-actions">
           <button class="submit-button auth-submit" type="submit">Đăng nhập <span aria-hidden="true">↗</span></button>
@@ -188,8 +188,6 @@
       </form>
       <p class="demo-note">Mật khẩu được băm và lưu an toàn trên máy chủ.</p>
     </dialog>
-
-    <p class="auth-toast" id="auth-notice" role="status" aria-live="polite" hidden></p>
 
     <script type="module" src="/src/main.js"></script>
   </body>

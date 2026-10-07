@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Danh sách tour du lịch Traveller Team" />
+    <title>Danh sách tour | Traveller Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="m-0 bg-paper font-sans text-ink antialiased">
+    <header class="site-header flex min-h-[78px] items-center justify-between gap-7 bg-paper px-[7.1%]">
+      <a class="brand inline-flex shrink-0 items-center gap-3" href="/index.html#home" aria-label="Traveller Team, về đầu trang">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="site-nav"><span></span><span></span></button>
+      <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
+        <a href="/index.html#home">Trang chủ</a>
+        <a href="/tour-list.html" aria-current="page">Hành trình</a>
+        <a href="/index.html#contact">Liên hệ &amp; thắc mắc</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="tour-list-page">
+        <div class="tour-list-banner">
+          <div class="tour-list-banner-copy">
+            <span class="eyebrow eyebrow-dark"><span></span> Hành trình được yêu thích</span>
+            <h1>Khám phá những chuyến đi phù hợp với bạn</h1>
+            <p>Chọn điểm đến, ngày khởi hành và ngân sách để tìm hành trình phù hợp.</p>
+            <div class="tour-banner-stats">
+              <div><strong>9+</strong><span>Hành trình</span></div>
+              <div><strong>4.8/5</strong><span>Đánh giá</span></div>
+              <div><strong>24/7</strong><span>Hỗ trợ</span></div>
+            </div>
+          </div>
+          <div class="tour-list-banner-visual" aria-label="Gợi ý hành trình">
+            <div class="tour-banner-track" id="tour-banner-track">
+              <article class="tour-banner-slide"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" alt="Bãi biển Việt Nam" /><div class="banner-floating-card"><span>Gợi ý hôm nay</span><strong>Vịnh Hạ Long</strong><small>Hành trình 3 ngày 2 đêm</small></div></article>
+              <article class="tour-banner-slide"><img src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80" alt="Cảnh núi rừng Đà Lạt" /><div class="banner-floating-card"><span>Tour nổi bật</span><strong>Đà Lạt</strong><small>Hành trình 3 ngày 2 đêm</small></div></article>
+              <article class="tour-banner-slide"><img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80" alt="Cảnh biển đảo Việt Nam" /><div class="banner-floating-card"><span>Khám phá</span><strong>Phú Quốc</strong><small>Hành trình 4 ngày 3 đêm</small></div></article>
+            </div>
+            <div class="tour-banner-dots" aria-label="Chọn hình ảnh">
+              <button type="button" class="tour-banner-dot is-active" aria-label="Chuyển tới slide 1"></button>
+              <button type="button" class="tour-banner-dot" aria-label="Chuyển tới slide 2"></button>
+              <button type="button" class="tour-banner-dot" aria-label="Chuyển tới slide 3"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tour-list-shell">
+          <aside class="tour-list-sidebar">
+            <div class="filter-panel">
+              <h2>Bộ lọc</h2>
+              <div class="filter-group">
+                <label for="list-start">Điểm đến</label>
+                <select id="list-start">
+                  <option value="">Tất cả điểm đến</option>
+                  <option>Đà Lạt</option><option>Hà Giang</option><option>Hạ Long</option>
+                  <option>Hội An</option><option>Huế</option><option>Phú Quốc</option>
+                  <option>Sa Pa</option><option>Tà Xùa</option><option>Côn Đảo</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="list-date">Ngày khởi hành</label>
+                <input id="list-date" type="date" />
+              </div>
+              <div class="filter-group">
+                <div class="filter-label-row"><label for="list-price">Giá tối đa</label><span id="list-price-label">10.000.000đ</span></div>
+                <input id="list-price" type="range" min="0" max="10000000" step="250000" value="10000000" />
+              </div>
+              <div class="filter-actions">
+                <button class="submit-button" id="apply-filters" type="button">Áp dụng</button>
+                <button class="secondary-cta" id="reset-filters" type="button">Đặt lại</button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="tour-list-main">
+            <form class="quick-search" id="quick-search">
+              <label class="sr-only" for="quick-keyword">Tên tour hoặc điểm đến</label>
+              <input id="quick-keyword" type="search" placeholder="Tên tour hoặc điểm đến" />
+              <label class="sr-only" for="quick-start">Điểm đến</label>
+              <select id="quick-start">
+                <option value="">Mọi điểm đến</option>
+                <option>Đà Lạt</option><option>Hà Giang</option><option>Hạ Long</option>
+                <option>Hội An</option><option>Huế</option><option>Phú Quốc</option>
+                <option>Sa Pa</option><option>Tà Xùa</option><option>Côn Đảo</option>
+              </select>
+              <label class="sr-only" for="quick-date">Ngày khởi hành</label>
+              <input id="quick-date" type="date" />
+              <button class="submit-button search-submit" type="submit">Tìm tour</button>
+            </form>
+
+            <div class="toolbar-card">
+              <h2>Tìm thấy <strong id="listing-count">0</strong> tour</h2>
+              <label class="sort-inline" for="listing-sort">Sắp xếp
+                <select id="listing-sort">
+                  <option value="default">Mặc định</option>
+                  <option value="price-asc">Giá thấp đến cao</option>
+                  <option value="price-desc">Giá cao đến thấp</option>
+                  <option value="duration-short">Thời lượng ngắn</option>
+                </select>
+              </label>
+            </div>
+            <div class="listing-grid" id="listing-grid" aria-live="polite" aria-busy="true"></div>
+            <div class="empty-state" id="listing-empty" hidden>
+              <strong id="listing-empty-title">Không tìm thấy tour phù hợp</strong>
+              <span id="listing-empty-message">Thử thay đổi tiêu chí tìm kiếm.</span>
+              <button class="submit-button" type="button" id="empty-reset">Xóa bộ lọc</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/tour-list.js"></script>
+  </body>
+</html>
