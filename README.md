@@ -16,11 +16,14 @@ npm run dev
 Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localhost:5173`). API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp tự động.
 
 ## Tính năng
-
-- Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
-- Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
-- Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
-- Lưu tài khoản và lời nhắn trong tệp JSON cục bộ tại `server/data/app-data.json`.
+# :maple_leaf: Sprint 1 :maple_leaf:
+ 
+ * Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
+ * Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
+ * Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
+ * Lưu tài khoản và lời nhắn trong tệp JSON cục bộ tại `server/data/app-data.json`.
+ * Xem Trang chủ
+ * Xem danh sách Tour
 
 ## Cấu trúc
 
@@ -43,6 +46,11 @@ server/
   tours.js
 vite.config.js
 ```
+## 📌 Pull Requests đã thực hiện
+
+- [PR #8: Update README.md](https://github.com/nanthu638-coder/traveller-team/pull/8)
+- [PR #3: Change search](https://github.com/nanthu638-coder/traveller-team/pull/3)
+---
 - Excel
   * Link access: https://docs.google.com/spreadsheets/d/1tG4tDlw2bT8fQgMii-VEUp_I7WRxZ7zSyKmIA1J_7iU/edit?usp=sharing
 - Docs
