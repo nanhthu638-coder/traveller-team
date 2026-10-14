@@ -51,6 +51,10 @@ vite.config.js
 - [PR #8: Update README.md](https://github.com/nanthu638-coder/traveller-team/pull/8)
 - [PR #3: Change search](https://github.com/nanthu638-coder/traveller-team/pull/3)
 ---
+## ❓Issue đã thực hiện 
+- [Is #10: Đánh giá và chấm điểm Tour](https://github.com/nanhthu638-coder/traveller-team/issues/10)
+- [Is #9: Xem lịch sử đặt Tour](https://github.com/nanhthu638-coder/traveller-team/issues/9)
+---
 - Excel
   * Link access: https://docs.google.com/spreadsheets/d/1tG4tDlw2bT8fQgMii-VEUp_I7WRxZ7zSyKmIA1J_7iU/edit?usp=sharing
 - Docs
