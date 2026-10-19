@@ -1,4 +1,6 @@
+import { initHeaderAccount } from "./features/account-menu.js";
 import { initNavigation } from "./features/navigation.js";
+import { formatRating, ratingBadge } from "./features/review-ui.js";
 
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(Math.round(value))}đ`;
@@ -27,7 +29,7 @@ function renderListing(tours) {
       <div class="listing-card-body">
         <p class="featured-card-place">${escapeHtml(tour.place)}, ${escapeHtml(tour.region)}</p>
         <h3 class="font-display">${escapeHtml(tour.name)}</h3>
-        <div class="listing-card-info"><span>Khởi hành: ${escapeHtml(tour.departures[0] || "Hàng ngày")}</span><span>★★★★★ 4.8</span></div>
+        <div class="listing-card-info"><span>Khởi hành: ${escapeHtml(tour.departures[0] || "Hàng ngày")}</span>${ratingBadge(tour)}</div>
         <div class="listing-card-price">
           <div><del>${formatPrice(tour.price * 1.18)}</del><br /><strong>${formatPrice(tour.price)}</strong></div>
           <div class="listing-card-actions">
@@ -38,6 +40,21 @@ function renderListing(tours) {
       </div>
     </article>
   `).join("");
+}
+
+// Điểm trung bình toàn site (theo số lượt đánh giá thật) ở thống kê đầu trang
+async function loadOverallRating() {
+  const target = document.getElementById("hero-rating");
+  if (!target) return;
+  try {
+    const response = await fetch("/api/tours");
+    const { tours = [] } = await response.json();
+    const rated = tours.filter((tour) => tour.reviewCount > 0);
+    const count = rated.reduce((sum, tour) => sum + tour.reviewCount, 0);
+    target.textContent = count ? `${formatRating(rated.reduce((sum, tour) => sum + tour.rating * tour.reviewCount, 0) / count)}/5` : "—";
+  } catch {
+    target.textContent = "—";
+  }
 }
 
 function sortTours(tours, sort) {
@@ -158,4 +175,6 @@ document.getElementById("listing-grid").addEventListener("click", (event) => {
 updatePriceLabel();
 initBanner();
 initNavigation();
+initHeaderAccount();
+loadOverallRating();
 loadTours();

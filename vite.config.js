@@ -13,6 +13,8 @@ export default defineConfig({
         index: resolve(projectRoot, "index.html"),
         "tour-list": resolve(projectRoot, "tour-list.html"),
         "tour-detail": resolve(projectRoot, "tour-detail.html"),
+        "booking-history": resolve(projectRoot, "booking-history.html"),
+        "booking-detail": resolve(projectRoot, "booking-detail.html"),
       },
     },
   },

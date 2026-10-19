@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liên hệ & Thắc mắc | Traveller Team</title>
+    <!-- Kế thừa font chữ từ dự án -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <!-- Tích hợp Tailwind CSS để test giao diện -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        h1, h2, h3, .font-display { font-family: 'Playfair Display', serif; }
+        
+        /* Animation cho FAQ (Details/Summary) */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: sweep .3s ease-in-out; }
+        @keyframes sweep {
+            0%    {opacity: 0; margin-top: -10px}
+            100%  {opacity: 1; margin-top: 0px}
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Header giả định (Bạn có thể thay bằng header thật của dự án) -->
+    <header class="bg-white shadow-sm flex min-h-[78px] items-center justify-between px-[7.1%] sticky top-0 z-50">
+        <a class="inline-flex items-center gap-3 text-xl font-bold font-display text-orange-600" href="/index.html">
+            Traveller Team
+        </a>
+        <nav class="hidden md:flex items-center gap-7 text-[13px] font-medium text-gray-600">
+            <a href="/index.html" class="hover:text-orange-600">Trang chủ</a>
+            <a href="/tour-list.html" class="hover:text-orange-600">Hành trình</a>
+            <a href="/contact.html" class="text-orange-600">Liên hệ & thắc mắc</a>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-[7.1%] py-12">
+        
+        <!-- Tiêu đề trang -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold font-display text-gray-900 mb-4">Liên hệ & Hỗ trợ</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Chúng tôi luôn sẵn sàng lắng nghe và giải đáp mọi thắc mắc của bạn. Vui lòng xem qua các câu hỏi thường gặp hoặc gửi thông tin trực tiếp cho chúng tôi.</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-12">
+            
+            <!-- Cột trái: Thông tin liên hệ & FAQ -->
+            <div class="lg:w-5/12">
+                <!-- 1. Thông tin liên hệ -->
+                <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                    <h2 class="text-2xl font-bold font-display text-gray-900 mb-6">Thông tin liên hệ</h2>
+                    <ul class="space-y-4 text-gray-600">
+                        <li class="flex items-start">
+                            <span class="text-orange-600 mr-3 text-xl">📍</span>
+                            <span><strong>Địa chỉ:</strong> 828 Sư Vạn Hạnh, Phường 13, Quận 10, TP. Hồ Chí Minh</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-orange-600 mr-3 text-xl">📞</span>
+                            <span><strong>Điện thoại:</strong> 0123 456 789</span>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-orange-600 mr-3 text-xl">✉️</span>
+                            <span><strong>Email:</strong> support@travellerteam.com</span>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- 2. FAQ - Câu hỏi thường gặp -->
+                <section>
+                    <h2 class="text-2xl font-bold font-display text-gray-900 mb-6">Câu hỏi thường gặp</h2>
+                    <div class="space-y-4">
+                        <details class="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer shadow-sm group">
+                            <summary class="font-semibold text-gray-800 outline-none flex justify-between items-center">
+                                Làm sao để hủy tour đã đặt?
+                                <span class="text-orange-500 group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <p class="mt-3 text-gray-600 text-sm leading-relaxed border-t pt-3">
+                                Bạn có thể hủy tour bằng cách truy cập vào mục "Lịch sử đặt tour", chọn đơn hàng cần hủy và nhấn nút "Yêu cầu hủy". Hoặc bạn có thể gọi trực tiếp vào Hotline để được hỗ trợ.
+                            </p>
+                        </details>
+                        
+                        <details class="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer shadow-sm group">
+                            <summary class="font-semibold text-gray-800 outline-none flex justify-between items-center">
+                                Phương thức thanh toán như thế nào?
+                                <span class="text-orange-500 group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <p class="mt-3 text-gray-600 text-sm leading-relaxed border-t pt-3">
+                                Chúng tôi hỗ trợ đa dạng phương thức thanh toán: Chuyển khoản ngân hàng, Thẻ tín dụng/Ghi nợ, Ví MoMo, ZaloPay và thanh toán tiền mặt tại văn phòng.
+                            </p>
+                        </details>
+
+                        <details class="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer shadow-sm group">
+                            <summary class="font-semibold text-gray-800 outline-none flex justify-between items-center">
+                                Tôi có được hoàn tiền khi hủy tour không?
+                                <span class="text-orange-500 group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <p class="mt-3 text-gray-600 text-sm leading-relaxed border-t pt-3">
+                                Việc hoàn tiền phụ thuộc vào thời điểm bạn yêu cầu hủy so với ngày khởi hành. Vui lòng xem chi tiết tại "Chính sách hủy & hoàn tiền" của từng tour cụ thể.
+                            </p>
+                        </details>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Cột phải: Form Liên hệ -->
+            <div class="lg:w-7/12">
+                <section class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                    <h2 class="text-2xl font-bold font-display text-gray-900 mb-2">Gửi thắc mắc cho chúng tôi</h2>
+                    <p class="text-sm text-gray-500 mb-6">Bạn không cần đăng nhập để gửi biểu mẫu này.</p>
+                    
+                    <!-- Vùng hiển thị Thông báo (Thành công / Thất bại) -->
+                    <div id="alert-box" class="hidden mb-6 p-4 rounded-lg text-sm font-medium transition-all" role="alert"></div>
+
+                    <form id="contact-form" class="space-y-5" novalidate>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="c-name" class="block text-sm font-medium text-gray-700 mb-1">Họ và tên <span class="text-red-500">*</span></label>
+                                <input type="text" id="c-name" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Nguyễn Văn A" required>
+                            </div>
+                            <div>
+                                <label for="c-email" class="block text-sm font-medium text-gray-700 mb-1">Email liên hệ <span class="text-red-500">*</span></label>
+                                <input type="email" id="c-email" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="email@example.com" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="c-subject" class="block text-sm font-medium text-gray-700 mb-1">Chủ đề <span class="text-red-500">*</span></label>
+                            <input type="text" id="c-subject" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Vấn đề bạn cần hỗ trợ..." required>
+                        </div>
+
+                        <div>
+                            <label for="c-message" class="block text-sm font-medium text-gray-700 mb-1">Nội dung chi tiết <span class="text-red-500">*</span></label>
+                            <textarea id="c-message" rows="5" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Hãy mô tả chi tiết thắc mắc của bạn tại đây..." required></textarea>
+                        </div>
+
+                        <button type="submit" id="btn-submit" class="w-full bg-orange-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-700 transition duration-200 shadow-md">
+                            Gửi liên hệ
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer giả định -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-8 text-center text-sm text-gray-500">
+        <p>© 2026 Traveller Team. Mọi quyền được bảo lưu.</p>
+    </footer>
+
+    <!-- XỬ LÝ LOGIC JAVASCRIPT -->
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Ngăn load lại trang
+
+            const form = event.target;
+            const alertBox = document.getElementById('alert-box');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            // 1. Lấy dữ liệu từ form
+            const name = document.getElementById('c-name').value.trim();
+            const email = document.getElementById('c-email').value.trim();
+            const subject = document.getElementById('c-subject').value.trim();
+            const message = document.getElementById('c-message').value.trim();
+
+            // Hàm hỗ trợ hiển thị thông báo
+            const showAlert = (type, text) => {
+                alertBox.className = `mb-6 p-4 rounded-lg text-sm font-medium ${type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`;
+                alertBox.innerText = text;
+                alertBox.classList.remove('hidden');
+                
+                // Tự động cuộn lên vị trí thông báo để user dễ nhìn thấy
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+
+            // 2. Kiểm tra điều kiện (Luồng ngoại lệ 1: Thiếu thông tin)
+            if (!name || !email || !subject || !message) {
+                showAlert('error', 'Vui lòng điền đầy đủ các thông tin bắt buộc có dấu (*).');
+                return;
+            }
+
+            // Kiểm tra định dạng Email (Luồng ngoại lệ 1: Email không hợp lệ)
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('error', 'Email không hợp lệ. Vui lòng kiểm tra lại định dạng email.');
+                return;
+            }
+
+            // 3. Xử lý Gửi (Đổi trạng thái nút)
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<span class="animate-pulse">Đang xử lý...</span>`;
+            btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
+
+            // Giả lập API gửi dữ liệu lên server mất 1.5 giây
+            setTimeout(() => {
+                // Tự động tạo tỉ lệ thành công (Bạn có thể bỏ khi ráp API thật)
+                const isApiSuccess = true; // Sửa thành false để test luồng thất bại
+
+                if (isApiSuccess) {
+                    // Luồng thao tác chính: Gửi thành công
+                    showAlert('success', `Gửi liên hệ thành công! Cảm ơn ${name}, chúng tôi sẽ phản hồi qua email ${email} sớm nhất.`);
+                    form.reset(); // Xóa trắng form
+                } else {
+                    // Luồng ngoại lệ 2: Gửi thất bại do Server
+                    showAlert('error', 'Hệ thống đang gặp sự cố. Gửi liên hệ thất bại, vui lòng thử lại sau ít phút.');
+                }
+
+                // Trả lại trạng thái nút
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Gửi liên hệ';
+                btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
