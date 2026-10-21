@@ -72,6 +72,7 @@ export function generateBookingCode(existingBookings, now = new Date()) {
 /** Tạo đơn đặt tour mới (chưa lưu). Dữ liệu đầu vào phải được kiểm tra trước đó. */
 export function createBooking({ user, tour, departureDate, passengers, phone = "", note = "", passengerDetails = [], status = "pending", paymentStatus = "unpaid", createdAt = new Date(), existingBookings = [] }) {
   const timestamp = createdAt.toISOString();
+  const subtotal = calculateTotal(tour.price, passengers);
   return {
     id: randomUUID(),
     code: generateBookingCode(existingBookings, createdAt),
@@ -80,7 +81,8 @@ export function createBooking({ user, tour, departureDate, passengers, phone = "
     departureDate,
     passengers,
     passengerDetails, // danh sách hành khách chi tiết (họ tên, giới tính, ngày sinh, giấy tờ) – rỗng với đơn mẫu cũ
-    total: calculateTotal(tour.price, passengers),
+    subtotal,
+    total: subtotal,
     status,
     paymentStatus,
     contact: { name: user.name, email: user.email, phone },
