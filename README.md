@@ -14,44 +14,47 @@ npm run dev
 ```
 
 Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localhost:5173`). API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp tự động.
+API dùng SQL Server/SQL Express theo cấu hình `SQLSERVER_*` trong `.env`. Với SQL Express tắt SQL Browser hoặc dùng cổng động, có thể đặt `SQLSERVER_PORT` để kết nối trực tiếp; khi có port, cấu hình instance được bỏ qua. Bảng `dbo.AppRecords` được tạo nếu chưa có. Nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
 
 ## Tính năng
 
 - Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
 - Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
-- Xem trang chủ với danh sách hành trình; tìm tour theo từ khóa (tên, địa điểm, không phân biệt dấu) và lọc theo khoảng giá, ngày khởi hành (kết hợp được với nhau, có sắp xếp).
-- Lưu tài khoản và lời nhắn trong tệp JSON cục bộ tại `server/data/app-data.json`.
+- Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
+- Lưu tài khoản, booking, thanh toán, đánh giá và lời nhắn trong SQL Server.
 
 ## Cấu trúc
 
 ```text
 index.html
+tour-list.html
+tour-detail.html
 src/
   features/auth.js
   features/contact.js
+  features/featured-tours.js
   features/tours.js
   main.js
   style.css
-server/index.js
-server/tours.js
+  tour-list.js
+  tour-detail.js
+server/
+  database.js
+  index.js
+  tours.js
 vite.config.js
 ```
+## 📌 Pull Requests đã thực hiện
 
-## API tìm kiếm & lọc tour
-
-`GET /api/tours` — tất cả tham số đều tùy chọn:
-
-| Tham số | Ý nghĩa | Ví dụ |
-| --- | --- | --- |
-| `q` | Từ khóa theo tên, địa điểm, tỉnh (không phân biệt dấu) | `q=ha long` |
-| `minPrice`, `maxPrice` | Khoảng giá (VND) | `minPrice=2000000&maxPrice=4000000` |
-| `from`, `to` | Khoảng ngày khởi hành (`YYYY-MM-DD`) | `from=2026-11-01&to=2026-11-10` |
-| `sort` | `default`, `price-asc`, `price-desc`, `date-asc` | `sort=price-asc` |
-
-Trả về `{ total, tours }`; mỗi tour có `departures` (mọi ngày khởi hành) và `matchedDepartures` (các ngày khớp bộ lọc ngày). Tham số sai trả về mã 400 kèm `{ error }`. Dữ liệu tour mẫu nằm ở `server/tours.js`.
-
-Trang chi tiết tour: nút "Xem chi tiết" phát sự kiện `tour:view` (`event.detail = { id, name }`) trên `document`; trang chi tiết chỉ cần lắng nghe và gọi `event.preventDefault()`.
-
-Để chạy bản build bằng máy chủ Express: `npm run build` rồi `npm start`.
-
-Đây là bản nền tảng để chạy cục bộ. Trước khi triển khai công khai, cần bổ sung giới hạn lượt đăng nhập/gửi biểu mẫu, chính sách sao lưu dữ liệu và HTTPS.
+- [PR #8: Update README.md](https://github.com/nanthu638-coder/traveller-team/pull/8)
+- [PR #3: Change search](https://github.com/nanthu638-coder/traveller-team/pull/3)
+---
+## ❓Issue đã thực hiện 
+- [Is #10: Đánh giá và chấm điểm Tour](https://github.com/nanhthu638-coder/traveller-team/issues/10)
+- [Is #9: Xem lịch sử đặt Tour](https://github.com/nanhthu638-coder/traveller-team/issues/9)
+---
+- Excel
+  * Link access: https://docs.google.com/spreadsheets/d/1tG4tDlw2bT8fQgMii-VEUp_I7WRxZ7zSyKmIA1J_7iU/edit?usp=sharing
+- Docs
+  * Link access Nhom4_Lab4.1: https://docs.google.com/document/d/1KIsDL5-5ESIB9BfOeZTKzox-B9mEKBlDRTpk73BD6s8/edit?usp=sharing
+  * Link access Nhom4_Lab4.2: https://docs.google.com/document/d/1B3PK5EkUFVLVzMVA0jzjIE2PT7JaABEu1hiBlVBzdS8/edit?usp=sharing

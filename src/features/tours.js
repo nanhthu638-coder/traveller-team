@@ -33,7 +33,7 @@ function renderCard(tour, hasDateFilter) {
         <p class="tour-card-dates">${hasDateFilter ? "Khởi hành phù hợp" : "Khởi hành"}: ${shown}${rest > 0 ? ` (+${rest})` : ""}</p>
         <div class="tour-card-footer">
           <p><small>Giá từ</small><strong class="font-display">${formatPrice(tour.price)}</strong></p>
-          <a class="tour-card-link" href="#tour/${encodeURIComponent(tour.id)}" data-tour-id="${escapeHtml(tour.id)}" data-tour-name="${escapeHtml(tour.name)}">Xem chi tiết <span aria-hidden="true">↗</span></a>
+          <a class="tour-card-link" href="/tour-detail.html?id=${encodeURIComponent(tour.id)}">Xem chi tiết <span aria-hidden="true">↗</span></a>
         </div>
       </div>
     </article>`;
@@ -46,7 +46,7 @@ export function initTours() {
   const empty = document.getElementById("tour-empty");
   const count = document.getElementById("tour-count");
   const errorBox = document.getElementById("tour-filter-error");
-  const notice = document.getElementById("tour-notice");
+  const notice = document.getElementById("tour-notice"); // chỉ dùng để xóa thông báo cũ khi lọc lại
   const resetButton = document.getElementById("tour-reset");
   const chips = Array.from(form.querySelectorAll(".chip"));
   let debounceTimer;
@@ -151,19 +151,6 @@ export function initTours() {
     form.elements.q.value = heroForm.elements.q.value.trim();
     load();
     document.getElementById("tours").scrollIntoView({ behavior: "smooth" });
-  });
-
-  // "Xem chi tiết": trang chi tiết tour do thành viên khác phụ trách.
-  // Phát sự kiện "tour:view" để trang đó bắt và xử lý; nếu chưa có ai xử lý thì báo tạm.
-  list.addEventListener("click", (event) => {
-    const link = event.target.closest(".tour-card-link");
-    if (!link) return;
-    const detail = { id: link.dataset.tourId, name: link.dataset.tourName };
-    const handled = !document.dispatchEvent(new CustomEvent("tour:view", { detail, cancelable: true }));
-    if (!handled) {
-      event.preventDefault();
-      notice.textContent = `Trang chi tiết "${detail.name}" đang được phát triển.`;
-    }
   });
 
   load();
