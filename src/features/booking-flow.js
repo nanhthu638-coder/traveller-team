@@ -272,6 +272,7 @@ export function initBooking({ page, tour, user, availability: initialAvailabilit
   // ----- Bước 1: kiểm tra chỗ trống rồi mở hộp thoại -----
   continueButton.addEventListener("click", async () => {
     showError("");
+    if (!user) return redirectToLogin();
     const passengers = guests();
     if (!dateSelect.value) return showError("Vui lòng chọn ngày khởi hành.");
     if (passengers.adult < 1) return showError("Cần ít nhất 1 người lớn để đặt tour.");

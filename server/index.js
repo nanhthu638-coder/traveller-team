@@ -2,7 +2,7 @@ import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } fr
 import { promisify } from "node:util";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import express from "express";
 import { searchTours } from "./tours.js";
 import {
@@ -22,6 +22,7 @@ import {
 import { departureAvailability, seatsOf, tourAvailability } from "./availability.js";
 import { parsePassengerDetails } from "./passengers.js";
 import { buildDemoBookings, calculateTotal, createBooking, findUserBooking, isValidPhone, listUserBookings, parsePassengers, todayInVietnam } from "./bookings.js";
+import { connectDatabase, loadDatabaseState, saveDatabaseState } from "./database.js";
 import { createPayment, DEMO_VOUCHERS, listAvailableVouchers, quoteVoucher } from "./vouchers.js";
 
 const scrypt = promisify(scryptCallback);
@@ -36,6 +37,7 @@ const buildDirectory = resolve(projectRoot, "dist");
 const sessions = new Map();
 let store = { users: [], inquiries: [], bookings: [], reviews: [], vouchers: [], payments: [] };
 let writeQueue = Promise.resolve();
+let database;
 
 // API đánh giá nhận ảnh đính kèm dạng base64 nên cần giới hạn lớn hơn; phải khai báo TRƯỚC bộ đọc JSON mặc định.
 app.use(["/api/reviews", /^\/api\/bookings\/[^/]+\/review$/], express.json({ limit: "5mb" }));
@@ -81,12 +83,8 @@ function currentUser(request) {
 }
 
 function persistStore() {
-	const contents = JSON.stringify(store, null, 2);
-	writeQueue = writeQueue.catch(() => {}).then(async () => {
-		const temporaryPath = `${dataPath}.tmp`;
-		await writeFile(temporaryPath, contents, "utf8");
-		await rename(temporaryPath, dataPath);
-	});
+	const snapshot = structuredClone(store);
+	writeQueue = writeQueue.catch(() => {}).then(() => saveDatabaseState(database, snapshot));
 	return writeQueue;
 }
 
@@ -735,21 +733,41 @@ app.use((error, request, response, next) => {
 async function start() {
 	await mkdir(dataDirectory, { recursive: true });
 	await mkdir(imagesDirectory, { recursive: true });
-	try {
-		const savedData = JSON.parse(await readFile(dataPath, "utf8"));
-		if (!Array.isArray(savedData.users) || !Array.isArray(savedData.inquiries)) {
-			throw new Error(`${dataPath} không có cấu trúc users/inquiries hợp lệ.`);
+	database = await connectDatabase();
+	const databaseState = await loadDatabaseState(database);
+	const databaseRecordCount = Object.values(databaseState).reduce((count, collection) => count + collection.length, 0);
+	let shouldPersist = databaseRecordCount === 0;
+
+	if (databaseRecordCount > 0) {
+		store = databaseState;
+		console.log(`Loaded ${databaseRecordCount} records from SQL Server.`);
+		console.warn("SQL Server already contains data; local app-data.json is left untouched and is not merged.");
+	} else {
+		try {
+			const savedData = JSON.parse(await readFile(dataPath, "utf8"));
+			if (!Array.isArray(savedData.users) || !Array.isArray(savedData.inquiries)) {
+				throw new Error(`${dataPath} không có cấu trúc users/inquiries hợp lệ.`);
+			}
+			store = {
+				...databaseState,
+				...savedData,
+				bookings: Array.isArray(savedData.bookings) ? savedData.bookings : [],
+				reviews: Array.isArray(savedData.reviews) ? savedData.reviews : [],
+				vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
+				payments: Array.isArray(savedData.payments) ? savedData.payments : [],
+			};
+			console.log("SQL Server is empty; importing existing app-data.json records.");
+		} catch (error) {
+			if (error.code !== "ENOENT") throw error;
+			store = databaseState;
 		}
-		store = {
-			...savedData,
-			bookings: Array.isArray(savedData.bookings) ? savedData.bookings : [],
-			reviews: Array.isArray(savedData.reviews) ? savedData.reviews : [],
-			vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : DEMO_VOUCHERS.map((voucher) => ({ ...voucher })),
-			payments: Array.isArray(savedData.payments) ? savedData.payments : [],
-		};
-	} catch (error) {
-		if (error.code !== "ENOENT") throw error;
 	}
+
+	if (!store.vouchers.length) {
+		store.vouchers = structuredClone(DEMO_VOUCHERS);
+		shouldPersist = true;
+	}
+	if (shouldPersist) await persistStore();
 
 	app.listen(port, () => {
 		console.log(`Traveller Team API listening on http://localhost:${port}`);
