@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Quản lý thông tin cá nhân Traveller Team" />
+    <title>Hồ sơ cá nhân | Traveller Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="m-0 bg-paper font-sans text-ink antialiased" data-requires-auth="true">
+    <header class="site-header flex min-h-[78px] items-center justify-between gap-7 bg-paper px-[7.1%]">
+      <a class="brand inline-flex shrink-0 items-center gap-3" href="/index.html#home" aria-label="Traveller Team, về đầu trang">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="site-nav"><span></span><span></span></button>
+      <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
+        <a href="/index.html#home">Trang chủ</a>
+        <a href="/tour-list.html">Hành trình</a>
+        <a href="/index.html#contact">Liên hệ &amp; thắc mắc</a>
+      </nav>
+    </header>
+    <main class="profile-page">
+      <div class="profile-shell">
+        <a class="detail-back" href="/index.html#home">← Trang chủ</a>
+        <header class="profile-heading">
+          <p class="eyebrow eyebrow-dark"><span></span> Tài khoản Traveller Team</p>
+          <h1 class="font-display">Hồ sơ cá nhân</h1>
+          <p>Quản lý thông tin liên hệ và theo dõi hoạt động du lịch của bạn.</p>
+        </header>
+        <div class="profile-layout">
+          <section class="profile-card profile-avatar-card" aria-labelledby="profile-avatar-title">
+            <h2 id="profile-avatar-title">Ảnh đại diện</h2>
+            <div class="profile-avatar" id="profile-avatar"><span data-avatar-initial>?</span><img alt="Ảnh đại diện" hidden /></div>
+            <label class="submit-button profile-upload" for="profile-avatar-file">Chọn ảnh mới</label>
+            <input class="sr-only" id="profile-avatar-file" type="file" accept="image/*" />
+            <button class="secondary-cta profile-remove-avatar" id="profile-avatar-remove" type="button" hidden>Xóa ảnh</button>
+            <p class="profile-hint">Ảnh JPEG/PNG/WebP, tự động nén; tối đa 1 MB sau khi nén.</p>
+          </section>
+          <section class="profile-card" aria-labelledby="profile-info-title">
+            <h2 id="profile-info-title">Thông tin cá nhân</h2>
+            <form id="profile-form" class="profile-form">
+              <label>Họ và tên<input name="name" type="text" maxlength="80" autocomplete="name" required /></label>
+              <label>Email đăng nhập<input name="email" type="email" readonly aria-readonly="true" /></label>
+              <label>Số điện thoại<input name="phone" type="tel" maxlength="20" autocomplete="tel" placeholder="Ví dụ: 0901 234 567" /></label>
+              <label>Ngày sinh<input name="birthDate" type="date" /></label>
+              <label>Giới tính<select name="gender"><option value="">Không muốn chia sẻ</option><option value="female">Nữ</option><option value="male">Nam</option><option value="other">Khác</option></select></label>
+              <label class="profile-address">Địa chỉ<input name="address" type="text" maxlength="250" autocomplete="street-address" placeholder="Quận/huyện, tỉnh/thành phố" /></label>
+              <p class="profile-status" id="profile-status" role="status" aria-live="polite"></p>
+              <button class="submit-button" type="submit">Lưu thay đổi</button>
+            </form>
+          </section>
+          <section class="profile-card profile-activity" aria-labelledby="profile-activity-title">
+            <h2 id="profile-activity-title">Hoạt động của bạn</h2>
+            <div class="profile-stats">
+              <div><strong id="profile-bookings">0</strong><span>Đơn đặt tour</span></div>
+              <div><strong id="profile-reviews">0</strong><span>Đánh giá</span></div>
+            </div>
+            <a class="secondary-cta" href="/booking-history.html">Xem lịch sử đặt tour</a>
+            <p>Thông tin liên hệ giúp Traveller Team hỗ trợ đơn đặt tour của bạn nhanh hơn. Email đăng nhập không thể chỉnh sửa tại đây.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+    <footer class="site-footer flex min-h-[94px] items-center justify-between gap-5 border-t border-line px-[7.1%] py-5">
+      <a class="brand brand-footer inline-flex items-center gap-3" href="/index.html#home"><span class="brand-mark" aria-hidden="true"><span></span></span><span class="brand-name font-display">Traveller<span>Team</span></span></a>
+      <p>Đi xa để thấy gần hơn.</p><span class="footer-note">© 2026 Traveller Team</span>
+    </footer>
+    <script type="module" src="/src/profile.js"></script>
+  </body>
+</html>
