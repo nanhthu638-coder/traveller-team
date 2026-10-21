@@ -466,18 +466,12 @@ body { color: #1B2121; background: radial-gradient(ellipse at 12% 8%, rgba(187,2
 .contact-form input, .contact-form select, .contact-form textarea, .auth-dialog input, .tour-search input, .range-row input, .sort-label select, .filter-group input:not([type="range"]), .filter-group select, .quick-search input, .quick-search select, .booking-date { border-radius: 12px; }
 .contact-form input, .contact-form select, .contact-form textarea, .auth-dialog input { background-color: #fff; background-image: none; }
 .contact-form select option { background-color: #fff; }
-.back-to-top { position: fixed; z-index: 90; right: 24px; bottom: 24px; display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid #6DAB8C; border-radius: 50%; background: #057569; box-shadow: 0 8px 24px rgba(27,33,33,.24); color: #BBD7C8; font-size: 27px; font-weight: 700; line-height: 1; text-decoration: none; transition: background .18s ease, transform .18s ease; }
+.back-to-top { position: fixed; z-index: 1190; right: 24px; bottom: 88px; display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid #6DAB8C; border-radius: 50%; background: #057569; box-shadow: 0 8px 24px rgba(27,33,33,.24); color: #BBD7C8; font-size: 27px; font-weight: 700; line-height: 1; text-decoration: none; opacity: 0; pointer-events: none; visibility: hidden; transition: background .18s ease, transform .18s ease, opacity .18s ease, visibility .18s ease; }
+.back-to-top.is-visible { opacity: 1; pointer-events: auto; visibility: visible; }
 .back-to-top:hover, .back-to-top:focus-visible { background: #1C4349; transform: translateY(-2px); }
 .back-to-top:focus-visible { outline: 2px solid #6DAB8C; outline-offset: 3px; }
-@supports (animation-timeline: scroll()) {
-	.back-to-top { opacity: 0; pointer-events: none; visibility: hidden; animation: reveal-back-to-top linear both; animation-timeline: scroll(root block); animation-range: 8% 16%; }
-}
-@keyframes reveal-back-to-top {
-	from { opacity: 0; visibility: hidden; pointer-events: none; }
-	to { opacity: 1; visibility: visible; pointer-events: auto; }
-}
 @media (max-width: 520px) {
-	.back-to-top { right: 16px; bottom: 16px; width: 44px; height: 44px; }
+	.back-to-top { right: 16px; bottom: 76px; width: 44px; height: 44px; }
 }
 
 /* ===== Menu tài khoản (avatar) + Lịch sử đặt tour + Chi tiết đơn đặt tour ===== */

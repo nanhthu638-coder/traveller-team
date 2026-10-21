@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -34,8 +34,8 @@ const dataPath = resolve(dataDirectory, "app-data.json");
 const imagesDirectory = resolve(dataDirectory, "review-images");
 const profileImagesDirectory = resolve(dataDirectory, "profile-images");
 const buildDirectory = resolve(projectRoot, "dist");
-const sessions = new Map();
-let store = { users: [], inquiries: [], bookings: [], reviews: [], vouchers: [], payments: [] };
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+let store = { users: [], inquiries: [], bookings: [], reviews: [], vouchers: [], payments: [], sessions: [] };
 let writeQueue = Promise.resolve();
 let database;
 
@@ -70,7 +70,7 @@ function cookieValue(request, name) {
 
 function setSessionCookie(response, token) {
 	const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-	response.setHeader("Set-Cookie", `traveller_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure}`);
+	response.setHeader("Set-Cookie", `traveller_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DURATION_MS / 1000}${secure}`);
 }
 
 function clearSessionCookie(response) {
@@ -78,8 +78,13 @@ function clearSessionCookie(response) {
 }
 
 function currentUser(request) {
-	const userId = sessions.get(cookieValue(request, "traveller_session"));
-	return store.users.find((user) => user.id === userId) || null;
+	const token = cookieValue(request, "traveller_session");
+	if (!token) return null;
+	const tokenHash = createHash("sha256").update(token).digest("hex");
+	const session = store.sessions.find((item) => item.id === tokenHash);
+	const expiresAt = Date.parse(session?.expiresAt || "");
+	if (!session || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
+	return store.users.find((user) => user.id === session.userId) || null;
 }
 
 function persistStore() {
@@ -386,7 +391,19 @@ app.post("/api/auth/login", async (request, response, next) => {
 		}
 
 		const token = randomBytes(32).toString("hex");
-		sessions.set(token, user.id);
+		const previousSessions = store.sessions;
+		store.sessions = previousSessions.filter((session) => Date.parse(session.expiresAt) > Date.now());
+		store.sessions.push({
+			id: createHash("sha256").update(token).digest("hex"),
+			userId: user.id,
+			expiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString(),
+		});
+		try {
+			await persistStore();
+		} catch (error) {
+			store.sessions = previousSessions;
+			throw error;
+		}
 		setSessionCookie(response, token);
 		return response.json({ user: publicUser(user) });
 	} catch (error) {
@@ -394,11 +411,27 @@ app.post("/api/auth/login", async (request, response, next) => {
 	}
 });
 
-app.post("/api/auth/logout", (request, response) => {
-	const token = cookieValue(request, "traveller_session");
-	if (token) sessions.delete(token);
-	clearSessionCookie(response);
-	response.json({ ok: true });
+app.post("/api/auth/logout", async (request, response, next) => {
+	try {
+		const token = cookieValue(request, "traveller_session");
+		if (token) {
+			const tokenHash = createHash("sha256").update(token).digest("hex");
+			const previousSessions = store.sessions;
+			store.sessions = previousSessions.filter((session) => session.id !== tokenHash);
+			if (store.sessions.length !== previousSessions.length) {
+				try {
+					await persistStore();
+				} catch (error) {
+					store.sessions = previousSessions;
+					throw error;
+				}
+			}
+		}
+		clearSessionCookie(response);
+		return response.json({ ok: true });
+	} catch (error) {
+		return next(error);
+	}
 });
 
 app.get("/api/profile", (request, response) => {
@@ -755,6 +788,7 @@ async function start() {
 				reviews: Array.isArray(savedData.reviews) ? savedData.reviews : [],
 				vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
 				payments: Array.isArray(savedData.payments) ? savedData.payments : [],
+				sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
 			};
 			console.log("SQL Server is empty; importing existing app-data.json records.");
 		} catch (error) {

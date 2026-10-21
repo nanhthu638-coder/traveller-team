@@ -1,6 +1,6 @@
 import sql from "mssql";
 
-const COLLECTIONS = ["users", "inquiries", "bookings", "reviews", "vouchers", "payments"];
+const COLLECTIONS = ["users", "inquiries", "bookings", "reviews", "vouchers", "payments", "sessions"];
 
 function getConfig(database = process.env.SQLSERVER_DATABASE || "TravellerTeam") {
 	const server = process.env.SQLSERVER_SERVER || "localhost";
@@ -42,10 +42,21 @@ export async function connectDatabase() {
 				Payload NVARCHAR(MAX) NOT NULL,
 				UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_AppRecords_UpdatedAt DEFAULT SYSUTCDATETIME(),
 				CONSTRAINT PK_AppRecords PRIMARY KEY (Collection, RecordId),
-				CONSTRAINT CK_AppRecords_Collection CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments')),
+				CONSTRAINT CK_AppRecords_Collection CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions')),
 				CONSTRAINT CK_AppRecords_Payload CHECK (ISJSON(Payload) = 1)
 			);
 		END
+
+		IF EXISTS (
+			SELECT 1 FROM sys.check_constraints
+			WHERE name = N'CK_AppRecords_Collection' AND parent_object_id = OBJECT_ID(N'dbo.AppRecords')
+		)
+		BEGIN
+			ALTER TABLE dbo.AppRecords DROP CONSTRAINT CK_AppRecords_Collection;
+		END
+		ALTER TABLE dbo.AppRecords
+		ADD CONSTRAINT CK_AppRecords_Collection
+			CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions'));
 	`);
 	return pool;
 }
@@ -88,7 +99,7 @@ export async function saveDatabaseState(pool, state) {
 
 			DELETE target
 			FROM dbo.AppRecords AS target
-			WHERE target.Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments')
+			WHERE target.Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions')
 				AND NOT EXISTS (
 					SELECT 1 FROM @incoming AS source
 					WHERE source.Collection = target.Collection AND source.RecordId = target.RecordId
