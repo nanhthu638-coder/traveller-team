@@ -118,11 +118,6 @@ traveller-team/
 │   ├── style.css
 │   ├── tour-detail.js
 │   └── tour-list.js
-│
-├── .env.example               
-├── .gitignore
-├── Nhom4_T4.xlsx               
-├── README.md
 ├── booking-detail.html         
 ├── booking-history.html
 ├── checkout.html
