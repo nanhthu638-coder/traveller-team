@@ -378,6 +378,7 @@ body { color: #1B2121; background: radial-gradient(ellipse at 12% 8%, rgba(187,2
 .menu-toggle { border-color: rgba(187,215,200,.5); }
 .menu-toggle span { background: #BBD7C8; }
 .hero { background-size: 108% auto; animation: hero-drift 18s ease-in-out infinite alternate; }
+.hero::before { position: absolute; z-index: 0; inset: -2%; background: url("https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=85") center 52% / cover; content: ""; opacity: 0; pointer-events: none; animation: hero-image-crossfade 20s ease-in-out infinite alternate; }
 .hero-shade { z-index: 1; }
 .hero-shade { background: linear-gradient(90deg, rgba(27,33,33,.76), rgba(28,67,73,.48) 48%, rgba(28,67,73,.08)), linear-gradient(0deg, rgba(27,33,33,.3), transparent 35%); }
 .hero-content, .hero-caption { z-index: 3; }
@@ -430,6 +431,10 @@ body { color: #1B2121; background: radial-gradient(ellipse at 12% 8%, rgba(187,2
 	from { background-position: 43% 48%; background-size: 108% auto; }
 	to { background-position: 63% 57%; background-size: 120% auto; }
 }
+@keyframes hero-image-crossfade {
+	from { opacity: 0; transform: scale(1); }
+	to { opacity: .86; transform: scale(1.04); }
+}
 @keyframes hero-glint {
 	0%, 18% { left: -45%; opacity: 0; }
 	35% { opacity: 1; }
@@ -451,7 +456,7 @@ body { color: #1B2121; background: radial-gradient(ellipse at 12% 8%, rgba(187,2
 	.auth-cancel { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
-	.hero, .hero::after, .tour-banner-slide img { animation: none; }
+	.hero, .hero::before, .hero::after, .tour-banner-slide img { animation: none; }
 }
 
 .tour-card, .featured-card, .listing-card, .related-card { border-color: rgba(28,67,73,.18); border-radius: 12px; background-color: #fff; box-shadow: 0 8px 24px rgba(27,33,33,.08); }
