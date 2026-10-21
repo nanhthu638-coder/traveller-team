@@ -17,7 +17,7 @@ Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localh
 API dùng SQL Server/SQL Express theo cấu hình `SQLSERVER_*` trong `.env`. Với SQL Express tắt SQL Browser hoặc dùng cổng động, có thể đặt `SQLSERVER_PORT` để kết nối trực tiếp; khi có port, cấu hình instance được bỏ qua. Bảng `dbo.AppRecords` được tạo nếu chưa có. Nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
 
 ## Tính năng
-
+# :maple_leaf: Sprint 1 :maple_leaf:
 - Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
 - Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
 - Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
