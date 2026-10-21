@@ -72,7 +72,7 @@ vite.config.js
  * Đánh giá và chấm điểm Tour.
 
 ## Cấu trúc
-
+```text
 traveller-team/
 ├── server/                     
 │   ├── data/                   
@@ -135,3 +135,4 @@ traveller-team/
 ├── tour-detail.html
 ├── tour-list.html
 └── vite.config.js              
+```
