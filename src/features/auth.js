@@ -1,3 +1,5 @@
+import { mountAccountMenu, setAccountUser } from "./account-menu.js";
+
 const dialog = document.getElementById("auth-dialog");
 const form = document.getElementById("auth-form");
 const errorMessage = document.getElementById("auth-error");
@@ -39,13 +41,28 @@ function setMode(nextMode) {
 function setUser(user) {
   const loginButton = document.querySelector(".nav-auth");
   const signupButton = document.querySelector(".nav-signup");
-  const userButton = document.querySelector(".nav-user");
   loginButton.hidden = Boolean(user);
   signupButton.hidden = Boolean(user);
-  userButton.hidden = !user;
-  if (user) {
-    userButton.textContent = `${user.name} · Đăng xuất`;
-    userButton.setAttribute("aria-label", `Đăng xuất tài khoản ${user.name}`);
+  setAccountUser(user);
+}
+
+// Chỉ cho phép quay lại các trang nội bộ của ứng dụng sau khi đăng nhập (tránh open-redirect).
+const RETURN_TO_ALLOWLIST = ["/tour-detail.html?", "/booking-history.html", "/booking-detail.html?", "/checkout.html?", "/profile.html"];
+
+function safeReturnTo(value) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+  return RETURN_TO_ALLOWLIST.some((prefix) => value.startsWith(prefix)) ? value : null;
+}
+
+async function handleLogout() {
+  if (!window.confirm("Bạn chắc muốn đăng xuất?")) return;
+  try {
+    const response = await fetch("/api/auth/logout", { method: "POST" });
+    if (!response.ok) throw new Error("logout failed");
+    setUser(null);
+    showNotice("Bạn đã đăng xuất.");
+  } catch {
+    showNotice("Không thể đăng xuất lúc này. Vui lòng thử lại.", true);
   }
 }
 
@@ -60,6 +77,8 @@ async function loadSession() {
 }
 
 export function initAuth() {
+  mountAccountMenu({ onLogout: handleLogout });
+
   document.querySelectorAll("[data-open-auth]").forEach((button) => {
     button.addEventListener("click", () => {
       setMode(button.dataset.authMode || "login");
@@ -86,18 +105,6 @@ export function initAuth() {
     }
   });
   dialog.addEventListener("cancel", (event) => event.preventDefault());
-
-  document.querySelector(".nav-user").addEventListener("click", async () => {
-    if (!window.confirm("Bạn chắc muốn đăng xuất?")) return;
-    try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (!response.ok) throw new Error("logout failed");
-      setUser(null);
-      showNotice("Bạn đã đăng xuất.");
-    } catch {
-      showNotice("Không thể đăng xuất lúc này. Vui lòng thử lại.", true);
-    }
-  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -135,8 +142,8 @@ export function initAuth() {
         setUser(data.user);
         form.reset();
         dialog.close();
-        const returnTo = new URLSearchParams(window.location.search).get("returnTo");
-        if (returnTo?.startsWith("/tour-detail.html?") && !returnTo.startsWith("//")) {
+        const returnTo = safeReturnTo(new URLSearchParams(window.location.search).get("returnTo"));
+        if (returnTo) {
           window.location.assign(returnTo);
           return;
         }
@@ -150,8 +157,9 @@ export function initAuth() {
   });
 
   loadSession();
-  if (new URLSearchParams(window.location.search).get("auth") === "login") {
-    setMode("login");
+  const authParam = new URLSearchParams(window.location.search).get("auth");
+  if (authParam === "login" || authParam === "register") {
+    setMode(authParam);
     dialog.showModal();
   }
 }
