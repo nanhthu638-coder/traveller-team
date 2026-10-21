@@ -47,7 +47,7 @@ function setUser(user) {
 }
 
 // Chỉ cho phép quay lại các trang nội bộ của ứng dụng sau khi đăng nhập (tránh open-redirect).
-const RETURN_TO_ALLOWLIST = ["/tour-detail.html?", "/booking-history.html", "/booking-detail.html?"];
+const RETURN_TO_ALLOWLIST = ["/tour-detail.html?", "/booking-history.html", "/booking-detail.html?", "/checkout.html?", "/profile.html"];
 
 function safeReturnTo(value) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return null;

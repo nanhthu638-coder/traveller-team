@@ -7,7 +7,7 @@ let guestLinks = [];
 
 const MENU_HTML = `
   <button class="account-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="account-dropdown">
-    <span class="account-avatar" data-account-avatar aria-hidden="true"></span>
+    <span class="account-avatar" data-account-avatar aria-hidden="true"><span data-account-initial></span><img alt="" hidden /></span>
     <span class="account-name" data-account-name></span>
     <span class="account-caret" aria-hidden="true">▾</span>
   </button>
@@ -19,6 +19,10 @@ const MENU_HTML = `
     <a class="account-item" role="menuitem" href="${HISTORY_URL}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-3-2-3 2-3-2-3 2V5a1 1 0 0 1 1-1Z"/><path d="M9.5 9h5M9.5 12.5h5"/></svg>
       Lịch sử đặt tour
+    </a>
+    <a class="account-item" role="menuitem" href="/profile.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.3 3.2-5 7-5s6.3 1.7 7 5"/></svg>
+      Hồ sơ cá nhân
     </a>
     <button class="account-item" role="menuitem" type="button" data-account-logout>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 8l4 4-4 4M19 12H10"/></svg>
@@ -64,6 +68,7 @@ export function mountAccountMenu({ onLogout, withGuestLinks = false } = {}) {
   const dropdown = root.querySelector(".account-dropdown");
   const onHistoryPage = /\/booking-(history|detail)\.html$/.test(window.location.pathname);
   if (onHistoryPage) root.querySelector(`a[href="${HISTORY_URL}"]`).setAttribute("aria-current", "page");
+  if (window.location.pathname === "/profile.html") root.querySelector('a[href="/profile.html"]').setAttribute("aria-current", "page");
 
   trigger.addEventListener("click", () => setOpen(dropdown.hidden));
   document.addEventListener("click", (event) => {
@@ -97,7 +102,13 @@ export function setAccountUser(user) {
     setOpen(false);
     return;
   }
-  root.querySelector("[data-account-avatar]").textContent = initialOf(user.name);
+  root.querySelector("[data-account-initial]").textContent = initialOf(user.name);
+  const avatar = root.querySelector("[data-account-avatar]");
+  const image = avatar.querySelector("img");
+  if (image) {
+    image.hidden = !user.avatarUrl;
+    image.src = user.avatarUrl || "";
+  }
   root.querySelector("[data-account-name]").textContent = user.name;
   root.querySelector("[data-account-fullname]").textContent = user.name;
   root.querySelector("[data-account-email]").textContent = user.email || "";
@@ -124,6 +135,11 @@ async function logoutAndRefresh() {
 /** Dùng cho các trang con (không có hộp thoại đăng nhập): tự lấy phiên đăng nhập và dựng menu. */
 export async function initHeaderAccount() {
   mountAccountMenu({ onLogout: logoutAndRefresh, withGuestLinks: true });
+  const user = await loadAccountUser();
+  return user;
+}
+
+async function loadAccountUser() {
   try {
     const response = await fetch("/api/auth/session");
     const data = await response.json();

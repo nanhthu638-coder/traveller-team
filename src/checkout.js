@@ -6,10 +6,13 @@ import { escapeHtml, formatDate, formatPrice } from "./features/booking-format.j
 const container = document.getElementById("checkout");
 const bookingId = new URLSearchParams(window.location.search).get("bookingId");
 let paymentData;
+let voucherMessage = "";
+let voucherMessageIsError = false;
 
 function render() {
   const { booking, payment } = paymentData;
   const confirmed = payment.status === "confirmed";
+  const availableVouchers = Array.isArray(paymentData.vouchers) ? paymentData.vouchers : [];
   const state = confirmed
     ? '<p class="checkout-state is-success" role="status"><span aria-hidden="true">✓</span> Giao dịch thành công! Đơn hàng đã được thanh toán.</p>'
     : '<p class="checkout-state" role="status">Quét mã QR để hoàn tất thanh toán cho đơn hàng.</p>';
@@ -22,6 +25,17 @@ function render() {
     <div class="checkout-layout">
       <section class="profile-card checkout-payment"><h2>Quét mã thanh toán</h2>${state}
         ${confirmed ? "" : `<div class="checkout-qr-panel"><div class="checkout-qr" data-payment-qr aria-label="Mã QR thanh toán"></div><p>Mở camera để quét mã và kiểm tra thông tin đơn hàng</p></div>`}
+        ${confirmed ? "" : `<div class="checkout-voucher">
+          <label for="checkout-voucher">Mã giảm giá có sẵn</label>
+          <div class="checkout-voucher-row">
+            <select id="checkout-voucher">
+              <option value="">Không áp dụng mã</option>
+              ${availableVouchers.map((voucher) => `<option value="${escapeHtml(voucher.code)}"${booking.voucher?.code === voucher.code ? " selected" : ""}>${escapeHtml(voucher.code)} · giảm ${formatPrice(voucher.discount)}</option>`).join("")}
+            </select>
+            <button class="secondary-cta" type="button" data-apply-voucher>Áp dụng</button>
+          </div>
+          <p class="checkout-voucher-status${voucherMessageIsError ? " is-error" : ""}" role="status" aria-live="polite">${escapeHtml(voucherMessage)}</p>
+        </div>`}
         <dl class="checkout-bank">
           <div><dt>Mã giao dịch</dt><dd>${escapeHtml(payment.id.slice(0, 8).toUpperCase())}</dd></div>
           <div><dt>Số tiền</dt><dd>${formatPrice(payment.amount)}</dd></div>
@@ -44,8 +58,36 @@ function render() {
     </div>`;
 
   container.querySelector("[data-demo-confirm]")?.addEventListener("click", confirmDemoPayment);
+  container.querySelector("[data-apply-voucher]")?.addEventListener("click", applyVoucher);
   if (!confirmed) renderPaymentQr();
   container.setAttribute("aria-busy", "false");
+}
+
+async function applyVoucher() {
+  const button = container.querySelector("[data-apply-voucher]");
+  const select = container.querySelector("#checkout-voucher");
+  button.disabled = true;
+  voucherMessage = "";
+  voucherMessageIsError = false;
+  try {
+    const response = await fetch(`/api/bookings/${encodeURIComponent(bookingId)}/voucher`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: select.value }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Không thể áp dụng mã giảm giá.");
+    paymentData.booking = data.booking;
+    if (data.payment) paymentData.payment = data.payment;
+    voucherMessage = data.discount
+      ? `Đã áp dụng ${data.booking.voucher.code}, giảm ${formatPrice(data.discount)}.`
+      : "Đã gỡ mã giảm giá.";
+    render();
+  } catch (error) {
+    voucherMessage = error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message;
+    voucherMessageIsError = true;
+    render();
+  }
 }
 
 async function renderPaymentQr() {
@@ -99,6 +141,11 @@ async function loadPayment() {
     }
     if (!response.ok) throw new Error(data.error || "Không thể tải giao dịch thanh toán.");
     paymentData = data;
+    if (data.booking.paymentStatus === "paid") {
+      container.innerHTML = '<p class="checkout-config-warning" role="status">Đơn này đã được thanh toán.</p><a class="secondary-cta" href="/booking-detail.html?id=' + encodeURIComponent(data.booking.id) + '">Quay lại chi tiết đơn</a>';
+      container.setAttribute("aria-busy", "false");
+      return;
+    }
     render();
   } catch (error) {
     container.innerHTML = `<p class="checkout-config-warning" role="alert">${escapeHtml(error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message)}</p>`;

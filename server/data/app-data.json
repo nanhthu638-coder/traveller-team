@@ -7,6 +7,14 @@
       "salt": "08cabbd029a47c0048d4d2635f641174",
       "hash": "8a2ca426bb2145488aa3e55861b69778d9340f10b9d03cc6fafcee83aec3686f8550e8f5bb0141f84878b53a4c0e61f2d2d15a967740117ac57f6259ea0fece7",
       "createdAt": "2026-10-20T08:20:15.033Z"
+    },
+    {
+      "id": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "name": "Thư Nguyễn",
+      "email": "nanhthu638@gmail.com",
+      "salt": "90fcd0afd3259d5a57cd3d9f1e6a1481",
+      "hash": "d984fe389b97bb900c5c519faca420c4952778bff4d6e957745b2ec9e351e1d155ace4f3e9e583ef8df1d40ec2133347bf5b43cb91cd674a339ec7e06eba37e0",
+      "createdAt": "2026-10-21T03:06:16.019Z"
     }
   ],
   "inquiries": [],
@@ -49,6 +57,51 @@
       "note": "",
       "createdAt": "2026-10-20T08:20:55.351Z",
       "updatedAt": "2026-10-20T08:21:07.134Z"
+    },
+    {
+      "id": "e7871e3b-60b1-4166-9cde-874af68f4e8e",
+      "code": "TT-261021-8FEE",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "tour": {
+        "id": "ha-long-3n2d",
+        "name": "Vịnh Hạ Long · 3 ngày 2 đêm",
+        "place": "Hạ Long",
+        "region": "Quảng Ninh",
+        "duration": "3 ngày 2 đêm",
+        "price": 3490000,
+        "image": "photo-1528127269322-539801943592"
+      },
+      "departureDate": "2026-11-01",
+      "passengers": {
+        "adult": 2,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Thư Nguyễn",
+          "gender": "male",
+          "dob": "2006-10-01"
+        },
+        {
+          "type": "adult",
+          "fullName": "vfvee",
+          "gender": "male",
+          "dob": "1998-11-12"
+        }
+      ],
+      "total": 6980000,
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "contact": {
+        "name": "Thư Nguyễn",
+        "email": "nanhthu638@gmail.com",
+        "phone": ""
+      },
+      "note": "",
+      "createdAt": "2026-10-21T03:07:59.298Z",
+      "updatedAt": "2026-10-21T03:07:59.298Z"
     }
   ],
   "reviews": [

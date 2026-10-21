@@ -142,6 +142,7 @@ function renderBooking(booking, review) {
           <ul class="bd-price-lines">${priceLines(booking)}</ul>
           <div class="booking-total"><span>Tổng tiền</span><strong>${formatPrice(booking.total)}</strong></div>
           <p class="bd-note is-${note.tone}">${note.text}</p>
+          ${booking.paymentStatus === "unpaid" && booking.status !== "cancelled" ? `<a class="submit-button booking-submit" href="/checkout.html?bookingId=${encodeURIComponent(booking.id)}">Thanh toán trực tuyến <span aria-hidden="true">↗</span></a>` : ""}
           <a class="submit-button booking-submit" href="/tour-detail.html?id=${encodeURIComponent(tour.id)}">Xem lại tour <span aria-hidden="true">↗</span></a>
           <a class="secondary-cta bd-secondary" href="/booking-history.html">Về lịch sử đặt tour</a>
         </div>

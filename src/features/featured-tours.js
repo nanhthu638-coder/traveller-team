@@ -15,7 +15,7 @@ export async function initFeaturedTours() {
     const response = await fetch("/api/tours");
     if (!response.ok) throw new Error("Không thể tải tour nổi bật.");
     const { tours = [] } = await response.json();
-    container.innerHTML = tours.slice(0, 3).map((tour) => `
+    container.innerHTML = tours.slice(0, 6).map((tour) => `
       <article class="featured-card">
         <img src="${imageUrl(tour.image)}" alt="${escapeHtml(tour.name)}" loading="lazy" />
         <div class="featured-card-body">

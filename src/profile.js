@@ -1,4 +1,5 @@
 import { initHeaderAccount, setAccountUser } from "./features/account-menu.js";
+import { initNavigation } from "./features/navigation.js";
 
 const form = document.getElementById("profile-form");
 const status = document.getElementById("profile-status");
@@ -133,5 +134,6 @@ removeAvatar.addEventListener("click", async () => {
   }
 });
 
+initNavigation();
 initHeaderAccount();
 loadProfile();

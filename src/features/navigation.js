@@ -1,4 +1,7 @@
+import { initSupportWidget } from "./support-widget.js";
+
 export function initNavigation() {
+  initSupportWidget();
   const menuButton = document.querySelector(".menu-toggle");
   const navigation = document.querySelector(".site-nav");
   if (!menuButton || !navigation) return;
