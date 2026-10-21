@@ -48,6 +48,21 @@ function priceLines(booking) {
   return lines.join("");
 }
 
+const GENDER_LABEL = { male: "Nam", female: "Nữ", other: "Khác" };
+const TYPE_LABEL = { adult: "Người lớn", child: "Trẻ em", infant: "Em bé" };
+
+// Danh sách hành khách (đơn mẫu cũ không có thì bỏ qua). Số giấy tờ chỉ hiện 3 ký tự cuối.
+function passengerSection(booking) {
+  const list = Array.isArray(booking.passengerDetails) ? booking.passengerDetails : [];
+  if (!list.length) return "";
+  const items = list.map((item, index) => `
+    <li>
+      <span class="bd-pax-no">${index + 1}</span>
+      <div><strong>${escapeHtml(item.fullName)}</strong><small>${TYPE_LABEL[item.type] || "Hành khách"} · ${GENDER_LABEL[item.gender] || "—"} · Sinh ${formatDate(item.dob)}${item.idNumber ? ` · Giấy tờ •••${escapeHtml(item.idNumber.slice(-3))}` : ""}</small></div>
+    </li>`).join("");
+  return `<section class="detail-section"><h2>Danh sách hành khách</h2><ol class="bd-pax-list">${items}</ol></section>`;
+}
+
 // Hộp "Đánh giá tour": chỉ hiện với đơn chưa hủy
 function reviewPanel(booking, review) {
   if (booking.status === "cancelled") return "";
@@ -114,6 +129,8 @@ function renderBooking(booking, review) {
             <div class="bd-grid-wide"><dt>Ghi chú</dt><dd>${booking.note ? escapeHtml(booking.note) : "Không có ghi chú"}</dd></div>
           </dl>
         </section>
+
+        ${passengerSection(booking)}
 
         ${reviewPanel(booking, review)}
       </div>

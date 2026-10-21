@@ -1,0 +1,68 @@
+{
+  "users": [
+    {
+      "id": "d877a869-bbe0-4244-ac12-163a8a744925",
+      "name": "Nguyễn Trân",
+      "email": "bt12@gmail.com",
+      "salt": "08cabbd029a47c0048d4d2635f641174",
+      "hash": "8a2ca426bb2145488aa3e55861b69778d9340f10b9d03cc6fafcee83aec3686f8550e8f5bb0141f84878b53a4c0e61f2d2d15a967740117ac57f6259ea0fece7",
+      "createdAt": "2026-10-20T08:20:15.033Z"
+    }
+  ],
+  "inquiries": [],
+  "bookings": [
+    {
+      "id": "a5f26d69-5532-47e1-b73b-8697af4da395",
+      "code": "TT-261020-0FD9",
+      "userId": "d877a869-bbe0-4244-ac12-163a8a744925",
+      "tour": {
+        "id": "hoi-an-2n1d",
+        "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+        "place": "Hội An",
+        "region": "Quảng Nam",
+        "duration": "2 ngày 1 đêm",
+        "price": 2150000,
+        "image": "photo-1531058020387-3be344556be6"
+      },
+      "departureDate": "2026-10-22",
+      "passengers": {
+        "adult": 1,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Nguyễn Trân",
+          "gender": "male",
+          "dob": "1997-02-13"
+        }
+      ],
+      "total": 2150000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Nguyễn Trân",
+        "email": "bt12@gmail.com",
+        "phone": ""
+      },
+      "note": "",
+      "createdAt": "2026-10-20T08:20:55.351Z",
+      "updatedAt": "2026-10-20T08:21:07.134Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "87debe58-5876-4f01-a670-3584b8686950",
+      "userId": "d877a869-bbe0-4244-ac12-163a8a744925",
+      "bookingId": "a5f26d69-5532-47e1-b73b-8697af4da395",
+      "tourId": "hoi-an-2n1d",
+      "authorName": "Nguyễn Trân",
+      "rating": 5,
+      "comment": "tuyệt vời !!!!",
+      "images": [],
+      "createdAt": "2026-10-20T08:21:36.648Z",
+      "updatedAt": "2026-10-20T08:21:36.648Z"
+    }
+  ]
+}

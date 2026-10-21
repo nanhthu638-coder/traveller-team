@@ -2,31 +2,28 @@ import { initHeaderAccount } from "./features/account-menu.js";
 import { initNavigation } from "./features/navigation.js";
 import { formatRating, ratingBadge } from "./features/review-ui.js";
 import { initTourReviews } from "./features/tour-reviews.js";
+import { departureOptions, fetchAvailability, initBooking } from "./features/booking-flow.js";
 
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(Math.round(value))}đ`;
 const imageUrl = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
 
-// Ngày hôm nay theo giờ Việt Nam (khớp với cách server kiểm tra ngày khởi hành)
-const todayInVietnam = () => new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 const MAX_PER_TYPE = 20;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 }
 
-function renderTourDetail(tour) {
+function renderTourDetail(tour, availability) {
   const highlights = [
     "Khám phá các địa danh nổi bật cùng hướng dẫn viên địa phương.",
     "Thưởng thức ẩm thực đặc sản và trải nghiệm văn hóa tại điểm đến.",
     "Lưu trú tiện nghi, lịch trình rõ ràng và dịch vụ trọn gói.",
   ];
-  // Chỉ cho chọn các ngày khởi hành còn hiệu lực
-  const upcomingDepartures = tour.departures.filter((date) => date >= todayInVietnam());
-  const canBook = upcomingDepartures.length > 0;
-  const departureOptions = canBook
-    ? upcomingDepartures.map((date) => `<option value="${date}">${date.split("-").reverse().join("/")}</option>`).join("")
-    : '<option value="">Hiện chưa có ngày khởi hành</option>';
+  // Chỉ cho chọn các ngày khởi hành còn hiệu lực và còn chỗ (kèm số chỗ còn lại)
+  const picker = departureOptions(tour, availability);
+  const canBook = picker.canBook;
+  const departureOptionsHtml = picker.html;
   const relatedTours = [
     { id: "ha-long-3n2d", name: "Vịnh Hạ Long", image: "photo-1528127269322-539801943592" },
     { id: "da-lat-3n2d", name: "Đà Lạt", image: "photo-1531058020387-3be344556be6" },
@@ -66,17 +63,16 @@ function renderTourDetail(tour) {
         </div>
         <aside class="booking-panel"><div class="booking-box">
           <div class="booking-price"><span>Giá từ</span><strong>${formatPrice(tour.price)} <small>/ khách</small></strong></div>
-          <label>Ngày khởi hành<select class="booking-date"${canBook ? "" : " disabled"}>${departureOptions}</select></label>
+          <label>Ngày khởi hành <small>(kèm số chỗ còn lại)</small><select class="booking-date"${canBook ? "" : " disabled"}>${departureOptionsHtml}</select></label>
           <div class="passenger-box">
             <div class="passenger-row"><span>Người lớn</span><div class="passenger-controls"><button type="button" data-step="-1" data-target="adult" aria-label="Giảm người lớn">−</button><input data-role="adult" type="number" min="0" value="2" /><button type="button" data-step="1" data-target="adult" aria-label="Tăng người lớn">+</button></div></div>
             <div class="passenger-row"><span>Trẻ em</span><div class="passenger-controls"><button type="button" data-step="-1" data-target="child" aria-label="Giảm trẻ em">−</button><input data-role="child" type="number" min="0" value="0" /><button type="button" data-step="1" data-target="child" aria-label="Tăng trẻ em">+</button></div></div>
             <div class="passenger-row"><span>Em bé</span><div class="passenger-controls"><button type="button" data-step="-1" data-target="infant" aria-label="Giảm em bé">−</button><input data-role="infant" type="number" min="0" value="0" /><button type="button" data-step="1" data-target="infant" aria-label="Tăng em bé">+</button></div></div>
           </div>
           <div class="booking-total"><span>Tạm tính</span><strong data-detail-total>${formatPrice(tour.price * 2)}</strong></div>
-          <label>Số điện thoại liên hệ <small>(không bắt buộc)</small><input class="booking-input" data-field="phone" type="tel" inputmode="tel" maxlength="20" placeholder="Ví dụ: 0901 234 567" autocomplete="tel" /></label>
-          <label>Ghi chú<textarea class="booking-input" data-field="note" rows="3" maxlength="500" placeholder="Yêu cầu đặc biệt: ăn chay, xếp phòng gần nhau..."></textarea></label>
+          <p class="availability-note is-muted" data-availability hidden></p>
           <p class="booking-error" data-booking-error role="alert" hidden></p>
-          <button class="submit-button booking-submit" type="button" data-booking-submit${canBook ? "" : " disabled"}><span data-booking-label>Đặt tour</span> <span aria-hidden="true">↗</span></button>
+          <button class="submit-button booking-submit" type="button" data-booking-continue${canBook ? "" : " disabled"}><span data-booking-label>Tiếp tục nhập thông tin hành khách</span> <span aria-hidden="true">↗</span></button>
           <a class="booking-help" href="/index.html#contact">Cần tư vấn thêm? Liên hệ chúng tôi</a>
         </div></aside>
       </div>
@@ -105,12 +101,13 @@ async function initTourDetailPage() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Không thể tải thông tin tour.");
     const tour = data.tour;
+    const availability = await fetchAvailability(tourId); // null nếu lỗi: vẫn xem được tour, server kiểm tra chỗ khi đặt
     if (!tour) {
       showError(detailPage, "Tour này không tồn tại.");
       return;
     }
 
-    detailPage.innerHTML = renderTourDetail(tour);
+    detailPage.innerHTML = renderTourDetail(tour, availability);
     document.title = `${tour.name} | Traveller Team`;
     detailPage.querySelector("[data-back-to-list]").addEventListener("click", () => {
       window.location.href = "/tour-list.html";
@@ -125,7 +122,7 @@ async function initTourDetailPage() {
       const infants = Math.max(0, Number(detailPage.querySelector('[data-role="infant"]').value || 0));
       detailPage.querySelector("[data-detail-total]").textContent = formatPrice(adults * tour.price + children * tour.price * 0.7 + infants * 0);
     };
-  detailPage.querySelectorAll("[data-step]").forEach((button) => {
+    detailPage.querySelectorAll("[data-step]").forEach((button) => {
       button.addEventListener("click", () => {
         const input = detailPage.querySelector(`[data-role="${button.dataset.target}"]`);
         input.value = Math.min(MAX_PER_TYPE, Math.max(0, Number(input.value || 0) + Number(button.dataset.step)));
@@ -139,51 +136,8 @@ async function initTourDetailPage() {
       });
     });
 
-    // ----- Đặt tour: tạo đơn rồi chuyển sang trang chi tiết đơn -----
-    const submitButton = detailPage.querySelector("[data-booking-submit]");
-    const submitLabel = detailPage.querySelector("[data-booking-label]");
-    const errorBox = detailPage.querySelector("[data-booking-error]");
-    const showBookingError = (message) => {
-      errorBox.textContent = message;
-      errorBox.hidden = !message;
-    };
-    const countOf = (role) => Math.max(0, Math.floor(Number(detailPage.querySelector(`[data-role="${role}"]`).value || 0)));
-
-    submitButton.addEventListener("click", async () => {
-      showBookingError("");
-      const passengers = { adult: countOf("adult"), child: countOf("child"), infant: countOf("infant") };
-      const departureDate = detailPage.querySelector(".booking-date").value;
-      if (!departureDate) return showBookingError("Vui lòng chọn ngày khởi hành.");
-      if (passengers.adult < 1) return showBookingError("Cần ít nhất 1 người lớn để đặt tour.");
-
-      submitButton.disabled = true; // tránh bấm đúp tạo 2 đơn
-      submitLabel.textContent = "Đang đặt tour...";
-      try {
-        const response = await fetch("/api/bookings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tourId: tour.id,
-            departureDate,
-            passengers,
-            phone: detailPage.querySelector('[data-field="phone"]').value.trim(),
-            note: detailPage.querySelector('[data-field="note"]').value.trim(),
-          }),
-        });
-        if (response.status === 401) {
-          const returnTo = `${window.location.pathname}${window.location.search}`;
-          window.location.replace(`/index.html?auth=login&returnTo=${encodeURIComponent(returnTo)}`);
-          return;
-        }
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || "Không thể đặt tour. Vui lòng thử lại.");
-        window.location.assign(`/booking-detail.html?id=${encodeURIComponent(data.booking.id)}&created=1`);
-      } catch (error) {
-        showBookingError(error instanceof TypeError ? "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại." : error.message);
-        submitButton.disabled = false;
-        submitLabel.textContent = "Đặt tour";
-      }
-    });
+    // ----- Đặt tour: kiểm tra chỗ trống → nhập thông tin hành khách → tạo đơn (src/features/booking-flow.js) -----
+    initBooking({ page: detailPage, tour, user: session.user, availability });
   } catch (error) {
     showError(detailPage, error.message || "Không thể tải thông tin tour.");
   }

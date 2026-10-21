@@ -19,6 +19,8 @@ import {
 	reviewEligibility,
 	validateReviewInput,
 } from "./reviews.js";
+import { departureAvailability, seatsOf, tourAvailability } from "./availability.js";
+import { parsePassengerDetails } from "./passengers.js";
 import { buildDemoBookings, createBooking, findUserBooking, isValidPhone, listUserBookings, parsePassengers, todayInVietnam } from "./bookings.js";
 
 const scrypt = promisify(scryptCallback);
@@ -35,7 +37,7 @@ let writeQueue = Promise.resolve();
 
 // API đánh giá nhận ảnh đính kèm dạng base64 nên cần giới hạn lớn hơn; phải khai báo TRƯỚC bộ đọc JSON mặc định.
 app.use(["/api/reviews", /^\/api\/bookings\/[^/]+\/review$/], express.json({ limit: "5mb" }));
-app.use(express.json({ limit: "20kb" }));
+app.use(express.json({ limit: "64kb" }));
 
 function publicUser(user) {
 	return { id: user.id, name: user.name, email: user.email };
@@ -104,6 +106,14 @@ app.get("/api/tours/:id", (request, response) => {
 	return response.json({ tour: withRating(tour) });
 });
 
+// Kiểm tra chỗ trống: sức chứa / đã đặt / còn lại của từng ngày khởi hành còn hiệu lực (công khai, chỉ đọc)
+app.get("/api/tours/:id/availability", (request, response) => {
+	const tour = searchTours().tours.find((item) => item.id === request.params.id);
+	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+	response.setHeader("Cache-Control", "no-store");
+	return response.json({ tourId: tour.id, departures: tourAvailability(tour, store.bookings, todayInVietnam()) });
+});
+
 app.get("/api/bookings", (request, response) => {
 	const user = currentUser(request);
 	if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để xem lịch sử đặt tour." });
@@ -146,6 +156,20 @@ app.post("/api/bookings", async (request, response, next) => {
 		const phone = cleanText(request.body?.phone, 20);
 		if (!isValidPhone(phone)) return response.status(400).json({ error: "Số điện thoại không hợp lệ." });
 
+		// Thông tin từng hành khách phải khớp số lượng đã chọn và đúng độ tuổi tại ngày khởi hành
+		const details = parsePassengerDetails(request.body?.passengerDetails, parsed.passengers, departureDate, todayInVietnam());
+		if (details.error) return response.status(400).json({ error: details.error });
+
+		// Kiểm tra chỗ trống ngay trước khi lưu (không có await giữa lúc kiểm tra và push nên không bị đặt trùng chỗ)
+		const slot = departureAvailability(tour, departureDate, store.bookings);
+		const seats = seatsOf(parsed.passengers);
+		if (seats > slot.remaining) {
+			const error = slot.remaining === 0
+				? "Ngày khởi hành này đã hết chỗ. Vui lòng chọn ngày khác."
+				: `Ngày khởi hành này chỉ còn ${slot.remaining} chỗ, bạn đang chọn ${seats} chỗ. Vui lòng giảm số khách hoặc chọn ngày khác.`;
+			return response.status(409).json({ error, remaining: slot.remaining });
+		}
+
 		const booking = createBooking({
 			user,
 			tour,
@@ -153,6 +177,7 @@ app.post("/api/bookings", async (request, response, next) => {
 			passengers: parsed.passengers,
 			phone,
 			note: cleanText(request.body?.note, 500),
+			passengerDetails: details.passengerDetails,
 			existingBookings: store.bookings,
 		});
 		store.bookings.push(booking);

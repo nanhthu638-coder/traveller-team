@@ -9,6 +9,7 @@
 //   tour: { id, name, place, region, duration, price, image },   // ảnh chụp thông tin tour lúc đặt
 //   departureDate,                  // "YYYY-MM-DD"
 //   passengers: { adult, child, infant },
+//   passengerDetails: [{ type, fullName, gender, dob, idNumber? }],   // xem server/passengers.js
 //   total,                          // tổng tiền (VND, số nguyên)
 //   status,                         // pending | confirmed | completed | cancelled
 //   paymentStatus,                  // unpaid | paid | refunded
@@ -69,7 +70,7 @@ export function generateBookingCode(existingBookings, now = new Date()) {
 }
 
 /** Tạo đơn đặt tour mới (chưa lưu). Dữ liệu đầu vào phải được kiểm tra trước đó. */
-export function createBooking({ user, tour, departureDate, passengers, phone = "", note = "", status = "pending", paymentStatus = "unpaid", createdAt = new Date(), existingBookings = [] }) {
+export function createBooking({ user, tour, departureDate, passengers, phone = "", note = "", passengerDetails = [], status = "pending", paymentStatus = "unpaid", createdAt = new Date(), existingBookings = [] }) {
   const timestamp = createdAt.toISOString();
   return {
     id: randomUUID(),
@@ -78,6 +79,7 @@ export function createBooking({ user, tour, departureDate, passengers, phone = "
     tour: { id: tour.id, name: tour.name, place: tour.place, region: tour.region, duration: tour.duration, price: tour.price, image: tour.image },
     departureDate,
     passengers,
+    passengerDetails, // danh sách hành khách chi tiết (họ tên, giới tính, ngày sinh, giấy tờ) – rỗng với đơn mẫu cũ
     total: calculateTotal(tour.price, passengers),
     status,
     paymentStatus,
