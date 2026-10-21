@@ -60,3 +60,78 @@ vite.config.js
 - Docs
   * Link access Nhom4_Lab4.1: https://docs.google.com/document/d/1KIsDL5-5ESIB9BfOeZTKzox-B9mEKBlDRTpk73BD6s8/edit?usp=sharing
   * Link access Nhom4_Lab4.2: https://docs.google.com/document/d/1B3PK5EkUFVLVzMVA0jzjIE2PT7JaABEu1hiBlVBzdS8/edit?usp=sharing
+ ---
+ # :maple_leaf: Sprint 2 :maple_leaf:
+ * Đặt Tour (Chọn số lượng khách, kiểm tra chỗ trống).
+ * Nhập thông tin hành khách.
+ * Áp dụng mã giảm giá (Voucher).
+ * Thanh toán trực tuyến.
+ * Xem lịch sử đặt Tour.
+ * Quản lý đơn đặt Tour (Xem, Yêu cầu hủy)
+ * Quản lý hồ sơ cá nhân.
+ * Đánh giá và chấm điểm Tour.
+
+## Cấu trúc
+
+traveller-team/
+├── server/                     
+│   ├── data/                   
+│   │   └── app-data.json
+│   ├── src/                    
+│   │   └── features/           
+│   │       ├── account-menu.js
+│   │       ├── auth.js
+│   │       ├── booking-flow.js
+│   │       ├── booking-format.js
+│   │       ├── contact.js
+│   │       ├── featured-tours.js
+│   │       ├── navigation.js
+│   │       ├── review-dialog.js
+│   │       ├── review-ui.js
+│   │       ├── support-widget.js
+│   │       ├── tour-reviews.js
+│   │       └── tours.js
+│   ├── booking-detail.js
+│   ├── booking-history.js
+│   ├── checkout.js
+│   ├── contact-page.js
+│   ├── main.js
+│   ├── profile.js
+│   ├── style.css
+│   ├── tour-detail.js
+│   └── tour-list.js
+│   ├── availability.js
+│   ├── bookings.js
+│   ├── database.js
+│   ├── index.js
+│   ├── passengers.js
+│   ├── reviews.js
+│   ├── tours.js
+│   └── vouchers.js
+│
+├── traveller-team-Test/        
+│   ├── src/
+│   │   └── features/  
+│   │       ├── auth.js
+│   │       ├── contact.js
+│   │       ├── featured-tours.js
+│   │       └── tours.js
+│   ├── main.js
+│   ├── style.css
+│   ├── tour-detail.js
+│   └── tour-list.js
+│
+├── .env.example               
+├── .gitignore
+├── Nhom4_T4.xlsx               
+├── README.md
+├── booking-detail.html         
+├── booking-history.html
+├── checkout.html
+├── contact.html
+├── index.html
+├── package-lock.json
+├── package.json                
+├── tour-detail.html
+├── tour-list.html
+└── vite.config.js              
