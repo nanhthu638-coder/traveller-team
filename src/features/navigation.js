@@ -1,4 +1,16 @@
+import { initSupportWidget } from "./support-widget.js";
+
 export function initNavigation() {
+  initSupportWidget();
+  const backToTop = document.querySelector(".back-to-top");
+  if (backToTop) {
+    const updateBackToTopVisibility = () => {
+      backToTop.classList.toggle("is-visible", window.scrollY > 300);
+    };
+    window.addEventListener("scroll", updateBackToTopVisibility, { passive: true });
+    updateBackToTopVisibility();
+  }
+
   const menuButton = document.querySelector(".menu-toggle");
   const navigation = document.querySelector(".site-nav");
   if (!menuButton || !navigation) return;

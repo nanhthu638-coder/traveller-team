@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Xem lịch sử đặt tour của bạn tại Traveller Team" />
+    <title>Lịch sử đặt tour | Traveller Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="m-0 bg-paper font-sans text-ink antialiased" data-requires-auth="true">
+    <header class="site-header flex min-h-[78px] items-center justify-between gap-7 bg-paper px-[7.1%]">
+      <a class="brand inline-flex shrink-0 items-center gap-3" href="/index.html#home" aria-label="Traveller Team, về đầu trang">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="site-nav"><span></span><span></span></button>
+      <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
+        <a href="/index.html#home">Trang chủ</a>
+        <a href="/tour-list.html">Hành trình</a>
+        <a href="/index.html#contact">Liên hệ &amp; thắc mắc</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="bh-page" aria-labelledby="bh-title">
+        <div class="bh-shell">
+          <nav class="bh-breadcrumb" aria-label="Đường dẫn">
+            <a href="/index.html#home">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Lịch sử đặt tour</span>
+          </nav>
+
+          <header class="bh-head">
+            <div>
+              <p class="eyebrow eyebrow-dark"><span></span> Tài khoản của bạn</p>
+              <h1 class="font-display" id="bh-title">Lịch sử đặt tour</h1>
+              <p class="bh-intro">Theo dõi trạng thái các đơn đặt tour và thanh toán của bạn ở một nơi.</p>
+            </div>
+            <a class="secondary-cta bh-explore" href="/tour-list.html">Khám phá thêm tour</a>
+          </header>
+
+          <div class="bh-controls" id="bh-controls" hidden>
+            <form class="bh-toolbar" id="bh-search" role="search" novalidate>
+              <label class="bh-field bh-field--search">
+                <span class="sr-only">Tìm theo tên tour, điểm đến hoặc mã đặt tour</span>
+                <input id="bh-q" name="q" type="search" placeholder="Tìm theo tên tour, điểm đến hoặc mã đặt tour" maxlength="100" autocomplete="off" />
+              </label>
+              <label class="bh-field">
+                <span class="bh-field-label">Thanh toán</span>
+                <select id="bh-payment" name="payment">
+                  <option value="">Tất cả</option>
+                  <option value="unpaid">Chưa thanh toán</option>
+                  <option value="paid">Đã thanh toán</option>
+                  <option value="refunded">Đã hoàn tiền</option>
+                </select>
+              </label>
+              <label class="bh-field">
+                <span class="bh-field-label">Sắp xếp</span>
+                <select id="bh-sort" name="sort">
+                  <option value="newest">Mới đặt nhất</option>
+                  <option value="departure-asc">Khởi hành sớm nhất</option>
+                  <option value="total-desc">Tổng tiền cao nhất</option>
+                </select>
+              </label>
+            </form>
+
+            <div class="bh-filter-row">
+              <div class="bh-chips" id="bh-chips" role="group" aria-label="Lọc theo trạng thái đặt tour">
+                <button type="button" class="chip is-active" data-status="" aria-pressed="true">Tất cả <span class="chip-count" data-count="all"></span></button>
+                <button type="button" class="chip" data-status="pending" aria-pressed="false">Chờ xử lý <span class="chip-count" data-count="pending"></span></button>
+                <button type="button" class="chip" data-status="confirmed" aria-pressed="false">Đã xác nhận <span class="chip-count" data-count="confirmed"></span></button>
+                <button type="button" class="chip" data-status="completed" aria-pressed="false">Đã hoàn thành <span class="chip-count" data-count="completed"></span></button>
+                <button type="button" class="chip" data-status="cancelled" aria-pressed="false">Đã hủy <span class="chip-count" data-count="cancelled"></span></button>
+              </div>
+              <div class="bh-result-row">
+                <p class="bh-count" id="bh-count" role="status" aria-live="polite"></p>
+                <button class="reset-button" id="bh-reset" type="button" hidden>Xóa bộ lọc</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bh-list" id="bh-list" aria-live="polite" aria-busy="true"></div>
+          <div class="bh-state" id="bh-state" hidden></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer flex min-h-[94px] items-center justify-between gap-5 border-t border-line px-[7.1%] py-5">
+      <a class="brand brand-footer inline-flex items-center gap-3" href="/index.html#home"><span class="brand-mark" aria-hidden="true"><span></span></span><span class="brand-name font-display">Traveller<span>Team</span></span></a>
+      <p>Đi xa để thấy gần hơn.</p>
+      <span class="footer-note">© 2026 Traveller Team</span>
+    </footer>
+
+    <script type="module" src="/src/booking-history.js"></script>
+  </body>
+</html>
