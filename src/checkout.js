@@ -26,12 +26,12 @@ function render() {
       <section class="profile-card checkout-payment"><h2>Quét mã thanh toán</h2>${state}
         ${confirmed ? "" : `<div class="checkout-qr-panel"><div class="checkout-qr" data-payment-qr aria-label="Mã QR thanh toán"></div><p>Mở camera để quét mã và kiểm tra thông tin đơn hàng</p></div>`}
         ${confirmed ? "" : `<div class="checkout-voucher">
-          <label for="checkout-voucher">Mã giảm giá có sẵn</label>
+          <label for="checkout-voucher">Mã giảm giá</label>
           <div class="checkout-voucher-row">
-            <select id="checkout-voucher">
-              <option value="">Không áp dụng mã</option>
-              ${availableVouchers.map((voucher) => `<option value="${escapeHtml(voucher.code)}"${booking.voucher?.code === voucher.code ? " selected" : ""}>${escapeHtml(voucher.code)} · giảm ${formatPrice(voucher.discount)}</option>`).join("")}
-            </select>
+            <input id="checkout-voucher" type="text" value="${escapeHtml(booking.voucher?.code || "")}" placeholder="Nhập mã giảm giá" list="checkout-voucher-options" autocomplete="off" />
+            <datalist id="checkout-voucher-options">
+              ${availableVouchers.map((voucher) => `<option value="${escapeHtml(voucher.code)}">${escapeHtml(voucher.code)} · giảm ${formatPrice(voucher.discount)}</option>`).join("")}
+            </datalist>
             <button class="secondary-cta" type="button" data-apply-voucher>Áp dụng</button>
           </div>
           <p class="checkout-voucher-status${voucherMessageIsError ? " is-error" : ""}" role="status" aria-live="polite">${escapeHtml(voucherMessage)}</p>

@@ -413,7 +413,9 @@ body { color: #1B2121; background: radial-gradient(ellipse at 12% 8%, rgba(187,2
 .form-heading p { color: #1B2121; font-size: 22px; font-weight: 700; }
 .privacy-note { color: #1C4349; font-size: 12px; font-weight: 600; }
 .form-status { color: #057569; font-size: 14px; font-weight: 700; }
-.contact-section, .tour-filter, .featured-card, .tour-card, .filter-panel, .toolbar-card, .quick-search, .listing-card, .detail-section, .detail-summary > div, .booking-box, .related-card { border-color: rgba(28,67,73,.2); background-color: rgba(187,215,200,.32); }
+.contact-section, .tour-filter, .featured-card, .tour-card, .filter-panel, .toolbar-card, .quick-search, .listing-card, .detail-section, .detail-summary > div, .booking-box, .related-card { border-color: rgba(28,67,73,.36); background-color: rgba(187,215,200,.32); }
+.profile-card, .bh-card { border-color: rgba(28,67,73,.36); }
+.itinerary-item, .passenger-row { border-color: rgba(28,67,73,.2); }
 .chip, .chip-list .chip, .listing-card-actions button, .passenger-controls button { border-color: rgba(28,67,73,.3); background-color: rgba(187,215,200,.5); color: #1C4349; }
 .chip:hover, .listing-card-actions button:hover, .passenger-controls button:hover { border-color: #057569; color: #057569; }
 .chip.is-active, .chip-list .chip.is-active { border-color: #057569; background-color: #057569; color: #BBD7C8; }
@@ -859,7 +861,8 @@ dialog.review-dialog::backdrop {
 .checkout-voucher { display: grid; gap: 8px; }
 .checkout-voucher > label { color: #1C4349; font-size: 13px; font-weight: 700; }
 .checkout-voucher-row { display: flex; gap: 8px; }
-.checkout-voucher-row select { min-width: 0; min-height: 42px; flex: 1; padding: 0 10px; border: 1px solid rgba(28,67,73,.35); border-radius: 8px; background: #fff; color: #1B2121; }
+.checkout-voucher-row input { min-width: 0; min-height: 42px; flex: 1; padding: 0 10px; border: 1px solid rgba(28,67,73,.35); border-radius: 8px; background: #fff; color: #1B2121; font: inherit; }
+.checkout-voucher-row input:focus { border-color: #057569; outline: 2px solid rgba(109,171,140,.25); }
 .checkout-voucher-row button { min-height: 42px; padding: 0 14px; border-color: #6DAB8C; color: #057569; font-weight: 700; }
 .checkout-voucher-row button:disabled { opacity: .65; }
 .checkout-voucher-status { min-height: 18px; margin: 0; color: #155b43; font-size: 12px; font-weight: 600; }
