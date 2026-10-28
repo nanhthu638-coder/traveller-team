@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Danh sách tour Traveller Team" />
+    <title>Danh sách tour | Traveller Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="m-0 bg-paper font-sans text-ink antialiased">
+    <header class="site-header flex min-h-[78px] items-center justify-between gap-7 bg-paper px-[7.1%]">
+      <a class="brand inline-flex shrink-0 items-center gap-3" href="/index.html" aria-label="Traveller Team, về đầu trang">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+      </a>
+      <nav class="site-nav flex items-center gap-7 text-[13px]" id="site-nav" aria-label="Điều hướng chính">
+        <a href="/index.html#home">Trang chủ</a>
+        <a href="/tour-list.html">Hành trình</a>
+        <a href="/index.html#contact">Liên hệ &amp; thắc mắc</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="tour-list-page">
+        <div class="tour-list-banner" aria-label="Banner hành trình du lịch">
+          <div class="tour-list-banner-copy">
+            <span class="eyebrow-dark">Hành trình được yêu thích</span>
+            <h1>Khám phá những chuyến đi phù hợp với nhịp sống của bạn</h1>
+            <p>Đặt ngay những hành trình ngắn ngày, du lịch biển, núi rừng và trải nghiệm văn hóa với mức giá hợp lý, hướng dẫn chuyên nghiệp và lịch trình rõ ràng.</p>
+            <div class="tour-banner-stats">
+              <div>
+                <strong>180+</strong>
+                <span>Tour</span>
+              </div>
+              <div>
+                <strong>4.8/5</strong>
+                <span>Đánh giá</span>
+              </div>
+              <div>
+                <strong>24/7</strong>
+                <span>Hỗ trợ</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tour-list-banner-visual" aria-live="polite">
+            <div class="tour-banner-track" id="tour-banner-track">
+              <article class="tour-banner-slide">
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" alt="Hạ Long 3N2Đ" />
+                <div class="banner-floating-card">
+                  <span>Gợi ý hôm nay</span>
+                  <strong>Hạ Long 3N2Đ</strong>
+                  <small>Chỉ từ 3.490.000đ / người</small>
+                </div>
+              </article>
+              <article class="tour-banner-slide">
+                <img src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80" alt="Đà Lạt 3N2Đ" />
+                <div class="banner-floating-card">
+                  <span>Tour nổi bật</span>
+                  <strong>Đà Lạt 3N2Đ</strong>
+                  <small>Chỉ từ 2.990.000đ / người</small>
+                </div>
+              </article>
+              <article class="tour-banner-slide">
+                <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80" alt="Ninh Bình 2N1Đ" />
+                <div class="banner-floating-card">
+                  <span>Khuyến mãi</span>
+                  <strong>Ninh Bình 2N1Đ</strong>
+                  <small>Chỉ từ 2.490.000đ / người</small>
+                </div>
+              </article>
+              <article class="tour-banner-slide">
+                <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1200&q=80" alt="Phú Quốc 4N3Đ" />
+                <div class="banner-floating-card">
+                  <span>Combo yêu thích</span>
+                  <strong>Phú Quốc 4N3Đ</strong>
+                  <small>Chỉ từ 5.990.000đ / người</small>
+                </div>
+              </article>
+            </div>
+            <div class="tour-banner-dots" aria-label="Chọn hình ảnh">
+              <button type="button" class="tour-banner-dot is-active" aria-label="Chuyển tới slide 1"></button>
+              <button type="button" class="tour-banner-dot" aria-label="Chuyển tới slide 2"></button>
+              <button type="button" class="tour-banner-dot" aria-label="Chuyển tới slide 3"></button>
+              <button type="button" class="tour-banner-dot" aria-label="Chuyển tới slide 4"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tour-list-shell">
+          <aside class="tour-list-sidebar">
+            <div class="filter-panel">
+              <h3>Bộ lọc</h3>
+              <div class="filter-group">
+                <label for="list-start">Điểm khởi hành</label>
+                <select id="list-start">
+                  <option value="">Tất cả</option>
+                  <option>Hà Nội</option>
+                  <option>TP. Hồ Chí Minh</option>
+                  <option>Đà Nẵng</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="list-date">Ngày khởi hành</label>
+                <input id="list-date" type="date" />
+              </div>
+              <div class="filter-group">
+                <legend>Loại tour</legend>
+                <div class="chip-list compact">
+                  <button type="button" class="chip is-active">Tất cả</button>
+                  <button type="button" class="chip">Trọn gói</button>
+                  <button type="button" class="chip">Gia đình</button>
+                  <button type="button" class="chip">Nghỉ dưỡng</button>
+                  <button type="button" class="chip">Mạo hiểm</button>
+                </div>
+              </div>
+              <div class="filter-group">
+                <div class="filter-label-row">
+                  <legend>Khoảng giá</legend>
+                  <span id="list-price-label">Tối đa 5.000.000đ</span>
+                </div>
+                <input id="list-price" type="range" min="0" max="10000000" step="500000" value="5000000" />
+              </div>
+              <div class="filter-actions">
+                <button class="submit-button" type="button">Áp dụng</button>
+                <button class="secondary-cta" type="button">Đặt lại</button>
+              </div>
+            </div>
+          </aside>
+
+          <div class="tour-list-main">
+            <div class="quick-search">
+              <div>
+                <label class="sr-only" for="quick-keyword">Điểm đến / Tên tour</label>
+                <input id="quick-keyword" type="text" placeholder="Điểm đến / Tên tour" />
+              </div>
+              <div>
+                <label class="sr-only" for="quick-start">Điểm khởi hành</label>
+                <select id="quick-start">
+                  <option value="">Điểm khởi hành</option>
+                  <option>Hà Nội</option>
+                  <option>TP. Hồ Chí Minh</option>
+                  <option>Đà Nẵng</option>
+                </select>
+              </div>
+              <div>
+                <label class="sr-only" for="quick-date">Ngày khởi hành</label>
+                <input id="quick-date" type="date" />
+              </div>
+              <button class="submit-button search-submit" type="button">Tìm kiếm tour</button>
+            </div>
+
+            <div class="toolbar-card">
+              <div>
+                <h3>Tìm thấy <strong id="listing-count">0</strong> tour phù hợp</h3>
+              </div>
+              <div class="filter-tags" id="filter-tags"></div>
+              <div class="sort-inline">
+                <label for="listing-sort">Sắp xếp</label>
+                <select id="listing-sort">
+                  <option value="featured">Nổi bật nhất</option>
+                  <option value="price-asc">Giá thấp → cao</option>
+                  <option value="price-desc">Giá cao → thấp</option>
+                  <option value="duration-short">Thời lượng ngắn</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="listing-grid" id="listing-grid"></div>
+            <div class="empty-state" id="listing-empty" hidden>
+              <strong>Không tìm thấy tour phù hợp</strong>
+              <span>Rất tiếc, hiện tại không có tour phù hợp với tiêu chí lọc của bạn.</span>
+              <button class="submit-button" type="button">Xóa toàn bộ bộ lọc</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/tour-list.js"></script>
+  </body>
+</html>

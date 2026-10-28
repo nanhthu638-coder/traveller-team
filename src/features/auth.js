@@ -1,10 +1,24 @@
+import { mountAccountMenu, setAccountUser } from "./account-menu.js";
+
 const dialog = document.getElementById("auth-dialog");
 const form = document.getElementById("auth-form");
 const errorMessage = document.getElementById("auth-error");
 const tabs = Array.from(dialog.querySelectorAll("[data-auth-mode]"));
 const registerFields = Array.from(dialog.querySelectorAll(".register-only"));
 const submitButton = dialog.querySelector(".auth-submit");
+const authNotice = document.getElementById("auth-notice");
 let mode = "login";
+let noticeTimer;
+
+function showNotice(message, isError = false) {
+  window.clearTimeout(noticeTimer);
+  authNotice.textContent = message;
+  authNotice.classList.toggle("is-error", isError);
+  authNotice.hidden = false;
+  noticeTimer = window.setTimeout(() => {
+    authNotice.hidden = true;
+  }, 4000);
+}
 
 function setMode(nextMode) {
   mode = nextMode;
@@ -19,20 +33,37 @@ function setMode(nextMode) {
     field.hidden = !isRegister;
     field.querySelector("input").required = isRegister;
   });
+  dialog.querySelector(".admin-auth-link").hidden = isRegister;
   tabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.authMode === mode)));
   errorMessage.textContent = "";
+  errorMessage.classList.remove("is-success");
 }
 
 function setUser(user) {
   const loginButton = document.querySelector(".nav-auth");
   const signupButton = document.querySelector(".nav-signup");
-  const userButton = document.querySelector(".nav-user");
   loginButton.hidden = Boolean(user);
   signupButton.hidden = Boolean(user);
-  userButton.hidden = !user;
-  if (user) {
-    userButton.textContent = `${user.name} · Đăng xuất`;
-    userButton.setAttribute("aria-label", `Đăng xuất tài khoản ${user.name}`);
+  setAccountUser(user);
+}
+
+// Chỉ cho phép quay lại các trang nội bộ của ứng dụng sau khi đăng nhập (tránh open-redirect).
+const RETURN_TO_ALLOWLIST = ["/tour-detail.html?", "/booking-history.html", "/booking-detail.html?", "/checkout.html?", "/profile.html"];
+
+function safeReturnTo(value) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+  return RETURN_TO_ALLOWLIST.some((prefix) => value.startsWith(prefix)) ? value : null;
+}
+
+async function handleLogout() {
+  if (!window.confirm("Bạn chắc muốn đăng xuất?")) return;
+  try {
+    const response = await fetch("/api/auth/logout", { method: "POST" });
+    if (!response.ok) throw new Error("logout failed");
+    setUser(null);
+    showNotice("Bạn đã đăng xuất.");
+  } catch {
+    showNotice("Không thể đăng xuất lúc này. Vui lòng thử lại.", true);
   }
 }
 
@@ -47,6 +78,8 @@ async function loadSession() {
 }
 
 export function initAuth() {
+  mountAccountMenu({ onLogout: handleLogout });
+
   document.querySelectorAll("[data-open-auth]").forEach((button) => {
     button.addEventListener("click", () => {
       setMode(button.dataset.authMode || "login");
@@ -55,15 +88,24 @@ export function initAuth() {
   });
 
   tabs.forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.authMode)));
+  dialog.querySelectorAll(".password-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = button.parentElement.querySelector("input");
+      const isVisible = input.type === "text";
+      input.type = isVisible ? "password" : "text";
+      button.setAttribute("aria-pressed", String(!isVisible));
+      button.setAttribute("aria-label", isVisible ? "Hiện mật khẩu" : "Ẩn mật khẩu");
+    });
+  });
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+  dialog.querySelector(".auth-cancel").addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   });
-
-  document.querySelector(".nav-user").addEventListener("click", async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-  });
+  dialog.addEventListener("cancel", (event) => event.preventDefault());
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -90,9 +132,24 @@ export function initAuth() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Không thể xác thực tài khoản.");
-      setUser(data.user);
-      form.reset();
-      dialog.close();
+      if (mode === "register") {
+        const registeredEmail = payload.email;
+        form.reset();
+        form.elements.email.value = registeredEmail;
+        setMode("login");
+        errorMessage.textContent = "Đăng ký thành công. Mời bạn đăng nhập.";
+        errorMessage.classList.add("is-success");
+      } else {
+        setUser(data.user);
+        form.reset();
+        dialog.close();
+        const returnTo = safeReturnTo(new URLSearchParams(window.location.search).get("returnTo"));
+        if (returnTo) {
+          window.location.assign(returnTo);
+          return;
+        }
+        showNotice("Đăng nhập thành công.");
+      }
     } catch (error) {
       errorMessage.textContent = error.message || "Không thể kết nối máy chủ.";
     } finally {
@@ -101,4 +158,9 @@ export function initAuth() {
   });
 
   loadSession();
+  const authParam = new URLSearchParams(window.location.search).get("auth");
+  if (authParam === "login" || authParam === "register") {
+    setMode(authParam);
+    dialog.showModal();
+  }
 }

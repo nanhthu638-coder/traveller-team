@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Trang quản trị Traveller Team" />
+  <title>Quản trị | Traveller Team</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-page">
+  <header class="admin-header">
+    <a class="admin-brand" href="/admin.html">Traveller Team <span>Quản trị</span></a>
+    <nav>
+      <a href="/index.html">Trang khách hàng</a>
+      <button id="admin-logout" type="button">Đăng xuất</button>
+    </nav>
+  </header>
+  <main id="admin-main" class="admin-main" aria-busy="true">
+    <p id="admin-status" class="admin-status" role="status" aria-live="polite">Đang kiểm tra quyền quản trị...</p>
+    <div id="admin-content" hidden>
+      <header class="admin-title">
+        <div>
+          <p class="eyebrow eyebrow-dark"><span></span> Khu vực nội bộ</p>
+          <h1 class="font-display">Quản trị Traveller Team</h1>
+        </div>
+        <span id="admin-name" class="admin-name"></span>
+      </header>
+
+      <section class="admin-panel" aria-labelledby="admin-bookings-title">
+        <div class="admin-section-heading">
+          <div><h2 id="admin-bookings-title">Quản lý đơn đặt tour</h2><p>Duyệt đơn, theo dõi trạng thái và xử lý yêu cầu hủy.</p></div>
+          <button id="admin-refresh" class="admin-secondary-button" type="button">Làm mới</button>
+        </div>
+        <form id="admin-booking-filters" class="admin-filters">
+          <label>Tìm mã đơn / khách
+            <input name="q" type="search" maxlength="100" placeholder="Tên, email hoặc mã đơn" />
+          </label>
+          <label>Tour
+            <select name="tourId"><option value="">Tất cả tour</option></select>
+          </label>
+          <label>Trạng thái
+            <select name="status">
+              <option value="">Tất cả</option>
+              <option value="pending">Chờ duyệt</option>
+              <option value="confirmed">Đã xác nhận</option>
+              <option value="completed">Hoàn tất</option>
+              <option value="cancelled">Đã hủy</option>
+              <option value="cancellation_requested">Chờ duyệt hủy</option>
+            </select>
+          </label>
+          <button class="admin-primary-button" type="submit">Lọc đơn</button>
+          <button id="admin-export-pdf" class="admin-secondary-button" type="button">Xuất khách tour này (PDF)</button>
+        </form>
+        <div id="admin-bookings" class="admin-list"></div>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="admin-inquiries-title">
+        <div class="admin-section-heading">
+          <div><h2 id="admin-inquiries-title">Biểu mẫu liên hệ</h2><p>Thắc mắc gửi từ trang liên hệ sẽ được chuyển về đây để xử lý.</p></div>
+        </div>
+        <div id="admin-inquiries" class="admin-list"></div>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="admin-customers-title">
+        <div class="admin-section-heading">
+          <div><h2 id="admin-customers-title">Quản lý khách hàng</h2><p>Thêm, sửa thông tin hoặc xóa tài khoản khách hàng.</p></div>
+        </div>
+        <form id="admin-customer-create" class="admin-customer-create">
+          <h3>Thêm khách hàng</h3>
+          <label>Họ tên<input name="name" maxlength="80" required /></label>
+          <label>Email<input name="email" type="email" maxlength="120" required /></label>
+          <label>Số điện thoại<input name="phone" maxlength="20" /></label>
+          <label>Địa chỉ<input name="address" maxlength="250" /></label>
+          <label>Mật khẩu ban đầu<input name="password" type="password" minlength="8" maxlength="256" required autocomplete="new-password" /></label>
+          <button class="admin-primary-button" type="submit">Tạo tài khoản khách hàng</button>
+        </form>
+        <div id="admin-customers" class="admin-list"></div>
+      </section>
+    </div>
+    <section id="admin-print-area" class="admin-print-area" hidden aria-label="Danh sách khách hàng tour"></section>
+  </main>
+  <script type="module" src="/src/admin.js"></script>
+</body>
+</html>
