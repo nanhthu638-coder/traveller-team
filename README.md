@@ -45,29 +45,17 @@ server/
   tours.js
 vite.config.js
 ```
+## 📌 Pull Requests đã thực hiện
 
-## API tìm kiếm & lọc tour
-
-`GET /api/tours` — tất cả tham số đều tùy chọn:
-
-| Tham số | Ý nghĩa | Ví dụ |
-| --- | --- | --- |
-| `q` | Từ khóa theo tên, địa điểm, tỉnh (không phân biệt dấu) | `q=ha long` |
-| `minPrice`, `maxPrice` | Khoảng giá (VND) | `minPrice=2000000&maxPrice=4000000` |
-| `from`, `to` | Khoảng ngày khởi hành (`YYYY-MM-DD`) | `from=2026-11-01&to=2026-11-10` |
-| `sort` | `default`, `price-asc`, `price-desc`, `date-asc` | `sort=price-asc` |
-
-Trả về `{ total, tours }`; mỗi tour có `departures` (mọi ngày khởi hành) và `matchedDepartures` (các ngày khớp bộ lọc ngày). Tham số sai trả về mã 400 kèm `{ error }`. Dữ liệu tour mẫu nằm ở `server/tours.js`.
-
-Trang chi tiết tour dùng URL `/tour-detail.html?id=<tour-id>` và lấy dữ liệu qua API.
-Để chạy bản build bằng máy chủ Express: `npm run build` rồi `npm start`.
-
-## Trang quản trị
-
-Trong file `.env` ở thư mục gốc, đặt `ADMIN_EMAILS` thành email của tài khoản quản trị (có thể phân cách nhiều email bằng dấu phẩy), rồi khởi động lại server. Nếu file `.env` đang dùng biến cũ `SUPPORT_EMAILS`, thay tên biến bằng `ADMIN_EMAILS` và dùng đúng email đăng nhập của tài khoản; không ghi mật khẩu vào biến này. Tạo tài khoản qua chức năng đăng ký với đúng email đã cấu hình; sau đó vào `/admin-login.html` và đăng nhập bằng email/mật khẩu đó. Do ứng dụng chưa xác minh email, chỉ cấu hình địa chỉ email mà bạn kiểm soát; không dùng email quản trị công khai để tự đăng ký trên môi trường triển khai.
-
-Trang `/admin.html` cho phép duyệt đơn mới, cập nhật đơn đã xác nhận thành hoàn tất, xem/lọc đơn, duyệt hoặc từ chối yêu cầu hủy, quản lý tài khoản khách hàng và đánh dấu biểu mẫu liên hệ đã xử lý. Muốn xuất danh sách khách của một tour, chọn tour rồi bấm **Xuất khách tour này (PDF)**; hộp thoại in của trình duyệt cho phép lưu thành PDF. Danh sách gồm thông tin người đặt và chi tiết hành khách có trong đơn. Đơn tour cũ không có dữ liệu chi tiết hành khách sẽ được ghi chú trong báo cáo.
-
-Biểu mẫu liên hệ được lưu trực tiếp vào hệ thống và xử lý trong trang quản trị; ứng dụng không gửi email và không cần cấu hình SMTP. Khi duyệt hủy, trạng thái thanh toán không tự động hoàn tiền; việc hoàn tiền cần được xử lý riêng.
-
-Đây là bản nền tảng để chạy cục bộ. Trước khi triển khai công khai, cần bổ sung giới hạn lượt đăng nhập/gửi biểu mẫu, chính sách sao lưu dữ liệu và HTTPS.
+- [PR #8: Update README.md](https://github.com/nanthu638-coder/traveller-team/pull/8)
+- [PR #3: Change search](https://github.com/nanthu638-coder/traveller-team/pull/3)
+---
+## ❓Issue đã thực hiện 
+- [Is #10: Đánh giá và chấm điểm Tour](https://github.com/nanhthu638-coder/traveller-team/issues/10)
+- [Is #9: Xem lịch sử đặt Tour](https://github.com/nanhthu638-coder/traveller-team/issues/9)
+---
+- Excel
+  * Link access: https://docs.google.com/spreadsheets/d/1tG4tDlw2bT8fQgMii-VEUp_I7WRxZ7zSyKmIA1J_7iU/edit?usp=sharing
+- Docs
+  * Link access Nhom4_Lab4.1: https://docs.google.com/document/d/1KIsDL5-5ESIB9BfOeZTKzox-B9mEKBlDRTpk73BD6s8/edit?usp=sharing
+  * Link access Nhom4_Lab4.2: https://docs.google.com/document/d/1B3PK5EkUFVLVzMVA0jzjIE2PT7JaABEu1hiBlVBzdS8/edit?usp=sharing
