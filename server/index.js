@@ -49,6 +49,7 @@ function publicUser(user) {
 		id: user.id,
 		name: user.name,
 		email: user.email,
+		role: adminEmails().includes(user.email.toLowerCase()) ? "admin" : "customer",
 		phone: user.phone || "",
 		birthDate: user.birthDate || "",
 		gender: user.gender || "",
@@ -57,6 +58,26 @@ function publicUser(user) {
 			? `/api/profile/avatar/${encodeURIComponent(user.id)}?v=${encodeURIComponent(user.avatarUpdatedAt || "1")}`
 			: "",
 	};
+}
+
+function adminEmails() {
+	return (process.env.ADMIN_EMAILS || "")
+		.split(",")
+		.map((email) => email.trim().toLowerCase())
+		.filter(Boolean);
+}
+
+function adminUser(request, response) {
+	const user = currentUser(request);
+	if (!user) {
+		response.status(401).json({ error: "Vui lòng đăng nhập tài khoản quản trị." });
+		return null;
+	}
+	if (!adminEmails().includes(user.email.toLowerCase())) {
+		response.status(403).json({ error: "Tài khoản không có quyền quản trị." });
+		return null;
+	}
+	return user;
 }
 
 function cookieValue(request, name) {
@@ -151,6 +172,37 @@ app.get("/api/bookings/:id", (request, response) => {
 	if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
 	const review = store.reviews.find((item) => item.bookingId === booking.id && item.userId === user.id);
 	return response.json({ booking, review: review ? publicReview(review, user.id) : null });
+});
+
+app.post("/api/bookings/:id/cancellation-request", async (request, response, next) => {
+	try {
+		const user = currentUser(request);
+		if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để yêu cầu hủy đơn." });
+		const booking = store.bookings.find((item) => item.id === request.params.id && item.userId === user.id);
+		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
+		if (booking.status === "cancelled" || booking.status === "completed") {
+			return response.status(409).json({ error: "Đơn đã hoàn tất hoặc đã hủy, không thể gửi yêu cầu hủy." });
+		}
+		if (booking.cancellationRequest?.status === "pending") {
+			return response.status(409).json({ error: "Yêu cầu hủy đơn này đang chờ quản trị viên xử lý." });
+		}
+		const previous = booking.cancellationRequest;
+		booking.cancellationRequest = {
+			status: "pending",
+			reason: cleanText(request.body?.reason, 500),
+			requestedAt: new Date().toISOString(),
+		};
+		try {
+			await persistStore();
+		} catch (error) {
+			if (previous === undefined) delete booking.cancellationRequest;
+			else booking.cancellationRequest = previous;
+			throw error;
+		}
+		return response.status(201).json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
+	} catch (error) {
+		return next(error);
+	}
 });
 
 app.get("/api/bookings/:id/payment", async (request, response, next) => {
@@ -376,12 +428,12 @@ app.post("/api/auth/register", async (request, response, next) => {
 	}
 });
 
-app.post("/api/auth/login", async (request, response, next) => {
+async function login(request, response, next, adminOnly = false) {
 	try {
 		const email = cleanText(request.body?.email, 120).toLowerCase();
 		const password = typeof request.body?.password === "string" ? request.body.password : "";
 		const user = store.users.find((entry) => entry.email === email);
-		if (!user || !user.salt || !user.hash) {
+		if (!user || !user.salt || !user.hash || (adminOnly && !adminEmails().includes(user.email.toLowerCase()))) {
 			return response.status(401).json({ error: "Email hoặc mật khẩu không chính xác." });
 		}
 		const actualHash = Buffer.from(user.hash, "hex");
@@ -409,7 +461,10 @@ app.post("/api/auth/login", async (request, response, next) => {
 	} catch (error) {
 		return next(error);
 	}
-});
+}
+
+app.post("/api/auth/login", (request, response, next) => login(request, response, next));
+app.post("/api/admin/login", (request, response, next) => login(request, response, next, true));
 
 app.post("/api/auth/logout", async (request, response, next) => {
 	try {
@@ -441,7 +496,11 @@ app.get("/api/profile", (request, response) => {
 		bookings: store.bookings.filter((booking) => booking.userId === user.id).length,
 		reviews: store.reviews.filter((review) => review.userId === user.id).length,
 	};
-	return response.json({ profile: publicUser(user), stats });
+	const inquiries = store.inquiries
+		.filter((inquiry) => inquiry.userId === user.id)
+		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
+		.map(({ id, topic, message, status, createdAt, resolvedAt }) => ({ id, topic, message, status: status || "open", createdAt, resolvedAt: resolvedAt || null }));
+	return response.json({ profile: publicUser(user), stats, inquiries });
 });
 
 app.put("/api/profile", async (request, response, next) => {
@@ -561,6 +620,7 @@ app.get("/api/profile/avatar/:userId", (request, response) => {
 
 app.post("/api/inquiries", async (request, response, next) => {
 	try {
+		const user = currentUser(request);
 		const name = cleanText(request.body?.name, 80);
 		const email = cleanText(request.body?.email, 120).toLowerCase();
 		const topic = cleanText(request.body?.topic, 80);
@@ -575,11 +635,232 @@ app.post("/api/inquiries", async (request, response, next) => {
 			email,
 			topic,
 			message,
+			status: "open",
+			...(user ? { userId: user.id } : {}),
 			createdAt: new Date().toISOString(),
 		};
 		store.inquiries.push(inquiry);
-		await persistStore();
-		return response.status(201).json({ inquiry: { id: inquiry.id, name: inquiry.name } });
+		try {
+			await persistStore();
+		} catch (error) {
+			store.inquiries = store.inquiries.filter((item) => item.id !== inquiry.id);
+			throw error;
+		}
+		return response.status(201).json({ inquiry: { id: inquiry.id, name: inquiry.name }, trackedInAccount: Boolean(user) });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.get("/api/admin/inquiries", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const inquiries = [...store.inquiries]
+		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+	return response.json({ inquiries });
+});
+
+app.patch("/api/admin/inquiries/:id/resolve", async (request, response, next) => {
+	try {
+		const admin = adminUser(request, response);
+		if (!admin) return;
+		const inquiry = store.inquiries.find((item) => item.id === request.params.id);
+		if (!inquiry) return response.status(404).json({ error: "Không tìm thấy thắc mắc này." });
+		if (inquiry.status === "resolved") return response.json({ inquiry });
+		const previous = { status: inquiry.status, resolvedAt: inquiry.resolvedAt, resolvedBy: inquiry.resolvedBy };
+		inquiry.status = "resolved";
+		inquiry.resolvedAt = new Date().toISOString();
+		inquiry.resolvedBy = admin.id;
+		try {
+			await persistStore();
+		} catch (error) {
+			if (previous.status === undefined) delete inquiry.status;
+			else inquiry.status = previous.status;
+			if (previous.resolvedAt === undefined) delete inquiry.resolvedAt;
+			else inquiry.resolvedAt = previous.resolvedAt;
+			if (previous.resolvedBy === undefined) delete inquiry.resolvedBy;
+			else inquiry.resolvedBy = previous.resolvedBy;
+			throw error;
+		}
+		return response.json({ inquiry });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.get("/api/admin/tours", (request, response) => {
+	if (!adminUser(request, response)) return;
+	return response.json({ tours: searchTours().tours });
+});
+
+app.get("/api/admin/bookings", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const query = cleanText(request.query.q, 100).toLocaleLowerCase("vi");
+	const status = cleanText(request.query.status, 20);
+	const tourId = cleanText(request.query.tourId, 100);
+	const bookings = store.bookings
+		.filter((booking) => (!tourId || booking.tour?.id === tourId)
+			&& (!status || (status === "cancellation_requested"
+				? booking.cancellationRequest?.status === "pending"
+				: booking.status === status))
+			&& (!query || [booking.code, booking.tour?.name, booking.contact?.name, booking.contact?.email]
+				.some((value) => String(value || "").toLocaleLowerCase("vi").includes(query))))
+		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
+		.map(({ userId, ...booking }) => booking);
+	return response.json({ bookings });
+});
+
+app.patch("/api/admin/bookings/:id/status", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const booking = store.bookings.find((item) => item.id === request.params.id);
+		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
+		const nextStatus = request.body?.status;
+		const validTransition = (booking.status === "pending" && nextStatus === "confirmed")
+			|| (booking.status === "pending" && nextStatus === "cancelled")
+			|| (booking.status === "confirmed" && nextStatus === "completed");
+		if (!validTransition) return response.status(409).json({ error: "Chỉ có thể duyệt hoặc hủy đơn đang chờ, hoặc đánh dấu đơn đã xác nhận là hoàn tất." });
+		const previous = { status: booking.status, updatedAt: booking.updatedAt };
+		booking.status = nextStatus;
+		booking.updatedAt = new Date().toISOString();
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(booking, previous);
+			throw error;
+		}
+		return response.json({ booking });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next) => {
+	try {
+		const admin = adminUser(request, response);
+		if (!admin) return;
+		const booking = store.bookings.find((item) => item.id === request.params.id);
+		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
+		const cancellation = booking.cancellationRequest;
+		if (!cancellation || cancellation.status !== "pending") {
+			return response.status(409).json({ error: "Đơn này không có yêu cầu hủy đang chờ xử lý." });
+		}
+		const decision = request.body?.decision;
+		if (!["approved", "rejected"].includes(decision)) {
+			return response.status(400).json({ error: "Quyết định hủy đơn không hợp lệ." });
+		}
+		const previous = { status: booking.status, updatedAt: booking.updatedAt, cancellationRequest: { ...cancellation } };
+		cancellation.status = decision;
+		cancellation.processedAt = new Date().toISOString();
+		cancellation.processedBy = admin.id;
+		if (decision === "approved") booking.status = "cancelled";
+		booking.updatedAt = new Date().toISOString();
+		try {
+			await persistStore();
+		} catch (error) {
+			booking.status = previous.status;
+			booking.updatedAt = previous.updatedAt;
+			booking.cancellationRequest = previous.cancellationRequest;
+			throw error;
+		}
+		return response.json({ booking });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.get("/api/admin/customers", (request, response) => {
+	if (!adminUser(request, response)) return;
+	return response.json({
+		customers: store.users.filter((user) => !adminEmails().includes(user.email.toLowerCase())).map(publicUser),
+	});
+});
+
+app.post("/api/admin/customers", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const name = cleanText(request.body?.name, 80);
+		const email = cleanText(request.body?.email, 120).toLowerCase();
+		const password = typeof request.body?.password === "string" ? request.body.password : "";
+		const phone = cleanText(request.body?.phone, 20);
+		const address = cleanText(request.body?.address, 250);
+		if (!name || !validEmail(email) || password.length < 8 || password.length > 256 || !isValidPhone(phone)) {
+			return response.status(400).json({ error: "Vui lòng nhập tên, email hợp lệ, số điện thoại hợp lệ và mật khẩu từ 8 ký tự." });
+		}
+		if (adminEmails().includes(email)) return response.status(400).json({ error: "Không thể tạo tài khoản quản trị trong mục khách hàng." });
+		if (store.users.some((user) => user.email === email)) return response.status(409).json({ error: "Email này đã được đăng ký." });
+		const salt = randomBytes(16).toString("hex");
+		const hash = (await scrypt(password, salt, 64)).toString("hex");
+		const user = { id: randomUUID(), name, email, phone, address, salt, hash, createdAt: new Date().toISOString() };
+		store.users.push(user);
+		try {
+			await persistStore();
+		} catch (error) {
+			store.users = store.users.filter((item) => item.id !== user.id);
+			throw error;
+		}
+		return response.status(201).json({ customer: publicUser(user) });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.put("/api/admin/customers/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const user = store.users.find((item) => item.id === request.params.id);
+		if (!user || adminEmails().includes(user.email.toLowerCase())) {
+			return response.status(404).json({ error: "Không tìm thấy tài khoản khách hàng." });
+		}
+		const name = cleanText(request.body?.name, 80);
+		const email = cleanText(request.body?.email, 120).toLowerCase();
+		const phone = cleanText(request.body?.phone, 20);
+		const address = cleanText(request.body?.address, 250);
+		const password = typeof request.body?.password === "string" ? request.body.password : "";
+		if (!name || !validEmail(email) || !isValidPhone(phone) || (password && (password.length < 8 || password.length > 256))) {
+			return response.status(400).json({ error: "Vui lòng kiểm tra tên, email, số điện thoại và mật khẩu mới (nếu có)." });
+		}
+		if (adminEmails().includes(email)) return response.status(400).json({ error: "Không thể đổi khách hàng thành tài khoản quản trị." });
+		if (store.users.some((item) => item.id !== user.id && item.email === email)) {
+			return response.status(409).json({ error: "Email này đã được tài khoản khác sử dụng." });
+		}
+		const previous = { name: user.name, email: user.email, phone: user.phone, address: user.address, salt: user.salt, hash: user.hash };
+		Object.assign(user, { name, email, phone, address });
+		if (password) {
+			user.salt = randomBytes(16).toString("hex");
+			user.hash = (await scrypt(password, user.salt, 64)).toString("hex");
+		}
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(user, previous);
+			throw error;
+		}
+		return response.json({ customer: publicUser(user) });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.delete("/api/admin/customers/:id", async (request, response, next) => {
+	try {
+		const admin = adminUser(request, response);
+		if (!admin) return;
+		const user = store.users.find((item) => item.id === request.params.id);
+		if (!user || adminEmails().includes(user.email.toLowerCase())) {
+			return response.status(404).json({ error: "Không tìm thấy tài khoản khách hàng." });
+		}
+		const previousUsers = store.users;
+		const previousSessions = store.sessions;
+		store.users = previousUsers.filter((item) => item.id !== user.id);
+		store.sessions = previousSessions.filter((session) => session.userId !== user.id);
+		try {
+			await persistStore();
+		} catch (error) {
+			store.users = previousUsers;
+			store.sessions = previousSessions;
+			throw error;
+		}
+		return response.json({ ok: true });
 	} catch (error) {
 		return next(error);
 	}

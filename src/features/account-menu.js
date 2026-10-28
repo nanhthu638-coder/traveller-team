@@ -24,6 +24,10 @@ const MENU_HTML = `
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.3 3.2-5 7-5s6.3 1.7 7 5"/></svg>
       Hồ sơ cá nhân
     </a>
+    <a class="account-item" role="menuitem" href="/admin.html" data-admin-link hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+      Trang quản trị
+    </a>
     <button class="account-item" role="menuitem" type="button" data-account-logout>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 8l4 4-4 4M19 12H10"/></svg>
       Đăng xuất
@@ -112,6 +116,7 @@ export function setAccountUser(user) {
   root.querySelector("[data-account-name]").textContent = user.name;
   root.querySelector("[data-account-fullname]").textContent = user.name;
   root.querySelector("[data-account-email]").textContent = user.email || "";
+  root.querySelector("[data-admin-link]").hidden = user.role !== "admin";
   root.querySelector(".account-trigger").setAttribute("aria-label", `Tài khoản của ${user.name}`);
 }
 

@@ -33,6 +33,7 @@ function setMode(nextMode) {
     field.hidden = !isRegister;
     field.querySelector("input").required = isRegister;
   });
+  dialog.querySelector(".admin-auth-link").hidden = isRegister;
   tabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.authMode === mode)));
   errorMessage.textContent = "";
   errorMessage.classList.remove("is-success");

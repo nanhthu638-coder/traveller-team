@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Đăng nhập trang quản trị Traveller Team" />
+  <title>Đăng nhập quản trị | Traveller Team</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-login-page">
+  <main class="admin-login-card">
+    <a class="admin-back-link" href="/index.html">← Về trang chủ</a>
+    <p class="eyebrow eyebrow-dark"><span></span> Traveller Team</p>
+    <h1 class="font-display">Đăng nhập Admin</h1>
+    <p>Đăng nhập để quản lý tour, đơn đặt và biểu mẫu liên hệ.</p>
+    <form id="admin-login-form" class="admin-login-form">
+      <label>Email quản trị
+        <input name="email" type="email" autocomplete="username" required />
+      </label>
+      <label>Mật khẩu
+        <input name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <p id="admin-login-error" class="admin-login-error" role="alert" hidden></p>
+      <button class="submit-button" type="submit">Đăng nhập quản trị</button>
+    </form>
+  </main>
+  <script type="module" src="/src/admin-login.js"></script>
+</body>
+</html>

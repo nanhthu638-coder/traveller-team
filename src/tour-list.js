@@ -71,7 +71,7 @@ async function loadTours() {
   const keyword = document.getElementById("quick-keyword").value.trim();
   const destination = document.getElementById("quick-start").value || document.getElementById("list-start").value;
   const date = document.getElementById("quick-date").value || document.getElementById("list-date").value;
-  const maxPrice = Number(document.getElementById("list-price").value);
+  const maxPrice = appliedMaxPrice;
   const sort = document.getElementById("listing-sort").value;
 
   const query = [keyword, destination].filter(Boolean).join(" ");
@@ -80,7 +80,7 @@ async function loadTours() {
     params.set("from", date);
     params.set("to", date);
   }
-  if (maxPrice > 0 && maxPrice < Number(document.getElementById("list-price").max)) params.set("maxPrice", String(maxPrice));
+  if (maxPrice !== null && maxPrice > 0 && maxPrice < Number(slider.max)) params.set("maxPrice", String(maxPrice));
   if (sort === "price-asc" || sort === "price-desc") params.set("sort", sort);
 
   grid.setAttribute("aria-busy", "true");
@@ -119,6 +119,8 @@ function initBanner() {
 
 const slider = document.getElementById("list-price");
 const priceLabel = document.getElementById("list-price-label");
+const applyFiltersButton = document.getElementById("apply-filters");
+let appliedMaxPrice = Number(slider.value);
 const syncDestination = (source, target) => {
   target.value = source.value;
 };
@@ -126,6 +128,9 @@ const syncDestination = (source, target) => {
 function updatePriceLabel() {
   priceLabel.textContent = `Tối đa ${formatPrice(slider.value)}`;
   slider.style.setProperty("--fill", `${(Number(slider.value) / Number(slider.max)) * 100}%`);
+  const hasUnappliedPrice = appliedMaxPrice === null || Number(slider.value) !== appliedMaxPrice;
+  applyFiltersButton.disabled = !hasUnappliedPrice;
+  applyFiltersButton.textContent = hasUnappliedPrice ? "Áp dụng" : "Đã áp dụng";
 }
 
 function resetFilters() {
@@ -133,7 +138,8 @@ function resetFilters() {
   document.getElementById("list-start").value = "";
   document.getElementById("list-date").value = "";
   document.getElementById("listing-sort").value = "default";
-  slider.value = slider.max;
+  slider.value = "0";
+  appliedMaxPrice = null;
   updatePriceLabel();
   loadTours();
 }
@@ -158,10 +164,13 @@ document.getElementById("list-date").addEventListener("change", (event) => {
 document.getElementById("quick-keyword").addEventListener("input", loadTours);
 slider.addEventListener("input", () => {
   updatePriceLabel();
-  loadTours();
 });
 document.getElementById("listing-sort").addEventListener("change", loadTours);
-document.getElementById("apply-filters").addEventListener("click", loadTours);
+applyFiltersButton.addEventListener("click", () => {
+  appliedMaxPrice = Number(slider.value);
+  updatePriceLabel();
+  loadTours();
+});
 document.getElementById("empty-reset").addEventListener("click", resetFilters);
 document.getElementById("reset-filters").addEventListener("click", resetFilters);
 document.getElementById("listing-grid").addEventListener("click", (event) => {

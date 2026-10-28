@@ -6,13 +6,57 @@ const status = document.getElementById("profile-status");
 const avatar = document.getElementById("profile-avatar");
 const avatarFile = document.getElementById("profile-avatar-file");
 const removeAvatar = document.getElementById("profile-avatar-remove");
+let profileInquiries = [];
 
 function showStatus(message, isError = false) {
   status.textContent = message;
   status.classList.toggle("is-error", isError);
 }
 
-function renderProfile(profile, stats) {
+function renderInquiries(inquiries) {
+  profileInquiries = inquiries;
+  const list = document.getElementById("profile-inquiries-list");
+  list.replaceChildren();
+  if (!inquiries.length) {
+    const empty = document.createElement("p");
+    empty.className = "profile-inquiries-empty";
+    empty.textContent = "Bạn chưa gửi biểu mẫu nào khi đăng nhập.";
+    list.append(empty);
+    return;
+  }
+
+  for (const inquiry of inquiries) {
+    const card = document.createElement("article");
+    card.className = "profile-inquiry";
+    const heading = document.createElement("div");
+    heading.className = "profile-inquiry-heading";
+    const topic = document.createElement("h3");
+    topic.textContent = inquiry.topic;
+    const status = document.createElement("span");
+    const resolved = inquiry.status === "resolved";
+    status.className = `profile-inquiry-status ${resolved ? "is-resolved" : "is-open"}`;
+    status.textContent = resolved ? "Đã xử lý" : "Đang chờ xử lý";
+    heading.append(topic, status);
+
+    const message = document.createElement("p");
+    message.className = "profile-inquiry-message";
+    message.textContent = inquiry.message;
+    const submittedAt = document.createElement("time");
+    submittedAt.className = "profile-inquiry-date";
+    submittedAt.dateTime = inquiry.createdAt;
+    submittedAt.textContent = `Đã gửi: ${new Date(inquiry.createdAt).toLocaleString("vi-VN")}`;
+    card.append(heading, message, submittedAt);
+    if (resolved && inquiry.resolvedAt) {
+      const resolvedAt = document.createElement("p");
+      resolvedAt.className = "profile-inquiry-date";
+      resolvedAt.textContent = `Đã xử lý: ${new Date(inquiry.resolvedAt).toLocaleString("vi-VN")}`;
+      card.append(resolvedAt);
+    }
+    list.append(card);
+  }
+}
+
+function renderProfile(profile, stats, inquiries = profileInquiries) {
   for (const field of ["name", "email", "phone", "birthDate", "gender", "address"]) {
     form.elements[field].value = profile[field] || "";
   }
@@ -24,6 +68,7 @@ function renderProfile(profile, stats) {
   removeAvatar.hidden = !profile.avatarUrl;
   document.getElementById("profile-bookings").textContent = String(stats.bookings);
   document.getElementById("profile-reviews").textContent = String(stats.reviews);
+  renderInquiries(inquiries);
 }
 
 async function loadProfile() {
@@ -35,7 +80,7 @@ async function loadProfile() {
       return;
     }
     if (!response.ok) throw new Error(data.error || "Không thể tải hồ sơ.");
-    renderProfile(data.profile, data.stats);
+    renderProfile(data.profile, data.stats, data.inquiries || []);
   } catch (error) {
     showStatus(error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message, true);
   } finally {
