@@ -124,7 +124,7 @@ npm start
 
 \# 6\. Chạy frontend (terminal khác)
 
-cd ../traveller-team-Test
+cd ..
 
 npm install
 

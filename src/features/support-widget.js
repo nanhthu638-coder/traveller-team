@@ -16,7 +16,7 @@ export function initSupportWidget() {
       <p class="support-hours">Giờ hỗ trợ: ${SUPPORT_HOURS}</p>
       <div class="support-actions">
         <a href="mailto:${SUPPORT_EMAIL}">Gửi email cho chúng tôi <span aria-hidden="true">↗</span></a>
-        <a href="/index.html#contact">Gửi biểu mẫu liên hệ <span aria-hidden="true">↗</span></a>
+        <a href="/index.html#contact-form">Gửi biểu mẫu liên hệ <span aria-hidden="true">↗</span></a>
       </div>
       <div class="support-faq">
         <h3>Câu hỏi thường gặp</h3>

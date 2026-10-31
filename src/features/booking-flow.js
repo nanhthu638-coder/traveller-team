@@ -219,8 +219,14 @@ export function initBooking({ page, tour, user, availability: initialAvailabilit
   dialog.addEventListener("input", captureForm);
   dialog.addEventListener("change", captureForm);
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog || event.target.closest("[data-pax-close]")) dialog.close();
+    if (event.target === dialog) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (event.target.closest("[data-pax-close]")) dialog.close();
   });
+  dialog.addEventListener("cancel", (event) => event.preventDefault());
   dialog.addEventListener("submit", async (event) => {
     event.preventDefault();
     const paxError = dialog.querySelector("[data-pax-error]");

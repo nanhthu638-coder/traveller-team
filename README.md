@@ -14,7 +14,7 @@ npm run dev
 ```
 
 Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localhost:5173`). API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp tự động.
-API dùng SQL Server/SQL Express theo cấu hình `SQLSERVER_*` trong `.env`. Với SQL Express tắt SQL Browser hoặc dùng cổng động, có thể đặt `SQLSERVER_PORT` để kết nối trực tiếp; khi có port, cấu hình instance được bỏ qua. Bảng `dbo.AppRecords` được tạo nếu chưa có. Nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
+Nếu không cấu hình SQL Server (`SQLSERVER_USER`/`SQLSERVER_PASSWORD`), máy chủ tự động chạy ở chế độ fallback bằng `server/data/app-data.json` để dự án vẫn khởi động được trong môi trường demo/local. Khi có SQL Server, bảng `dbo.AppRecords` được tạo nếu chưa có; nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
 
 ## Tính năng
 

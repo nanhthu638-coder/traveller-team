@@ -35,7 +35,18 @@ const imagesDirectory = resolve(dataDirectory, "review-images");
 const profileImagesDirectory = resolve(dataDirectory, "profile-images");
 const buildDirectory = resolve(projectRoot, "dist");
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
-let store = { users: [], inquiries: [], bookings: [], reviews: [], vouchers: [], payments: [], sessions: [] };
+
+
+let store = {
+    users: [],
+    inquiries: [],
+    bookings: [],
+    reviews: [],
+    vouchers: [],
+    payments: [],
+    sessions: []
+};
+
 let writeQueue = Promise.resolve();
 let database;
 
@@ -108,9 +119,25 @@ function currentUser(request) {
 	return store.users.find((user) => user.id === session.userId) || null;
 }
 
-function persistStore() {
+async function persistStore() {
 	const snapshot = structuredClone(store);
-	writeQueue = writeQueue.catch(() => {}).then(() => saveDatabaseState(database, snapshot));
+	writeQueue = writeQueue.catch(() => {}).then(async () => {
+		if (database) {
+			await saveDatabaseState(database, snapshot);
+			return;
+		}
+
+		const json = {
+			users: snapshot.users ?? [],
+			inquiries: snapshot.inquiries ?? [],
+			bookings: snapshot.bookings ?? [],
+			reviews: snapshot.reviews ?? [],
+			vouchers: snapshot.vouchers ?? [],
+			payments: snapshot.payments ?? [],
+			sessions: snapshot.sessions ?? [],
+		};
+		await writeFile(dataPath, `${JSON.stringify(json, null, 2)}\n`, "utf8");
+	});
 	return writeQueue;
 }
 
@@ -1047,42 +1074,86 @@ app.use((error, request, response, next) => {
 async function start() {
 	await mkdir(dataDirectory, { recursive: true });
 	await mkdir(imagesDirectory, { recursive: true });
-	database = await connectDatabase();
-	const databaseState = await loadDatabaseState(database);
-	const databaseRecordCount = Object.values(databaseState).reduce((count, collection) => count + collection.length, 0);
-	let shouldPersist = databaseRecordCount === 0;
 
-	if (databaseRecordCount > 0) {
-		store = databaseState;
-		console.log(`Loaded ${databaseRecordCount} records from SQL Server.`);
-		console.warn("SQL Server already contains data; local app-data.json is left untouched and is not merged.");
-	} else {
-		try {
-			const savedData = JSON.parse(await readFile(dataPath, "utf8"));
-			if (!Array.isArray(savedData.users) || !Array.isArray(savedData.inquiries)) {
-				throw new Error(`${dataPath} không có cấu trúc users/inquiries hợp lệ.`);
+	try {
+		database = await connectDatabase();
+		if (database) {
+			const databaseState = await loadDatabaseState(database);
+			const databaseRecordCount = Object.values(databaseState).reduce((count, collection) => count + collection.length, 0);
+			let shouldPersist = databaseRecordCount === 0;
+
+			if (databaseRecordCount > 0) {
+				store = databaseState;
+				console.log(`Loaded ${databaseRecordCount} records from SQL Server.`);
+				console.warn("SQL Server already contains data; local app-data.json is left untouched and is not merged.");
+			} else {
+				try {
+					const savedData = JSON.parse(await readFile(dataPath, "utf8"));
+					if (!Array.isArray(savedData.users) || !Array.isArray(savedData.inquiries)) {
+						throw new Error(`${dataPath} không có cấu trúc users/inquiries hợp lệ.`);
+					}
+					store = {
+						...databaseState,
+						...savedData,
+						bookings: Array.isArray(savedData.bookings) ? savedData.bookings : [],
+						reviews: Array.isArray(savedData.reviews) ? savedData.reviews : [],
+						vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
+						payments: Array.isArray(savedData.payments) ? savedData.payments : [],
+						sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
+					};
+					console.log("SQL Server is empty; importing existing app-data.json records.");
+				} catch (error) {
+					if (error.code !== "ENOENT") throw error;
+					store = databaseState;
+				}
 			}
-			store = {
-				...databaseState,
-				...savedData,
-				bookings: Array.isArray(savedData.bookings) ? savedData.bookings : [],
-				reviews: Array.isArray(savedData.reviews) ? savedData.reviews : [],
-				vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
-				payments: Array.isArray(savedData.payments) ? savedData.payments : [],
-				sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
-			};
-			console.log("SQL Server is empty; importing existing app-data.json records.");
-		} catch (error) {
-			if (error.code !== "ENOENT") throw error;
-			store = databaseState;
+
+			if (!store.vouchers.length) {
+				store.vouchers = structuredClone(DEMO_VOUCHERS);
+				shouldPersist = true;
+			}
+			if (shouldPersist) await persistStore();
+			return app.listen(port, () => {
+				console.log(`Traveller Team API listening on http://localhost:${port}`);
+			});
 		}
+	} catch (error) {
+		console.warn("SQL Server is unavailable; continuing with local app-data.json storage.", error.message);
+	}
+
+	try {
+		const savedData = JSON.parse(await readFile(dataPath, "utf8"));
+		if (!Array.isArray(savedData.users) || !Array.isArray(savedData.inquiries)) {
+			throw new Error(`${dataPath} không có cấu trúc users/inquiries hợp lệ.`);
+		}
+		store = {
+			users: Array.isArray(savedData.users) ? savedData.users : [],
+			inquiries: Array.isArray(savedData.inquiries) ? savedData.inquiries : [],
+			bookings: Array.isArray(savedData.bookings) ? savedData.bookings : [],
+			reviews: Array.isArray(savedData.reviews) ? savedData.reviews : [],
+			vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
+			payments: Array.isArray(savedData.payments) ? savedData.payments : [],
+			sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
+		};
+		console.log("Using app-data.json as local fallback storage.");
+	} catch (error) {
+		if (error.code !== "ENOENT") throw error;
+		store = {
+			users: [],
+			inquiries: [],
+			bookings: [],
+			reviews: [],
+			vouchers: structuredClone(DEMO_VOUCHERS),
+			payments: [],
+			sessions: [],
+		};
+		console.log("No local data file found; created a fresh in-memory store.");
 	}
 
 	if (!store.vouchers.length) {
 		store.vouchers = structuredClone(DEMO_VOUCHERS);
-		shouldPersist = true;
 	}
-	if (shouldPersist) await persistStore();
+	await persistStore();
 
 	app.listen(port, () => {
 		console.log(`Traveller Team API listening on http://localhost:${port}`);
