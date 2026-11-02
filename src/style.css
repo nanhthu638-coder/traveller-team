@@ -2048,33 +2048,53 @@ dialog.review-dialog::backdrop {
   box-shadow: none !important;
 }
 
-/* Modals */
-.admin-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  width: min(840px, calc(100vw - 32px));
-  max-height: calc(100vh - 40px);
-  padding: 0;
-  border: 0;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.28);
-  overflow: hidden;
+/* Modals - Căn giữa chuẩn tuyệt đối giống dialog.review-dialog và dialog.pax-dialog */
+dialog.admin-modal,
+dialog.admin-modal[open],
+.admin-modal[open] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+
+  width: min(840px, calc(100vw - 32px)) !important;
+  max-height: calc(100vh - 48px) !important;
+  max-height: calc(100dvh - 48px) !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #1B2121 !important;
+  box-shadow: 0 24px 70px rgba(27, 33, 33, 0.4) !important;
+  overflow: hidden !important;
+  z-index: 1000 !important;
 }
+
+dialog.admin-modal--sm,
+dialog.admin-modal--sm[open],
+.admin-modal--sm[open] {
+  width: min(480px, calc(100vw - 32px)) !important;
+}
+
+dialog.admin-modal::backdrop,
 .admin-modal::backdrop {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(27, 33, 33, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
 }
-.admin-modal--sm {
-  width: min(480px, calc(100vw - 32px));
-}
+
 .admin-modal-card {
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 40px);
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
 }
+
 .admin-modal-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2082,6 +2102,7 @@ dialog.review-dialog::backdrop {
   background: #f8faf8;
   border-bottom: 1px solid #dce7df;
 }
+
 .admin-modal-eyebrow {
   display: block;
   font-size: 11px;
@@ -2090,17 +2111,20 @@ dialog.review-dialog::backdrop {
   color: #64736e;
   font-weight: 700;
 }
+
 .admin-modal-title {
   margin: 3px 0 0;
   color: #1C4349;
   font-family: var(--font-display);
   font-size: 22px;
 }
+
 .admin-modal-header-right {
   display: flex;
   align-items: center;
   gap: 14px;
 }
+
 .admin-modal-close {
   display: inline-flex;
   align-items: center;
@@ -2115,14 +2139,18 @@ dialog.review-dialog::backdrop {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .admin-modal-close:hover {
   background: #ef4444;
   color: #fff;
   border-color: #ef4444;
 }
+
 .admin-modal-body {
+  flex: 1 1 auto;
   padding: 24px 26px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: grid;
   gap: 22px;
 }
@@ -2265,6 +2293,7 @@ dialog.review-dialog::backdrop {
 
 /* Modal Footer */
 .admin-modal-footer {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;

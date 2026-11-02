@@ -872,6 +872,20 @@ rejectModalClose.addEventListener("click", () => rejectModal.close());
 rejectModalCancel.addEventListener("click", () => rejectModal.close());
 rejectModalForm.addEventListener("submit", handleRejectSubmit);
 
+// Đóng modal khi bấm vào vùng nền bên ngoài (Backdrop click)
+[bookingDetailModal, rejectModal].forEach((dialog) => {
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) {
+      const rect = dialog.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX && event.clientX <= rect.left + rect.width
+      );
+      if (!isInDialog) dialog.close();
+    }
+  });
+});
+
 // Inquiries Actions
 inquiryList.addEventListener("click", async (event) => {
   const btn = event.target.closest("[data-resolve-inquiry]");
