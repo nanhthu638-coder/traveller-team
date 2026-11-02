@@ -24,7 +24,8 @@
       "email": "admin@example.com",
       "salt": "fea5fcffc882bfcba31c67a49d359762",
       "hash": "717149bb5cb44a936e03e7f002071ff388c6aa4406a24fbb85465aba309f80b243d21a3cfbea66c5803b574f278a5c1f4b61c1c07bc4a287444cb3f02acf2d7d",
-      "createdAt": "2026-10-30T22:40:07.960Z"
+      "createdAt": "2026-10-30T22:40:07.960Z",
+      "role": "admin"
     }
   ],
   "inquiries": [],
@@ -62,7 +63,7 @@
       "contact": {
         "name": "Nguyễn Trân",
         "email": "bt12@gmail.com",
-        "phone": ""
+        "phone": "0908123456"
       },
       "note": "",
       "createdAt": "2026-10-20T08:20:55.351Z",
@@ -107,7 +108,7 @@
       "contact": {
         "name": "Thư Nguyễn",
         "email": "nanhthu638@gmail.com",
-        "phone": ""
+        "phone": "0901234567"
       },
       "note": "",
       "createdAt": "2026-10-21T03:07:59.298Z",
@@ -142,12 +143,12 @@
       ],
       "subtotal": 2150000,
       "total": 2150000,
-      "status": "completed",
+      "status": "confirmed",
       "paymentStatus": "paid",
       "contact": {
         "name": "Thư Nguyễn",
         "email": "nanhthu638@gmail.com",
-        "phone": ""
+        "phone": "0987654321"
       },
       "note": "",
       "createdAt": "2026-10-30T22:32:39.136Z",
@@ -188,23 +189,79 @@
       ],
       "subtotal": 6890000,
       "total": 6390000,
-      "status": "pending",
+      "status": "confirmed",
       "paymentStatus": "paid",
       "contact": {
         "name": "Thư Nguyễn",
         "email": "nanhthu638@gmail.com",
-        "phone": ""
+        "phone": "0912345678"
       },
       "note": "",
       "createdAt": "2026-10-30T22:49:34.660Z",
-      "updatedAt": "2026-10-30T22:49:45.704Z",
+      "updatedAt": "2026-11-02T06:21:22.011Z",
       "discount": 500000,
       "voucher": {
         "id": "voucher-welcome10",
         "code": "CHAO10",
         "type": "percent",
         "value": 10
-      }
+      },
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
+    },
+    {
+      "id": "c772e011-85bc-42b9-a9a3-5d0dcabc9999",
+      "code": "TT-261028-C772",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "tour": {
+        "id": "da-lat-3n2d",
+        "name": "Đà Lạt · Thành phố ngàn hoa · 3 ngày 2 đêm",
+        "place": "Đà Lạt",
+        "region": "Lâm Đồng",
+        "duration": "3 ngày 2 đêm",
+        "price": 2890000,
+        "image": "photo-1509316975850-ff9c5deb0cd9"
+      },
+      "departureDate": "2026-11-20",
+      "passengers": {
+        "adult": 2,
+        "child": 1,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Lê Văn Hoàng",
+          "gender": "male",
+          "dob": "1990-05-15",
+          "idNumber": "079090001234"
+        },
+        {
+          "type": "adult",
+          "fullName": "Trần Thị Mai",
+          "gender": "female",
+          "dob": "1992-08-20",
+          "idNumber": "079192005678"
+        },
+        {
+          "type": "child",
+          "fullName": "Lê Hoàng Nam",
+          "gender": "male",
+          "dob": "2018-03-10"
+        }
+      ],
+      "subtotal": 7803000,
+      "total": 7803000,
+      "status": "cancelled",
+      "paymentStatus": "refunded",
+      "contact": {
+        "name": "Lê Văn Hoàng",
+        "email": "hoangle90@gmail.com",
+        "phone": "0933445566"
+      },
+      "rejectReason": "Khách hàng báo bận lịch công tác đột xuất, đề nghị hủy đơn.",
+      "note": "Xin phòng gia đình có ban công.",
+      "createdAt": "2026-10-28T09:15:00.000Z",
+      "updatedAt": "2026-10-28T14:30:00.000Z"
     }
   ],
   "reviews": [
@@ -283,6 +340,11 @@
       "id": "e2738c063b0cca2060005cd91c7ea1ccfda276b7d9b1d169742c20cfc2b7bcbc",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-06T23:34:26.952Z"
+    },
+    {
+      "id": "64cc254e23fdc3d98912ac1c3baebf76d4399086c3c145173c5630ac3e210803",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-09T06:21:21.997Z"
     }
   ]
 }

@@ -60,7 +60,7 @@ function publicUser(user) {
 		id: user.id,
 		name: user.name,
 		email: user.email,
-		role: adminEmails().includes(user.email.toLowerCase()) ? "admin" : "customer",
+		role: user.role === "admin" || adminEmails().includes(user.email.toLowerCase()) ? "admin" : "customer",
 		phone: user.phone || "",
 		birthDate: user.birthDate || "",
 		gender: user.gender || "",
@@ -72,7 +72,7 @@ function publicUser(user) {
 }
 
 function adminEmails() {
-	return (process.env.ADMIN_EMAILS || "")
+	return (process.env.ADMIN_EMAILS || "admin@example.com")
 		.split(",")
 		.map((email) => email.trim().toLowerCase())
 		.filter(Boolean);
@@ -84,7 +84,8 @@ function adminUser(request, response) {
 		response.status(401).json({ error: "Vui lòng đăng nhập tài khoản quản trị." });
 		return null;
 	}
-	if (!adminEmails().includes(user.email.toLowerCase())) {
+	const isAdmin = user.role === "admin" || adminEmails().includes(user.email.toLowerCase());
+	if (!isAdmin) {
 		response.status(403).json({ error: "Tài khoản không có quyền quản trị." });
 		return null;
 	}
@@ -722,43 +723,120 @@ app.get("/api/admin/tours", (request, response) => {
 app.get("/api/admin/bookings", (request, response) => {
 	if (!adminUser(request, response)) return;
 	const query = cleanText(request.query.q, 100).toLocaleLowerCase("vi");
-	const status = cleanText(request.query.status, 20);
+	const status = cleanText(request.query.status, 30);
 	const tourId = cleanText(request.query.tourId, 100);
-	const bookings = store.bookings
-		.filter((booking) => (!tourId || booking.tour?.id === tourId)
-			&& (!status || (status === "cancellation_requested"
-				? booking.cancellationRequest?.status === "pending"
-				: booking.status === status))
-			&& (!query || [booking.code, booking.tour?.name, booking.contact?.name, booking.contact?.email]
-				.some((value) => String(value || "").toLocaleLowerCase("vi").includes(query))))
+	const startDate = cleanText(request.query.startDate, 10);
+	const endDate = cleanText(request.query.endDate, 10);
+	const dateType = cleanText(request.query.dateType, 20) || "createdAt";
+
+	const allBookings = store.bookings;
+	const counts = {
+		all: allBookings.length,
+		pending: allBookings.filter((b) => b.status === "pending").length,
+		confirmed: allBookings.filter((b) => b.status === "confirmed").length,
+		completed: allBookings.filter((b) => b.status === "completed").length,
+		cancelled: allBookings.filter((b) => b.status === "cancelled").length,
+	};
+
+	const bookings = allBookings
+		.filter((booking) => {
+			if (tourId && booking.tour?.id !== tourId) return false;
+			if (status && status !== "all") {
+				if (status === "cancellation_requested") {
+					if (booking.cancellationRequest?.status !== "pending") return false;
+				} else if (booking.status !== status) {
+					return false;
+				}
+			}
+			const compareDate = (dateType === "departureDate" ? booking.departureDate : booking.createdAt?.slice(0, 10)) || "";
+			if (startDate && compareDate < startDate) return false;
+			if (endDate && compareDate > endDate) return false;
+
+			if (query) {
+				const match = [
+					booking.code,
+					booking.tour?.name,
+					booking.tour?.place,
+					booking.contact?.name,
+					booking.contact?.email,
+					booking.contact?.phone,
+				].some((val) => String(val || "").toLocaleLowerCase("vi").includes(query));
+				if (!match) return false;
+			}
+			return true;
+		})
 		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
 		.map(({ userId, ...booking }) => booking);
-	return response.json({ bookings });
+
+	return response.json({ bookings, counts });
+});
+
+app.get("/api/admin/bookings/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const booking = store.bookings.find((item) => item.id === request.params.id);
+	if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
+	const { userId, ...publicAdminBooking } = booking;
+	return response.json({ booking: publicAdminBooking });
 });
 
 app.patch("/api/admin/bookings/:id/status", async (request, response, next) => {
 	try {
-		if (!adminUser(request, response)) return;
+		const admin = adminUser(request, response);
+		if (!admin) return;
 		const booking = store.bookings.find((item) => item.id === request.params.id);
 		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
 		const nextStatus = request.body?.status;
-		const validTransition = (booking.status === "pending" && nextStatus === "confirmed")
-			|| (booking.status === "pending" && nextStatus === "cancelled")
+		const reason = cleanText(request.body?.reason, 500);
+
+		// Luồng ngoại lệ: Đơn đã được xử lý: Không cho phép xác nhận lại.
+		if (booking.status !== "pending" && (nextStatus === "confirmed" || nextStatus === "cancelled")) {
+			return response.status(409).json({
+				error: "Đơn đặt tour đã được xử lý trước đó, không thể xác nhận hoặc từ chối lại.",
+			});
+		}
+
+		const validTransition = (booking.status === "pending" && (nextStatus === "confirmed" || nextStatus === "cancelled"))
 			|| (booking.status === "confirmed" && nextStatus === "completed");
-		if (!validTransition) return response.status(409).json({ error: "Chỉ có thể duyệt hoặc hủy đơn đang chờ, hoặc đánh dấu đơn đã xác nhận là hoàn tất." });
-		const previous = { status: booking.status, updatedAt: booking.updatedAt };
+		if (!validTransition) {
+			return response.status(409).json({
+				error: "Chỉ có thể xác nhận hoặc từ chối đơn đang chờ duyệt, hoặc đánh dấu đơn đã xác nhận là hoàn tất.",
+			});
+		}
+
+		const previous = {
+			status: booking.status,
+			updatedAt: booking.updatedAt,
+			processedBy: booking.processedBy,
+			rejectReason: booking.rejectReason,
+		};
 		booking.status = nextStatus;
 		booking.updatedAt = new Date().toISOString();
+		booking.processedBy = admin.id;
+		if (nextStatus === "cancelled" && reason) {
+			booking.rejectReason = reason;
+		}
+
 		try {
 			await persistStore();
 		} catch (error) {
 			Object.assign(booking, previous);
 			throw error;
 		}
-		return response.json({ booking });
+		const { userId, ...publicAdminBooking } = booking;
+		return response.json({ booking: publicAdminBooking });
 	} catch (error) {
 		return next(error);
 	}
+});
+
+app.post("/api/admin/bookings/:id/confirm", async (request, response, next) => {
+	request.body = { ...request.body, status: "confirmed" };
+	return app._router.handle({ ...request, method: "PATCH", url: `/api/admin/bookings/${request.params.id}/status` }, response, next);
+});
+
+app.post("/api/admin/bookings/:id/reject", async (request, response, next) => {
+	request.body = { ...request.body, status: "cancelled" };
+	return app._router.handle({ ...request, method: "PATCH", url: `/api/admin/bookings/${request.params.id}/status` }, response, next);
 });
 
 app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next) => {

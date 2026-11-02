@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Trang quản trị Traveller Team" />
+  <meta name="description" content="Trang quản trị Traveller Team - Quản lý đặt Tour" />
   <title>Quản trị | Traveller Team</title>
   <link rel="stylesheet" href="/src/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,77 +11,419 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body class="admin-page">
+  <!-- Toast thông báo -->
+  <div id="admin-toast" class="admin-toast" role="alert" aria-live="polite" hidden></div>
+
+  <!-- Header quản trị -->
   <header class="admin-header">
-    <a class="admin-brand" href="/admin.html">Traveller Team <span>Quản trị</span></a>
-    <nav>
-      <a href="/index.html">Trang khách hàng</a>
-      <button id="admin-logout" type="button">Đăng xuất</button>
+    <div class="admin-header-left">
+      <a class="admin-brand" href="/admin.html">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name font-display">Traveller<span>Team</span></span>
+        <span class="admin-brand-tag">Quản trị Admin</span>
+      </a>
+    </div>
+    <nav class="admin-header-nav">
+      <a href="/index.html" class="admin-nav-link" title="Xem trang dành cho khách hàng">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Trang khách hàng
+      </a>
+      <div class="admin-user-pill">
+        <span class="admin-avatar-initial" id="admin-avatar-initial">A</span>
+        <div class="admin-user-meta">
+          <strong id="admin-name">Quản trị viên</strong>
+          <span class="admin-role-badge">Admin</span>
+        </div>
+      </div>
+      <button id="admin-logout" class="admin-logout-button" type="button" title="Đăng xuất khỏi tài khoản quản trị">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Đăng xuất
+      </button>
     </nav>
   </header>
-  <main id="admin-main" class="admin-main" aria-busy="true">
-    <p id="admin-status" class="admin-status" role="status" aria-live="polite">Đang kiểm tra quyền quản trị...</p>
-    <div id="admin-content" hidden>
-      <header class="admin-title">
-        <div>
-          <p class="eyebrow eyebrow-dark"><span></span> Khu vực nội bộ</p>
-          <h1 class="font-display">Quản trị Traveller Team</h1>
-        </div>
-        <span id="admin-name" class="admin-name"></span>
-      </header>
 
-      <section class="admin-panel" aria-labelledby="admin-bookings-title">
-        <div class="admin-section-heading">
-          <div><h2 id="admin-bookings-title">Quản lý đơn đặt tour</h2><p>Duyệt đơn, theo dõi trạng thái và xử lý yêu cầu hủy.</p></div>
-          <button id="admin-refresh" class="admin-secondary-button" type="button">Làm mới</button>
+  <!-- Nội dung chính -->
+  <main id="admin-main" class="admin-main" aria-busy="true">
+    <!-- Trạng thái kiểm tra quyền & tải ban đầu -->
+    <div id="admin-initial-state" class="admin-state-box">
+      <div class="state-spinner"></div>
+      <p id="admin-status" class="admin-status-text" role="status" aria-live="polite">Đang kiểm tra quyền quản trị...</p>
+    </div>
+
+    <!-- Màn hình lỗi không đủ quyền (Condition 5) -->
+    <div id="admin-forbidden-box" class="admin-state-box is-error" hidden>
+      <div class="state-icon">⛔</div>
+      <h2>Không có quyền truy cập</h2>
+      <p id="admin-forbidden-msg">Tài khoản của bạn chưa được cấp quyền quản lý đặt tour. Vui lòng đăng nhập với tài khoản quản trị viên.</p>
+      <div class="state-actions">
+        <a href="/admin-login.html" class="admin-primary-button">Đăng nhập tài khoản khác</a>
+        <a href="/index.html" class="admin-secondary-button">Về trang chủ</a>
+      </div>
+    </div>
+
+    <!-- Khu vực nội dung quản trị khi đã xác thực -->
+    <div id="admin-content" hidden>
+      <!-- Breadcrumbs navigation (Vị trí: Trang quản trị Admin → Quản lý đặt Tour → Đơn đặt Tour mới) -->
+      <nav class="admin-breadcrumbs" aria-label="Đường dẫn điều hướng">
+        <span class="bc-item">Trang quản trị Admin</span>
+        <span class="bc-sep" aria-hidden="true">/</span>
+        <span class="bc-item" id="bc-parent">Quản lý đặt Tour</span>
+        <span class="bc-sep" aria-hidden="true">/</span>
+        <span class="bc-item bc-active" id="bc-child">Đơn đặt Tour mới</span>
+      </nav>
+
+      <!-- Tiêu đề trang -->
+      <div class="admin-header-title">
+        <div>
+          <p class="eyebrow eyebrow-dark"><span></span> Hệ thống điều hành</p>
+          <h1 class="font-display" id="admin-view-title">Quản lý đặt Tour</h1>
+          <p class="admin-view-subtitle" id="admin-view-subtitle">Theo dõi, duyệt đơn đặt tour mới và quản lý trạng thái các tour du lịch.</p>
         </div>
-        <form id="admin-booking-filters" class="admin-filters">
-          <label>Tìm mã đơn / khách
-            <input name="q" type="search" maxlength="100" placeholder="Tên, email hoặc mã đơn" />
-          </label>
-          <label>Tour
-            <select name="tourId"><option value="">Tất cả tour</option></select>
-          </label>
-          <label>Trạng thái
-            <select name="status">
-              <option value="">Tất cả</option>
-              <option value="pending">Chờ duyệt</option>
+      </div>
+
+      <!-- Thanh Tabs điều hướng chức năng chính -->
+      <div class="admin-nav-tabs" role="tablist" aria-label="Chọn chức năng quản trị">
+        <button type="button" class="admin-tab-btn is-active" id="tab-btn-new-bookings" role="tab" aria-selected="true" data-tab="new-bookings">
+          <span class="tab-icon">🛎️</span>
+          <span>Đơn đặt Tour mới</span>
+          <span class="tab-badge" id="badge-pending-count">0</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-all-bookings" role="tab" aria-selected="false" data-tab="all-bookings">
+          <span class="tab-icon">📋</span>
+          <span>Tất cả đơn đặt Tour</span>
+          <span class="tab-badge tab-badge-neutral" id="badge-all-count">0</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-inquiries" role="tab" aria-selected="false" data-tab="inquiries">
+          <span class="tab-icon">💬</span>
+          <span>Biểu mẫu liên hệ</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-customers" role="tab" aria-selected="false" data-tab="customers">
+          <span class="tab-icon">👥</span>
+          <span>Quản lý khách hàng</span>
+        </button>
+      </div>
+
+      <!-- TAB 1 & 2: QUẢN LÝ ĐẶT TOUR (Đơn đặt Tour mới & Tất cả đơn) -->
+      <section id="panel-bookings" class="admin-panel" aria-labelledby="admin-panel-bookings-title">
+        <div class="admin-section-heading">
+          <div>
+            <h2 id="admin-panel-bookings-title">Đơn đặt Tour mới</h2>
+            <p id="admin-panel-bookings-desc">Các đơn đặt tour mới đang chờ xác nhận từ ban quản trị.</p>
+          </div>
+          <div class="admin-heading-actions">
+            <button id="admin-refresh-bookings" class="admin-secondary-button" type="button" title="Làm mới danh sách đơn">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Làm mới
+            </button>
+            <button id="admin-export-pdf" class="admin-secondary-button" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Xuất danh sách khách (PDF)
+            </button>
+          </div>
+        </div>
+
+        <!-- Bộ lọc & Tìm kiếm (Chức năng tìm kiếm, lọc đơn theo trạng thái và thời gian) -->
+        <form id="admin-booking-filters" class="admin-filters-grid" novalidate>
+          <div class="filter-field filter-field--search">
+            <label for="filter-q">Tìm kiếm đơn</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="filter-q" name="q" type="search" maxlength="100" placeholder="Mã đơn, tên khách, tour, SĐT, email..." autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="filter-field" id="filter-status-wrapper">
+            <label for="filter-status">Trạng thái đơn</label>
+            <select id="filter-status" name="status">
+              <option value="">Tất cả trạng thái</option>
+              <option value="pending" selected>Chờ xác nhận (Đơn mới)</option>
               <option value="confirmed">Đã xác nhận</option>
-              <option value="completed">Hoàn tất</option>
               <option value="cancelled">Đã hủy</option>
-              <option value="cancellation_requested">Chờ duyệt hủy</option>
+              <option value="completed">Đã hoàn thành</option>
             </select>
-          </label>
-          <button class="admin-primary-button" type="submit">Lọc đơn</button>
-          <button id="admin-export-pdf" class="admin-secondary-button" type="button">Xuất khách tour này (PDF)</button>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-tourId">Tour du lịch</label>
+            <select id="filter-tourId" name="tourId">
+              <option value="">Tất cả tour</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-dateType">Lọc thời gian theo</label>
+            <select id="filter-dateType" name="dateType">
+              <option value="createdAt" selected>Ngày đặt đơn</option>
+              <option value="departureDate">Ngày khởi hành</option>
+            </select>
+          </div>
+
+          <div class="filter-field filter-field--date">
+            <label for="filter-startDate">Từ ngày</label>
+            <input id="filter-startDate" name="startDate" type="date" />
+          </div>
+
+          <div class="filter-field filter-field--date">
+            <label for="filter-endDate">Đến ngày</label>
+            <input id="filter-endDate" name="endDate" type="date" />
+          </div>
+
+          <div class="filter-actions">
+            <button class="admin-primary-button" type="submit">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Lọc đơn
+            </button>
+            <button id="admin-filter-reset" class="admin-secondary-button" type="button">Đặt lại</button>
+          </div>
         </form>
-        <div id="admin-bookings" class="admin-list"></div>
+
+        <!-- Trạng thái danh sách: Đang tải -->
+        <div id="bookings-loading" class="admin-state-box" hidden>
+          <div class="state-spinner"></div>
+          <p class="admin-status-text">Đang tải danh sách đơn đặt tour...</p>
+        </div>
+
+        <!-- Trạng thái ngoại lệ 3: Lỗi tải dữ liệu -->
+        <div id="bookings-error" class="admin-state-box is-error" hidden>
+          <div class="state-icon">⚠️</div>
+          <h3>Lỗi tải dữ liệu</h3>
+          <p id="bookings-error-msg">Không thể kết nối máy chủ để tải dữ liệu đơn đặt tour. Vui lòng thử lại.</p>
+          <button id="btn-retry-bookings" class="admin-primary-button" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            Thử lại
+          </button>
+        </div>
+
+        <!-- Trạng thái ngoại lệ 1: Chưa có đơn mới / Không có kết quả -->
+        <div id="bookings-empty" class="admin-state-box is-empty" hidden>
+          <div class="state-icon">📭</div>
+          <h3 id="empty-title">Chưa có đơn đặt tour mới</h3>
+          <p id="empty-desc">Tất cả các đơn đặt tour mới đã được xử lý hoặc hiện chưa có khách hàng nào đặt mới.</p>
+        </div>
+
+        <!-- Bảng danh sách đơn đặt Tour (Nội dung hiển thị theo yêu cầu) -->
+        <div id="bookings-table-wrapper" class="admin-table-container">
+          <table class="admin-table" id="bookings-table">
+            <thead>
+              <tr>
+                <th scope="col">Mã đơn &amp; Ngày đặt</th>
+                <th scope="col">Khách hàng &amp; Liên hệ</th>
+                <th scope="col">Tour &amp; Khởi hành</th>
+                <th scope="col">Số khách &amp; Tổng tiền</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col" class="text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="admin-bookings-tbody"></tbody>
+          </table>
+        </div>
       </section>
 
-      <section class="admin-panel" aria-labelledby="admin-inquiries-title">
+      <!-- TAB 3: BIỂU MẪU LIÊN HỆ -->
+      <section id="panel-inquiries" class="admin-panel" aria-labelledby="admin-inquiries-title" hidden>
         <div class="admin-section-heading">
-          <div><h2 id="admin-inquiries-title">Biểu mẫu liên hệ</h2><p>Thắc mắc gửi từ trang liên hệ sẽ được chuyển về đây để xử lý.</p></div>
+          <div>
+            <h2 id="admin-inquiries-title">Biểu mẫu liên hệ</h2>
+            <p>Thắc mắc gửi từ trang liên hệ của khách hàng chuyển về đây để xử lý.</p>
+          </div>
         </div>
         <div id="admin-inquiries" class="admin-list"></div>
       </section>
 
-      <section class="admin-panel" aria-labelledby="admin-customers-title">
+      <!-- TAB 4: QUẢN LÝ KHÁCH HÀNG -->
+      <section id="panel-customers" class="admin-panel" aria-labelledby="admin-customers-title" hidden>
         <div class="admin-section-heading">
-          <div><h2 id="admin-customers-title">Quản lý khách hàng</h2><p>Thêm, sửa thông tin hoặc xóa tài khoản khách hàng.</p></div>
+          <div>
+            <h2 id="admin-customers-title">Quản lý khách hàng</h2>
+            <p>Thêm mới, cập nhật thông tin hoặc xóa tài khoản khách hàng.</p>
+          </div>
         </div>
         <form id="admin-customer-create" class="admin-customer-create">
-          <h3>Thêm khách hàng</h3>
-          <label>Họ tên<input name="name" maxlength="80" required /></label>
-          <label>Email<input name="email" type="email" maxlength="120" required /></label>
-          <label>Số điện thoại<input name="phone" maxlength="20" /></label>
-          <label>Địa chỉ<input name="address" maxlength="250" /></label>
-          <label>Mật khẩu ban đầu<input name="password" type="password" minlength="8" maxlength="256" required autocomplete="new-password" /></label>
-          <button class="admin-primary-button" type="submit">Tạo tài khoản khách hàng</button>
+          <h3>Thêm tài khoản khách hàng</h3>
+          <label>Họ tên<input name="name" maxlength="80" required placeholder="Nguyễn Văn A" /></label>
+          <label>Email<input name="email" type="email" maxlength="120" required placeholder="email@example.com" /></label>
+          <label>Số điện thoại<input name="phone" maxlength="20" placeholder="0901234567" /></label>
+          <label>Địa chỉ<input name="address" maxlength="250" placeholder="Địa chỉ thường trú" /></label>
+          <label>Mật khẩu ban đầu<input name="password" type="password" minlength="8" maxlength="256" required autocomplete="new-password" placeholder="Tối thiểu 8 ký tự" /></label>
+          <button class="admin-primary-button" type="submit">Tạo tài khoản</button>
         </form>
         <div id="admin-customers" class="admin-list"></div>
       </section>
     </div>
+
+    <!-- DIALOG / MODAL: XEM CHI TIẾT ĐƠN ĐẶT TOUR -->
+    <dialog id="booking-detail-modal" class="admin-modal" aria-labelledby="modal-booking-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <div>
+            <span class="admin-modal-eyebrow">Chi tiết đơn đặt tour</span>
+            <h2 id="modal-booking-title" class="admin-modal-title">Đơn đặt Tour #<span id="modal-code"></span></h2>
+          </div>
+          <div class="admin-modal-header-right">
+            <span id="modal-status-badge" class="admin-badge"></span>
+            <button type="button" class="admin-modal-close" id="modal-detail-close" aria-label="Đóng chi tiết">✕</button>
+          </div>
+        </header>
+
+        <div class="admin-modal-body" id="modal-detail-body">
+          <!-- Banner thông báo ngoại lệ khi đơn đã được xử lý -->
+          <div id="modal-processed-alert" class="admin-alert-banner" hidden>
+            <span class="alert-icon">ℹ️</span>
+            <div>
+              <strong>Đơn này đã được xử lý:</strong>
+              <span id="modal-processed-text">Đơn đã ở trạng thái kết thúc, không thể xác nhận lại.</span>
+            </div>
+          </div>
+
+          <!-- Nhóm 1: Thông tin liên hệ khách hàng -->
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              Thông tin khách hàng &amp; liên hệ
+            </h3>
+            <div class="admin-detail-grid">
+              <div>
+                <dt>Tên khách hàng</dt>
+                <dd><strong id="modal-customer-name">—</strong></dd>
+              </div>
+              <div>
+                <dt>Số điện thoại</dt>
+                <dd id="modal-customer-phone">—</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd id="modal-customer-email">—</dd>
+              </div>
+              <div>
+                <dt>Ngày đặt đơn</dt>
+                <dd id="modal-created-at">—</dd>
+              </div>
+            </div>
+            <div id="modal-note-box" class="admin-detail-note" hidden>
+              <dt>Ghi chú của khách:</dt>
+              <dd id="modal-customer-note"></dd>
+            </div>
+          </div>
+
+          <!-- Nhóm 2: Thông tin Tour & Khởi hành -->
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
+              Thông tin tour du lịch
+            </h3>
+            <div class="admin-detail-grid">
+              <div class="span-2">
+                <dt>Tên tour</dt>
+                <dd><strong id="modal-tour-name">—</strong></dd>
+              </div>
+              <div>
+                <dt>Địa điểm</dt>
+                <dd id="modal-tour-place">—</dd>
+              </div>
+              <div>
+                <dt>Thời lượng</dt>
+                <dd id="modal-tour-duration">—</dd>
+              </div>
+              <div>
+                <dt>Ngày khởi hành</dt>
+                <dd><strong id="modal-departure-date" class="text-accent">—</strong></dd>
+              </div>
+              <div>
+                <dt>Giá tour niêm yết</dt>
+                <dd id="modal-tour-price">—</dd>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nhóm 3: Danh sách hành khách chi tiết -->
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Danh sách hành khách (<span id="modal-pax-count">0</span> khách)
+            </h3>
+            <div class="admin-pax-table-wrapper">
+              <table class="admin-pax-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Phân loại</th>
+                    <th>Giới tính</th>
+                    <th>Ngày sinh</th>
+                    <th>Giấy tờ / CCCD</th>
+                  </tr>
+                </thead>
+                <tbody id="modal-pax-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Nhóm 4: Thanh toán & Chi phí -->
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+              Chi tiết chi phí &amp; Thanh toán
+            </h3>
+            <div class="admin-payment-summary">
+              <ul class="admin-price-breakdown" id="modal-price-breakdown"></ul>
+              <div class="admin-total-row">
+                <span>Tổng tiền thanh toán:</span>
+                <strong id="modal-total-price" class="admin-total-price">0 ₫</strong>
+              </div>
+              <div class="admin-payment-meta">
+                <span>Trạng thái thanh toán: <strong id="modal-payment-status">—</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="admin-modal-footer">
+          <div class="admin-modal-footer-left">
+            <span id="modal-footer-status-hint" class="admin-footer-hint"></span>
+          </div>
+          <div class="admin-modal-footer-actions">
+            <!-- Nút Xác nhận đơn -->
+            <button type="button" class="admin-primary-button btn-confirm-action" id="modal-btn-confirm">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Xác nhận đơn đặt tour
+            </button>
+            <!-- Nút Từ chối đơn -->
+            <button type="button" class="admin-danger-button btn-reject-action" id="modal-btn-reject">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              Từ chối đơn
+            </button>
+            <button type="button" class="admin-secondary-button" id="modal-btn-close">Đóng</button>
+          </div>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL: XÁC NHẬN TỪ CHỐI ĐƠN -->
+    <dialog id="reject-modal" class="admin-modal admin-modal--sm" aria-labelledby="reject-modal-title">
+      <form id="reject-modal-form" class="admin-modal-card" method="dialog">
+        <header class="admin-modal-header">
+          <h2 id="reject-modal-title" class="admin-modal-title">Từ chối đơn đặt tour</h2>
+          <button type="button" class="admin-modal-close" id="reject-modal-close" aria-label="Đóng">✕</button>
+        </header>
+        <div class="admin-modal-body">
+          <p>Bạn có chắc chắn muốn <strong>từ chối đơn đặt tour</strong> <code id="reject-code-label"></code>?</p>
+          <p class="admin-text-muted">Đơn đặt tour sẽ được chuyển sang trạng thái <strong>Đã hủy</strong>.</p>
+          <label class="admin-modal-label">
+            <span>Lý do từ chối (tùy chọn)</span>
+            <textarea id="reject-reason-input" name="reason" rows="3" maxlength="500" placeholder="Ví dụ: Tour đã hết chỗ, không liên lạc được với khách hàng..."></textarea>
+          </label>
+        </div>
+        <footer class="admin-modal-footer">
+          <button type="button" class="admin-secondary-button" id="reject-modal-cancel">Hủy bỏ</button>
+          <button type="submit" class="admin-danger-button" id="reject-modal-submit">Xác nhận từ chối</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <!-- Khu vực in / xuất PDF -->
     <section id="admin-print-area" class="admin-print-area" hidden aria-label="Danh sách khách hàng tour"></section>
   </main>
+
   <script type="module" src="/src/admin.js"></script>
 </body>
 </html>
