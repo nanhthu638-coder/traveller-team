@@ -2599,3 +2599,303 @@ dialog.admin-modal::backdrop,
   color: #6b7280;
   font-size: 13.5px;
 }
+
+/* ===== Quản lý Đánh giá và Chấm điểm Tour (Styles) ===== */
+
+.text-success { color: #15803d !important; }
+.rev-star-gold { color: #f59e0b; }
+
+/* Khối 4 thẻ thống kê tổng quan */
+.rev-overview-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 1024px) {
+  .rev-overview-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .rev-overview-cards { grid-template-columns: 1fr; }
+}
+
+.rev-stat-card {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f8faf9;
+  border: 1px solid #dce7df;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rev-stat-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #556863;
+}
+.rev-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1C4349;
+  line-height: 1.25;
+}
+.rev-stat-value small {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64736e;
+}
+.rev-stat-sub {
+  font-size: 12px;
+  color: #64736e;
+}
+
+/* Khối Điểm đánh giá trung bình & tổng lượt đánh giá của từng Tour */
+.rev-tour-summary-box {
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #dce7df;
+  box-shadow: 0 2px 10px rgba(27, 33, 33, 0.04);
+}
+.rev-tour-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.rev-tour-summary-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1C4349;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.rev-tour-summary-head h3 svg {
+  color: #f59e0b;
+  fill: #fef3c7;
+}
+
+.rev-tour-summaries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 12px;
+}
+.rev-tour-summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2ebe5;
+  background: #fcfdfc;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+.rev-tour-summary-card:hover {
+  border-color: #057569;
+  background: #f2faf7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 117, 105, 0.08);
+}
+.rev-tour-summary-card.is-active {
+  border-color: #057569;
+  background: #e6f4f1;
+  box-shadow: 0 0 0 2px rgba(5, 117, 105, 0.18);
+}
+.rev-tour-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rev-tour-card-name {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #1C4349;
+  line-height: 1.35;
+}
+.rev-tour-card-region {
+  font-size: 11.5px;
+  color: #64736e;
+  margin-top: 2px;
+}
+.rev-tour-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px dashed #dce7df;
+  font-size: 12.5px;
+}
+.rev-tour-avg-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.rev-tour-avg-badge.is-none {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #6b7280;
+  font-weight: 500;
+}
+.rev-tour-count-text {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Dòng đánh giá trong bảng */
+.review-row.is-hidden-review {
+  background-color: #f9fafb;
+  opacity: 0.82;
+}
+.review-row.is-violation-suspect {
+  background-color: #fff8f6;
+}
+.rev-stars-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #f59e0b;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.rev-stars-empty {
+  color: #d1d5db;
+}
+.rev-rating-num {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-top: 2px;
+}
+
+.rev-comment-text {
+  font-size: 13px;
+  color: #1f2937;
+  line-height: 1.48;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rev-thumbs-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.rev-thumb-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #cbd5d1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.rev-thumb-img:hover {
+  transform: scale(1.06);
+  border-color: #057569;
+}
+
+.rev-violation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Nút Ẩn / Hiện trên bảng */
+.btn-toggle-hide {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #b45309;
+}
+.btn-toggle-hide:hover {
+  background: #d97706;
+  border-color: #d97706;
+  color: #fff;
+}
+.btn-toggle-show {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #047857;
+}
+.btn-toggle-show:hover {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+}
+
+/* Modal Chi tiết đánh giá */
+.rev-detail-rating-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.rev-detail-stars-big {
+  font-size: 20px;
+  color: #f59e0b;
+  letter-spacing: 2px;
+}
+.rev-detail-rating-label {
+  font-weight: 700;
+  color: #92400e;
+  font-size: 14.5px;
+}
+
+.rev-detail-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.rev-detail-img-card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #dce7df;
+  background: #f8faf8;
+  aspect-ratio: 4 / 3;
+}
+.rev-detail-img-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rev-delete-quote {
+  margin: 8px 0;
+  padding: 10px 14px;
+  border-left: 3px solid #ef4444;
+  background: #fef2f2;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: #7f1d1d;
+  font-style: italic;
+}

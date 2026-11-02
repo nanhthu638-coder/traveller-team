@@ -277,6 +277,137 @@
       "images": [],
       "createdAt": "2026-10-20T08:21:36.648Z",
       "updatedAt": "2026-10-20T08:21:36.648Z"
+    },
+    {
+      "id": "rev-demo-halong-1",
+      "userId": "demo-user-1",
+      "bookingId": "TT-2610-1000",
+      "tourId": "ha-long-3n2d",
+      "authorName": "Phạm Thanh Hà",
+      "rating": 5,
+      "comment": "Du thuyền rất đẹp, hướng dẫn viên nhiệt tình, bữa tối hải sản tươi ngon. Cả nhà mình đều hài lòng, chắc chắn sẽ quay lại.",
+      "images": [
+        "photo-1528127269322-539801943592",
+        "photo-1507525428034-b723cf961d3e"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-31T17:20:09.958Z",
+      "updatedAt": "2026-10-31T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-halong-2",
+      "userId": "demo-user-2",
+      "bookingId": "TT-2610-1001",
+      "tourId": "ha-long-3n2d",
+      "authorName": "Đỗ Quốc Bảo",
+      "rating": 4,
+      "comment": "Lịch trình hợp lý, cảnh vịnh đẹp như tranh. Chỉ tiếc là hôm đi chèo kayak hơi đông người.",
+      "images": [],
+      "hidden": false,
+      "createdAt": "2026-10-27T17:20:09.958Z",
+      "updatedAt": "2026-10-27T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-halong-3",
+      "userId": "demo-user-3",
+      "bookingId": "TT-2610-1002",
+      "tourId": "ha-long-3n2d",
+      "authorName": "Ngô Mai Linh",
+      "rating": 5,
+      "comment": "Phòng cabin sạch sẽ, nhân viên chu đáo. Giá trọn gói rất hợp lý so với chất lượng dịch vụ 5 sao.",
+      "images": [
+        "photo-1544644181-1484b3fdfc62"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-19T17:20:09.958Z",
+      "updatedAt": "2026-10-19T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-hoian-1",
+      "userId": "demo-user-4",
+      "bookingId": "TT-2610-1003",
+      "tourId": "hoi-an-2n1d",
+      "authorName": "Vũ Hoàng Nam",
+      "rating": 5,
+      "comment": "Phố cổ về đêm lung linh, thả đèn hoa đăng trên sông Hoài là trải nghiệm đáng nhớ nhất chuyến đi.",
+      "images": [
+        "photo-1531058020387-3be344556be6"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-29T17:20:09.958Z",
+      "updatedAt": "2026-10-29T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-hoian-2",
+      "userId": "demo-user-5",
+      "bookingId": "TT-2610-1004",
+      "tourId": "hoi-an-2n1d",
+      "authorName": "Lý Thu Trang",
+      "rating": 3,
+      "comment": "Tour ổn nhưng thời gian tự do buổi tối hơi ít, mình chưa kịp thử hết các món đặc sản Cao lầu và cơm gà.",
+      "images": [],
+      "hidden": false,
+      "createdAt": "2026-10-22T17:20:09.958Z",
+      "updatedAt": "2026-10-22T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-phuquoc-1",
+      "userId": "demo-user-6",
+      "bookingId": "TT-2610-1005",
+      "tourId": "phu-quoc-4n3d",
+      "authorName": "Trần Minh Tuấn",
+      "rating": 5,
+      "comment": "Resort sát biển bãi Sao tuyệt đẹp, đi cáp treo Hòn Thơm ngắm biển từ trên cao cực kỳ ấn tượng. Gia đình mình có kỳ nghỉ rất trọn vẹn.",
+      "images": [
+        "photo-1500375592092-40eb2168fd21",
+        "photo-1519046904884-53103b34b206"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-30T17:20:09.958Z",
+      "updatedAt": "2026-10-30T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-dalat-1",
+      "userId": "demo-user-7",
+      "bookingId": "TT-2610-1006",
+      "tourId": "da-lat-3n2d",
+      "authorName": "Trịnh Minh Châu",
+      "rating": 4,
+      "comment": "Đà Lạt mát mẻ, homestay gỗ thông xinh xắn. Xe đón đúng giờ, bác tài xế vui tính và nhiệt tình hỗ trợ đoàn.",
+      "images": [
+        "photo-1500530855697-b586d89ba3ee"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-25T17:20:09.958Z",
+      "updatedAt": "2026-10-25T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-sapa-1",
+      "userId": "demo-user-8",
+      "bookingId": "TT-2610-1007",
+      "tourId": "sa-pa-3n2d",
+      "authorName": "Bùi Gia Huy",
+      "rating": 5,
+      "comment": "Săn mây trên đỉnh Fansipan quá tuyệt vời, bản Cát Cát thơ mộng và người dân bản địa rất thân thiện. Nhớ mang áo ấm nhé!",
+      "images": [
+        "photo-1501785888041-af3ef285b470"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-23T17:20:09.958Z",
+      "updatedAt": "2026-10-23T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-hagiang-violation",
+      "userId": "demo-user-9",
+      "bookingId": "TT-2610-1008",
+      "tourId": "ha-giang-4n3d",
+      "authorName": "Lê Hoàng Cường",
+      "rating": 1,
+      "comment": "Quảng cáo spam: Chuyên nhận làm sim số đẹp giá rẻ, vay vốn nhanh lãi suất thấp liên hệ ngay 0999888777 nhận hoa hồng cao!",
+      "images": [],
+      "hidden": false,
+      "createdAt": "2026-11-01T17:22:16.359Z",
+      "updatedAt": "2026-11-01T17:22:16.360Z"
     }
   ],
   "vouchers": [
@@ -356,6 +487,11 @@
       "id": "125be5dad01d618fae187c59926af52e60554c1726e41f93d4175aa933c5aca2",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-09T07:38:47.264Z"
+    },
+    {
+      "id": "1ca3fde5fcc8d392b764551db3babf6afb63b5345246bb37e9d3a440f9b50a11",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-09T17:21:04.055Z"
     }
   ]
 }

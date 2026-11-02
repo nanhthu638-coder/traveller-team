@@ -13,11 +13,13 @@ import {
 	buildDemoReviews,
 	createReview,
 	decodeImage,
+	imageUrl,
 	listTourReviews,
 	newImageName,
 	publicReview,
 	ratingsByTour,
 	reviewEligibility,
+	summarize,
 	validateReviewInput,
 } from "./reviews.js";
 import { departureAvailability, seatsOf, tourAvailability } from "./availability.js";
@@ -1250,8 +1252,209 @@ async function saveImages(buffers) {
 }
 
 async function removeImageFiles(names) {
-	await Promise.all(names.map((name) => unlink(resolve(imagesDirectory, name)).catch(() => {})));
+	await Promise.all(
+		(names || [])
+			.filter((name) => IMAGE_FILE_PATTERN.test(name))
+			.map((name) => unlink(resolve(imagesDirectory, name)).catch(() => {}))
+	);
 }
+
+// Từ khóa nghi vấn vi phạm quy chuẩn cộng đồng (spam, quảng cáo, liên kết rác)
+const VIOLATION_KEYWORDS = ["spam", "quang cao", "vay von", "sim so", "lua dao", "co bac", "ca do", "0999888777", "http://", "https://"];
+
+function checkViolationSuspect(comment = "") {
+	const norm = normalizeText(comment);
+	return VIOLATION_KEYWORDS.some((kw) => norm.includes(kw));
+}
+
+function formatAdminReview(review, toursMap) {
+	const tour = toursMap.get(review.tourId);
+	const booking = (store.bookings || []).find((b) => b.id === review.bookingId || b.code === review.bookingId);
+	const user = (store.users || []).find((u) => u.id === review.userId);
+	const rawImages = Array.isArray(review.images) ? review.images : [];
+	return {
+		id: review.id,
+		userId: review.userId,
+		bookingId: booking?.code || review.bookingId || "—",
+		tourId: review.tourId,
+		tourName: tour?.name || review.tourId,
+		tourPlace: tour?.place || "",
+		tourRegion: tour?.region || "",
+		authorName: review.authorName || user?.name || "Khách hàng",
+		authorEmail: user?.email || booking?.contact?.email || "",
+		authorPhone: user?.phone || booking?.contact?.phone || "",
+		rating: Number(review.rating) || 5,
+		comment: review.comment || "",
+		images: rawImages.map(imageUrl).filter(Boolean),
+		imagesCount: rawImages.length,
+		hidden: Boolean(review.hidden),
+		hiddenReason: review.hiddenReason || "",
+		hiddenAt: review.hiddenAt || null,
+		isViolationSuspect: checkViolationSuspect(review.comment),
+		createdAt: review.createdAt,
+		updatedAt: review.updatedAt,
+		edited: review.updatedAt !== review.createdAt,
+	};
+}
+
+function buildTourReviewSummaries() {
+	const allTours = searchTours().tours;
+	const allReviews = store.reviews || [];
+	return allTours.map((tour) => {
+		const tourRevs = allReviews.filter((r) => r.tourId === tour.id);
+		const visibleRevs = tourRevs.filter((r) => !r.hidden);
+		const stats = summarize(visibleRevs);
+		return {
+			tourId: tour.id,
+			tourName: tour.name,
+			place: tour.place,
+			region: tour.region,
+			image: tour.image,
+			averageRating: stats.average,
+			totalReviews: tourRevs.length,
+			visibleReviews: visibleRevs.length,
+			hiddenReviews: tourRevs.length - visibleRevs.length,
+			distribution: stats.distribution,
+		};
+	});
+}
+
+// GET /api/admin/reviews: Danh sách đánh giá của khách hàng + Điểm trung bình & tổng lượt đánh giá từng Tour
+app.get("/api/admin/reviews", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const keyword = typeof request.query.q === "string" ? cleanText(request.query.q, 100) : "";
+	const tourId = typeof request.query.tourId === "string" ? cleanText(request.query.tourId, 100) : "";
+	const ratingFilter = request.query.rating ? Number(request.query.rating) : null;
+	const visibility = typeof request.query.visibility === "string" ? request.query.visibility : "all"; // all | visible | hidden | violation
+	const hasImages = typeof request.query.hasImages === "string" ? request.query.hasImages : "all"; // all | with-images | no-images
+	const sort = typeof request.query.sort === "string" ? request.query.sort : "newest"; // newest | oldest | highest | lowest
+
+	const allTours = searchTours().tours;
+	const toursMap = new Map(allTours.map((t) => [t.id, t]));
+	const allReviews = (store.reviews || []).map((r) => formatAdminReview(r, toursMap));
+
+	const visibleAll = (store.reviews || []).filter((r) => !r.hidden);
+	const overallStats = summarize(visibleAll);
+
+	const counts = {
+		all: allReviews.length,
+		visible: visibleAll.length,
+		hidden: allReviews.length - visibleAll.length,
+		withImages: allReviews.filter((r) => r.imagesCount > 0).length,
+		violationSuspects: allReviews.filter((r) => r.isViolationSuspect || r.rating === 1).length,
+		averageRating: overallStats.average || 0,
+		distribution: overallStats.distribution,
+	};
+
+	const normKeyword = normalizeText(keyword);
+	const filtered = allReviews.filter((r) => {
+		if (normKeyword) {
+			const haystack = normalizeText(`${r.authorName} ${r.tourName} ${r.comment} ${r.bookingId} ${r.authorEmail}`);
+			if (!haystack.includes(normKeyword)) return false;
+		}
+		if (tourId && r.tourId !== tourId) return false;
+		if (ratingFilter && r.rating !== ratingFilter) return false;
+		if (visibility === "visible" && r.hidden) return false;
+		if (visibility === "hidden" && !r.hidden) return false;
+		if (visibility === "violation" && !r.isViolationSuspect && r.rating > 2) return false;
+		if (hasImages === "with-images" && r.imagesCount === 0) return false;
+		if (hasImages === "no-images" && r.imagesCount > 0) return false;
+		return true;
+	});
+
+	if (sort === "newest") filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+	else if (sort === "oldest") filtered.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+	else if (sort === "highest") filtered.sort((a, b) => b.rating - a.rating || b.createdAt.localeCompare(a.createdAt));
+	else if (sort === "lowest") filtered.sort((a, b) => a.rating - b.rating || b.createdAt.localeCompare(a.createdAt));
+
+	return response.json({
+		reviews: filtered,
+		total: filtered.length,
+		tourSummaries: buildTourReviewSummaries(),
+		counts,
+	});
+});
+
+// GET /api/admin/reviews/:id: Xem chi tiết một đánh giá
+app.get("/api/admin/reviews/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const review = (store.reviews || []).find((r) => r.id === request.params.id);
+	if (!review) {
+		return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
+	}
+	const allTours = searchTours().tours;
+	const toursMap = new Map(allTours.map((t) => [t.id, t]));
+	const tourSummary = buildTourReviewSummaries().find((s) => s.tourId === review.tourId) || null;
+	return response.json({
+		review: formatAdminReview(review, toursMap),
+		tourSummary,
+	});
+});
+
+// PATCH /api/admin/reviews/:id/visibility: Ẩn hoặc Hiện đánh giá (kiểm duyệt nội dung vi phạm)
+app.patch("/api/admin/reviews/:id/visibility", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const review = (store.reviews || []).find((r) => r.id === request.params.id);
+		if (!review) {
+			return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
+		}
+
+		const nextHidden = typeof request.body?.hidden === "boolean" ? request.body.hidden : !review.hidden;
+		const reason = cleanText(request.body?.reason, 300);
+		const previous = { hidden: review.hidden, hiddenReason: review.hiddenReason, hiddenAt: review.hiddenAt };
+
+		review.hidden = nextHidden;
+		review.hiddenReason = nextHidden ? (reason || "Nội dung đánh giá vi phạm quy chuẩn cộng đồng") : "";
+		review.hiddenAt = nextHidden ? new Date().toISOString() : null;
+
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(review, previous);
+			throw error;
+		}
+
+		const allTours = searchTours().tours;
+		const toursMap = new Map(allTours.map((t) => [t.id, t]));
+		return response.json({
+			message: nextHidden
+				? "Đã ẩn đánh giá khỏi trang chi tiết tour công khai."
+				: "Đã hiển thị lại đánh giá trên trang chi tiết tour công khai.",
+			review: formatAdminReview(review, toursMap),
+			tourSummaries: buildTourReviewSummaries(),
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// DELETE /api/admin/reviews/:id: Xóa vĩnh viễn đánh giá vi phạm
+app.delete("/api/admin/reviews/:id", async (request, response, next) => {
+	let removed = null;
+	try {
+		if (!adminUser(request, response)) return;
+		removed = (store.reviews || []).find((r) => r.id === request.params.id);
+		if (!removed) {
+			return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
+		}
+
+		store.reviews = store.reviews.filter((r) => r.id !== removed.id);
+		await persistStore();
+		await removeImageFiles(removed.images);
+
+		return response.json({
+			success: true,
+			message: "Đã xóa vĩnh viễn đánh giá vi phạm thành công.",
+			tourSummaries: buildTourReviewSummaries(),
+		});
+	} catch (error) {
+		if (removed && !store.reviews.some((r) => r.id === removed.id)) {
+			store.reviews.push(removed);
+		}
+		return next(error);
+	}
+});
 
 function decodeNewImages(list) {
 	if (!Array.isArray(list) || list.length > MAX_IMAGES) return { error: `Tối đa ${MAX_IMAGES} ảnh cho mỗi đánh giá.` };
@@ -1501,6 +1704,17 @@ async function start() {
 	}
 	if (!store.destinations || !store.destinations.length) {
 		store.destinations = structuredClone(DEFAULT_DESTINATIONS);
+	}
+	if (!Array.isArray(store.reviews)) {
+		store.reviews = [];
+	}
+	if (store.reviews.length < 3) {
+		const existingIds = new Set(store.reviews.map((r) => r.id));
+		for (const demoRev of buildDemoReviews()) {
+			if (!existingIds.has(demoRev.id)) {
+				store.reviews.push(demoRev);
+			}
+		}
 	}
 	await persistStore();
 

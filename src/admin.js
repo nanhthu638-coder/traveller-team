@@ -127,6 +127,66 @@ const destDeleteBlockedMsg = document.getElementById("dest-delete-blocked-msg");
 const destDeleteConfirmBox = document.getElementById("dest-delete-confirm-box");
 const destDeleteName = document.getElementById("dest-delete-name");
 
+// Reviews DOM Elements (Quản lý Tour → Đánh giá và chấm điểm Tour)
+const panelReviews = document.getElementById("panel-reviews");
+const badgeReviewsCount = document.getElementById("badge-reviews-count");
+const adminRefreshReviews = document.getElementById("admin-refresh-reviews");
+const revStatAvg = document.getElementById("rev-stat-avg");
+const revStatTotal = document.getElementById("rev-stat-total");
+const revStatWithImages = document.getElementById("rev-stat-with-images");
+const revStatVisible = document.getElementById("rev-stat-visible");
+const revStatHidden = document.getElementById("rev-stat-hidden");
+const revStatSuspect = document.getElementById("rev-stat-suspect");
+const revTourSummariesGrid = document.getElementById("rev-tour-summaries-grid");
+
+const reviewFilters = document.getElementById("admin-review-filters");
+const filterRevQ = document.getElementById("filter-rev-q");
+const filterRevTourSelect = document.getElementById("filter-rev-tourId");
+const filterRevRating = document.getElementById("filter-rev-rating");
+const filterRevVisibility = document.getElementById("filter-rev-visibility");
+const filterRevHasImages = document.getElementById("filter-rev-hasImages");
+const filterRevSort = document.getElementById("filter-rev-sort");
+const adminRevFilterReset = document.getElementById("admin-rev-filter-reset");
+
+const reviewsLoading = document.getElementById("reviews-loading");
+const reviewsError = document.getElementById("reviews-error");
+const reviewsErrorMsg = document.getElementById("reviews-error-msg");
+const btnRetryReviews = document.getElementById("btn-retry-reviews");
+const reviewsEmpty = document.getElementById("reviews-empty");
+const reviewsTableWrapper = document.getElementById("reviews-table-wrapper");
+const reviewsTbody = document.getElementById("admin-reviews-tbody");
+
+// Review Detail Modal
+const revDetailModal = document.getElementById("review-detail-modal");
+const revDetailModalClose = document.getElementById("rev-detail-modal-close");
+const revDetailBtnClose = document.getElementById("rev-detail-btn-close");
+const revDetailBtnToggle = document.getElementById("rev-detail-btn-toggle");
+const revDetailBtnDelete = document.getElementById("rev-detail-btn-delete");
+const revDetailStatusBadge = document.getElementById("rev-detail-status-badge");
+const revDetailAlert = document.getElementById("rev-detail-alert");
+const revDetailAlertText = document.getElementById("rev-detail-alert-text");
+const revDetailAuthor = document.getElementById("rev-detail-author");
+const revDetailBooking = document.getElementById("rev-detail-booking");
+const revDetailCreated = document.getElementById("rev-detail-created");
+const revDetailUpdated = document.getElementById("rev-detail-updated");
+const revDetailTourName = document.getElementById("rev-detail-tour-name");
+const revDetailTourPlace = document.getElementById("rev-detail-tour-place");
+const revDetailTourAvg = document.getElementById("rev-detail-tour-avg");
+const revDetailTourCount = document.getElementById("rev-detail-tour-count");
+const revDetailRatingBox = document.getElementById("rev-detail-rating-box");
+const revDetailComment = document.getElementById("rev-detail-comment");
+const revDetailImagesCount = document.getElementById("rev-detail-images-count");
+const revDetailImagesGrid = document.getElementById("rev-detail-images-grid");
+
+// Review Delete Modal
+const revDeleteModal = document.getElementById("review-delete-modal");
+const revDeleteModalClose = document.getElementById("rev-delete-modal-close");
+const revDeleteModalCancel = document.getElementById("rev-delete-modal-cancel");
+const revDeleteModalSubmit = document.getElementById("rev-delete-modal-submit");
+const revDeleteAuthor = document.getElementById("rev-delete-author");
+const revDeleteTour = document.getElementById("rev-delete-tour");
+const revDeletePreview = document.getElementById("rev-delete-preview");
+
 // Booking Filters & Table
 const bookingFilters = document.getElementById("admin-booking-filters");
 const filterStatusWrapper = document.getElementById("filter-status-wrapper");
@@ -177,6 +237,9 @@ let pendingRejectBookingId = null;
 let toursList = [];
 let destinationsList = [];
 let selectedDestination = null;
+let reviewsList = [];
+let tourSummariesList = [];
+let selectedReview = null;
 let toastTimeout = null;
 
 // ========================================================
@@ -283,6 +346,7 @@ function switchTab(tab) {
     panelInquiries.hidden = true;
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = true;
+    if (panelReviews) panelReviews.hidden = true;
 
     if (tab === "new-bookings") {
       bcParent.textContent = "Quản lý đặt Tour";
@@ -314,6 +378,7 @@ function switchTab(tab) {
     panelInquiries.hidden = false;
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = true;
+    if (panelReviews) panelReviews.hidden = true;
 
     bcParent.textContent = "Tiện ích quản trị";
     bcChild.textContent = "Biểu mẫu liên hệ";
@@ -325,6 +390,7 @@ function switchTab(tab) {
     panelInquiries.hidden = true;
     panelCustomers.hidden = false;
     if (panelDestinations) panelDestinations.hidden = true;
+    if (panelReviews) panelReviews.hidden = true;
 
     bcParent.textContent = "Tiện ích quản trị";
     bcChild.textContent = "Quản lý khách hàng";
@@ -336,6 +402,7 @@ function switchTab(tab) {
     panelInquiries.hidden = true;
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = false;
+    if (panelReviews) panelReviews.hidden = true;
 
     bcParent.textContent = "Quản lý địa điểm";
     bcChild.textContent = "Danh mục địa điểm";
@@ -343,6 +410,19 @@ function switchTab(tab) {
     viewSubtitle.textContent = "Quản lý danh mục địa điểm du lịch, thông tin mô tả, khu vực và các tour liên kết.";
 
     loadDestinations();
+  } else if (tab === "reviews") {
+    panelBookings.hidden = true;
+    panelInquiries.hidden = true;
+    panelCustomers.hidden = true;
+    if (panelDestinations) panelDestinations.hidden = true;
+    if (panelReviews) panelReviews.hidden = false;
+
+    bcParent.textContent = "Quản lý Tour";
+    bcChild.textContent = "Đánh giá và chấm điểm Tour";
+    viewTitle.textContent = "Quản lý Tour";
+    viewSubtitle.textContent = "Theo dõi điểm đánh giá trung bình từng Tour, kiểm duyệt nhận xét của khách hàng và ẩn/xóa các đánh giá vi phạm.";
+
+    loadReviews();
   }
 }
 
@@ -1124,6 +1204,300 @@ async function handleDeleteDestinationSubmit() {
 }
 
 // ========================================================
+// QUẢN LÝ TOUR → ĐÁNH GIÁ VÀ CHẤM ĐIỂM TOUR (REVIEWS)
+// ========================================================
+
+const ratingTextLabels = {
+  5: "Tuyệt vời (5/5)",
+  4: "Tốt (4/5)",
+  3: "Bình thường (3/5)",
+  2: "Tệ (2/5)",
+  1: "Rất tệ (1/5)",
+};
+
+function renderStarsHtml(rating) {
+  const r = Math.max(1, Math.min(5, Number(rating) || 5));
+  const full = "★".repeat(r);
+  const empty = "★".repeat(5 - r);
+  return `<span class="rev-stars-display" aria-label="${r} trên 5 sao">${full}<span class="rev-stars-empty">${empty}</span></span>`;
+}
+
+async function loadReviews() {
+  if (!reviewsLoading) return;
+  reviewsLoading.hidden = false;
+  reviewsError.hidden = true;
+  reviewsEmpty.hidden = true;
+  reviewsTableWrapper.hidden = true;
+
+  try {
+    const params = new URLSearchParams();
+    if (filterRevQ && filterRevQ.value.trim()) params.set("q", filterRevQ.value.trim());
+    if (filterRevTourSelect && filterRevTourSelect.value) params.set("tourId", filterRevTourSelect.value);
+    if (filterRevRating && filterRevRating.value) params.set("rating", filterRevRating.value);
+    if (filterRevVisibility && filterRevVisibility.value !== "all") params.set("visibility", filterRevVisibility.value);
+    if (filterRevHasImages && filterRevHasImages.value !== "all") params.set("hasImages", filterRevHasImages.value);
+    if (filterRevSort && filterRevSort.value) params.set("sort", filterRevSort.value);
+
+    const data = await requestJson(`/api/admin/reviews?${params.toString()}`);
+    reviewsList = data.reviews || [];
+    tourSummariesList = data.tourSummaries || [];
+
+    // Cập nhật thống kê tổng quan
+    if (data.counts) {
+      if (badgeReviewsCount) badgeReviewsCount.textContent = data.counts.all ?? reviewsList.length;
+      if (revStatAvg) revStatAvg.textContent = data.counts.averageRating ? Number(data.counts.averageRating).toFixed(1) : "0.0";
+      if (revStatTotal) revStatTotal.textContent = data.counts.all ?? 0;
+      if (revStatWithImages) revStatWithImages.textContent = data.counts.withImages ?? 0;
+      if (revStatVisible) revStatVisible.textContent = data.counts.visible ?? 0;
+      if (revStatHidden) revStatHidden.textContent = data.counts.hidden ?? 0;
+      if (revStatSuspect) revStatSuspect.textContent = data.counts.violationSuspects ?? 0;
+    }
+
+    // Render thống kê điểm trung bình & tổng lượt đánh giá của từng Tour
+    renderTourReviewSummaries(tourSummariesList);
+
+    reviewsLoading.hidden = true;
+
+    if (reviewsList.length === 0) {
+      reviewsEmpty.hidden = false;
+      return;
+    }
+
+    renderReviewsTable(reviewsList);
+    reviewsTableWrapper.hidden = false;
+  } catch (error) {
+    reviewsLoading.hidden = true;
+    reviewsError.hidden = false;
+    reviewsErrorMsg.textContent = error.message || "Không thể kết nối máy chủ để tải dữ liệu đánh giá. Vui lòng thử lại.";
+  }
+}
+
+function renderTourReviewSummaries(summaries) {
+  if (!revTourSummariesGrid) return;
+  const activeTourId = filterRevTourSelect ? filterRevTourSelect.value : "";
+
+  revTourSummariesGrid.innerHTML = summaries.map((item) => {
+    const isSelected = activeTourId === item.tourId;
+    const hasRating = item.averageRating !== null && item.visibleReviews > 0;
+    const avgBadge = hasRating
+      ? `<span class="rev-tour-avg-badge">${Number(item.averageRating).toFixed(1)} ★</span>`
+      : `<span class="rev-tour-avg-badge is-none">Chưa có ĐG</span>`;
+
+    return `
+      <button type="button" class="rev-tour-summary-card ${isSelected ? "is-active" : ""}" data-filter-tour="${escapeHtml(item.tourId)}" title="Nhấp để lọc đánh giá của ${escapeHtml(item.tourName)}">
+        <div class="rev-tour-card-top">
+          <div>
+            <div class="rev-tour-card-name">${escapeHtml(item.tourName)}</div>
+            <div class="rev-tour-card-region">📍 ${escapeHtml(item.place)} · ${escapeHtml(item.region)}</div>
+          </div>
+          ${avgBadge}
+        </div>
+        <div class="rev-tour-card-bottom">
+          <span class="rev-tour-count-text">${item.totalReviews} lượt đánh giá</span>
+          <span class="text-secondary">${item.hiddenReviews > 0 ? `(${item.hiddenReviews} đã ẩn)` : `${item.visibleReviews} hiển thị`}</span>
+        </div>
+      </button>
+    `;
+  }).join("");
+}
+
+function renderReviewsTable(list) {
+  if (!reviewsTbody) return;
+
+  reviewsTbody.innerHTML = list.map((rev) => {
+    const rowClasses = [
+      "review-row",
+      rev.hidden ? "is-hidden-review" : "",
+      !rev.hidden && rev.isViolationSuspect ? "is-violation-suspect" : "",
+    ].filter(Boolean).join(" ");
+
+    const statusBadge = rev.hidden
+      ? `<span class="admin-badge is-cancelled" title="${escapeHtml(rev.hiddenReason || "Đã ẩn bởi Admin")}"><span class="badge-dot"></span>Đã ẩn</span>`
+      : `<span class="admin-badge is-confirmed"><span class="badge-dot"></span>Đang hiển thị</span>`;
+
+    const violationTag = rev.isViolationSuspect
+      ? `<div><span class="rev-violation-badge">⚠️ Nghi vấn vi phạm / Spam</span></div>`
+      : "";
+
+    const thumbsHtml = Array.isArray(rev.images) && rev.images.length > 0
+      ? `<div class="rev-thumbs-row">
+          ${rev.images.map((url, idx) => `
+            <img src="${escapeHtml(resolveImageUrl(url))}" alt="Ảnh đính kèm ${idx + 1}" class="rev-thumb-img" data-action="view-rev" data-id="${escapeHtml(rev.id)}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=200&q=80'" />
+          `).join("")}
+        </div>`
+      : "";
+
+    const toggleBtnClass = rev.hidden ? "btn-action btn-toggle-show" : "btn-action btn-toggle-hide";
+    const toggleBtnText = rev.hidden ? "Hiện lại" : "Ẩn";
+    const toggleBtnTitle = rev.hidden ? "Hiển thị lại đánh giá này trên trang công khai" : "Ẩn đánh giá vi phạm khỏi trang công khai";
+
+    return `
+      <tr class="${rowClasses}" data-id="${escapeHtml(rev.id)}">
+        <td>
+          <div class="customer-name">${escapeHtml(rev.authorName)}</div>
+          <span class="booking-date-sub">Đơn: <code>${escapeHtml(rev.bookingId)}</code></span>
+          <span class="booking-date-sub">${escapeHtml(formatDateTime(rev.createdAt))}</span>
+          ${violationTag}
+        </td>
+        <td>
+          <div class="tour-name-cell">${escapeHtml(rev.tourName)}</div>
+          <span class="booking-date-sub">📍 ${escapeHtml(rev.tourPlace || rev.tourRegion)}</span>
+        </td>
+        <td>
+          ${renderStarsHtml(rev.rating)}
+          <span class="rev-rating-num">${escapeHtml(ratingTextLabels[rev.rating] || `${rev.rating}/5 sao`)}</span>
+        </td>
+        <td>
+          <div class="rev-comment-text" title="${escapeHtml(rev.comment)}">${escapeHtml(rev.comment)}</div>
+          ${thumbsHtml}
+        </td>
+        <td>
+          ${statusBadge}
+          ${rev.hidden && rev.hiddenReason ? `<small class="booking-date-sub" style="margin-top:4px;max-width:140px;">${escapeHtml(rev.hiddenReason)}</small>` : ""}
+        </td>
+        <td>
+          <div class="table-actions">
+            <button type="button" class="btn-action btn-view-detail" data-action="view-rev" data-id="${escapeHtml(rev.id)}" title="Xem chi tiết đánh giá & hình ảnh">
+              Xem chi tiết
+            </button>
+            <button type="button" class="${toggleBtnClass}" data-action="toggle-rev" data-id="${escapeHtml(rev.id)}" title="${toggleBtnTitle}">
+              ${toggleBtnText}
+            </button>
+            <button type="button" class="btn-action btn-delete" data-action="delete-rev" data-id="${escapeHtml(rev.id)}" title="Xóa vĩnh viễn đánh giá vi phạm">
+              Xóa
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function openReviewDetailModal(id) {
+  try {
+    const data = await requestJson(`/api/admin/reviews/${encodeURIComponent(id)}`);
+    const rev = data.review;
+    const tourSum = data.tourSummary;
+    selectedReview = rev;
+
+    revDetailAuthor.textContent = rev.authorName;
+    revDetailBooking.textContent = rev.bookingId;
+    revDetailCreated.textContent = formatDateTime(rev.createdAt);
+    revDetailUpdated.textContent = rev.edited ? `${formatDateTime(rev.updatedAt)} (Đã chỉnh sửa)` : formatDateTime(rev.updatedAt);
+
+    revDetailTourName.textContent = rev.tourName;
+    revDetailTourPlace.textContent = [rev.tourPlace, rev.tourRegion].filter(Boolean).join(" · ") || "—";
+    revDetailTourAvg.textContent = tourSum?.averageRating ? `${Number(tourSum.averageRating).toFixed(1)} ★ / 5.0` : "Chưa có điểm TB";
+    revDetailTourCount.textContent = tourSum ? `${tourSum.totalReviews} lượt đánh giá (${tourSum.visibleReviews} đang hiển thị)` : "—";
+
+    // Trạng thái badge & cảnh báo
+    if (rev.hidden) {
+      revDetailStatusBadge.className = "admin-badge is-cancelled";
+      revDetailStatusBadge.innerHTML = '<span class="badge-dot"></span>Đã ẩn (Vi phạm)';
+      revDetailAlert.className = "admin-alert-banner admin-alert-danger";
+      revDetailAlert.hidden = false;
+      revDetailAlertText.innerHTML = `<strong>Đánh giá này đang bị ẩn khỏi trang công khai:</strong> ${escapeHtml(rev.hiddenReason || "Nội dung vi phạm quy chuẩn cộng đồng")}.`;
+    } else if (rev.isViolationSuspect) {
+      revDetailStatusBadge.className = "admin-badge is-pending";
+      revDetailStatusBadge.innerHTML = '<span class="badge-dot"></span>Cần kiểm duyệt';
+      revDetailAlert.className = "admin-alert-banner admin-alert-danger";
+      revDetailAlert.hidden = false;
+      revDetailAlertText.innerHTML = "<strong>Cảnh báo kiểm duyệt:</strong> Hệ thống phát hiện nội dung nhận xét có dấu hiệu quảng cáo/spam hoặc từ khóa vi phạm. Admin có thể Ẩn hoặc Xóa đánh giá này.";
+    } else {
+      revDetailStatusBadge.className = "admin-badge is-confirmed";
+      revDetailStatusBadge.innerHTML = '<span class="badge-dot"></span>Đang hiển thị';
+      revDetailAlert.hidden = true;
+    }
+
+    // Điểm chấm & nội dung nhận xét
+    const fullStars = "★".repeat(rev.rating) + "☆".repeat(5 - rev.rating);
+    revDetailRatingBox.innerHTML = `
+      <span class="rev-detail-stars-big">${fullStars}</span>
+      <span class="rev-detail-rating-label">${escapeHtml(ratingTextLabels[rev.rating] || `${rev.rating}/5 sao`)}</span>
+    `;
+    revDetailComment.textContent = rev.comment;
+
+    // Hình ảnh đính kèm
+    const imgs = Array.isArray(rev.images) ? rev.images : [];
+    revDetailImagesCount.textContent = imgs.length;
+    if (imgs.length === 0) {
+      revDetailImagesGrid.innerHTML = '<div class="dest-empty-tours" style="grid-column: 1 / -1;">Khách hàng không đính kèm hình ảnh trong đánh giá này.</div>';
+    } else {
+      revDetailImagesGrid.innerHTML = imgs.map((url, idx) => `
+        <a href="${escapeHtml(resolveImageUrl(url))}" target="_blank" rel="noopener" class="rev-detail-img-card" title="Mở ảnh kích thước đầy đủ">
+          <img src="${escapeHtml(resolveImageUrl(url))}" alt="Hình ảnh đánh giá ${idx + 1}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80'" />
+        </a>
+      `).join("");
+    }
+
+    // Nút Ẩn / Hiện trong modal
+    revDetailBtnToggle.textContent = rev.hidden ? "Hiển thị lại đánh giá" : "Ẩn đánh giá vi phạm";
+    revDetailModal.showModal();
+  } catch (error) {
+    showToast(error.message || "Không thể tải chi tiết đánh giá.", "error");
+  }
+}
+
+async function handleToggleReviewVisibility(id) {
+  const rev = reviewsList.find((r) => r.id === id) || (selectedReview?.id === id ? selectedReview : null);
+  if (!rev) return;
+
+  const nextHidden = !rev.hidden;
+  try {
+    const data = await requestJson(`/api/admin/reviews/${encodeURIComponent(id)}/visibility`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        hidden: nextHidden,
+        reason: nextHidden ? "Nội dung đánh giá vi phạm quy chuẩn cộng đồng" : "",
+      }),
+    });
+
+    showToast(data.message || (nextHidden ? "Đã ẩn đánh giá." : "Đã hiển thị lại đánh giá."), "success");
+    if (revDetailModal && revDetailModal.open && selectedReview?.id === id) {
+      await openReviewDetailModal(id);
+    }
+    await loadReviews();
+  } catch (error) {
+    showToast(error.message || "Không thể thay đổi trạng thái hiển thị của đánh giá.", "error");
+  }
+}
+
+function openDeleteReviewModal(id) {
+  const rev = reviewsList.find((r) => r.id === id) || (selectedReview?.id === id ? selectedReview : null);
+  if (!rev) return;
+  selectedReview = rev;
+
+  revDeleteAuthor.textContent = rev.authorName;
+  revDeleteTour.textContent = rev.tourName;
+  revDeletePreview.textContent = `"${rev.comment}" (${rev.rating} ★)`;
+
+  revDeleteModal.showModal();
+}
+
+async function handleDeleteReviewSubmit() {
+  if (!selectedReview) return;
+  revDeleteModalSubmit.disabled = true;
+
+  try {
+    const data = await requestJson(`/api/admin/reviews/${encodeURIComponent(selectedReview.id)}`, {
+      method: "DELETE",
+    });
+
+    revDeleteModal.close();
+    if (revDetailModal && revDetailModal.open) {
+      revDetailModal.close();
+    }
+    showToast(data.message || "Đã xóa vĩnh viễn đánh giá vi phạm.", "success");
+    await loadReviews();
+  } catch (error) {
+    showToast(error.message || "Không thể xóa đánh giá này.", "error");
+  } finally {
+    revDeleteModalSubmit.disabled = false;
+  }
+}
+
+// ========================================================
 // INITIALIZATION & EVENT LISTENERS
 // ========================================================
 
@@ -1161,6 +1535,9 @@ async function initialize() {
       const tourData = await requestJson("/api/admin/tours");
       toursList = tourData.tours || [];
       filterTourSelect.innerHTML = '<option value="">Tất cả tour</option>' + toursList.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join("");
+      if (filterRevTourSelect) {
+        filterRevTourSelect.innerHTML = '<option value="">Tất cả các Tour</option>' + toursList.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join("");
+      }
     } catch {
       // Bỏ qua lỗi load tour options
     }
@@ -1170,6 +1547,16 @@ async function initialize() {
       const destSummary = await requestJson("/api/admin/destinations");
       if (badgeDestinationsCount) {
         badgeDestinationsCount.textContent = destSummary.counts?.all ?? (destSummary.destinations || []).length;
+      }
+    } catch {
+      // Bỏ qua lỗi preload badge
+    }
+
+    // Preload reviews badge count
+    try {
+      const revSummary = await requestJson("/api/admin/reviews");
+      if (badgeReviewsCount) {
+        badgeReviewsCount.textContent = revSummary.counts?.all ?? (revSummary.reviews || []).length;
       }
     } catch {
       // Bỏ qua lỗi preload badge
@@ -1337,8 +1724,86 @@ if (destDeleteModalClose) destDeleteModalClose.addEventListener("click", () => d
 if (destDeleteModalCancel) destDeleteModalCancel.addEventListener("click", () => destDeleteModal.close());
 if (destDeleteModalSubmit) destDeleteModalSubmit.addEventListener("click", handleDeleteDestinationSubmit);
 
-// Đóng các modal địa điểm khi click vào vùng backdrop bên ngoài
-[destFormModal, destDetailModal, destDeleteModal].forEach((dialog) => {
+// ========================================================
+// REVIEWS EVENT LISTENERS (ĐÁNH GIÁ & CHẤM ĐIỂM TOUR)
+// ========================================================
+
+if (adminRefreshReviews) {
+  adminRefreshReviews.addEventListener("click", () => {
+    loadReviews();
+    showToast("Đã làm mới danh sách đánh giá và điểm số Tour.", "info");
+  });
+}
+
+if (btnRetryReviews) {
+  btnRetryReviews.addEventListener("click", () => loadReviews());
+}
+
+if (reviewFilters) {
+  reviewFilters.addEventListener("submit", (event) => {
+    event.preventDefault();
+    loadReviews();
+  });
+}
+
+if (adminRevFilterReset) {
+  adminRevFilterReset.addEventListener("click", () => {
+    reviewFilters.reset();
+    loadReviews();
+  });
+}
+
+// Click vào thẻ Tour trong phần Điểm trung bình từng Tour để lọc nhanh
+if (revTourSummariesGrid) {
+  revTourSummariesGrid.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-filter-tour]");
+    if (!card || !filterRevTourSelect) return;
+    const tourId = card.dataset.filterTour;
+    filterRevTourSelect.value = filterRevTourSelect.value === tourId ? "" : tourId;
+    loadReviews();
+  });
+}
+
+// Thao tác trên bảng danh sách đánh giá
+if (reviewsTbody) {
+  reviewsTbody.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-action]");
+    if (!target) return;
+    const action = target.dataset.action;
+    const id = target.dataset.id;
+    if (!id) return;
+
+    if (action === "view-rev") {
+      openReviewDetailModal(id);
+    } else if (action === "toggle-rev") {
+      handleToggleReviewVisibility(id);
+    } else if (action === "delete-rev") {
+      openDeleteReviewModal(id);
+    }
+  });
+}
+
+// Sự kiện trong Modal Chi tiết Đánh giá
+if (revDetailModalClose) revDetailModalClose.addEventListener("click", () => revDetailModal.close());
+if (revDetailBtnClose) revDetailBtnClose.addEventListener("click", () => revDetailModal.close());
+if (revDetailBtnToggle) {
+  revDetailBtnToggle.addEventListener("click", () => {
+    if (selectedReview) handleToggleReviewVisibility(selectedReview.id);
+  });
+}
+if (revDetailBtnDelete) {
+  revDetailBtnDelete.addEventListener("click", () => {
+    if (selectedReview) openDeleteReviewModal(selectedReview.id);
+  });
+}
+
+// Sự kiện trong Modal Xác nhận Xóa Đánh giá
+if (revDeleteModalClose) revDeleteModalClose.addEventListener("click", () => revDeleteModal.close());
+if (revDeleteModalCancel) revDeleteModalCancel.addEventListener("click", () => revDeleteModal.close());
+if (revDeleteModalSubmit) revDeleteModalSubmit.addEventListener("click", handleDeleteReviewSubmit);
+
+// Đóng các modal địa điểm & đánh giá khi click vào vùng backdrop bên ngoài
+[destFormModal, destDetailModal, destDeleteModal, revDetailModal, revDeleteModal].forEach((dialog) => {
   if (!dialog) return;
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) {
