@@ -347,6 +347,7 @@ function switchTab(tab) {
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = true;
     if (panelReviews) panelReviews.hidden = true;
+    if (panelTours) panelTours.hidden = true;
 
     if (tab === "new-bookings") {
       bcParent.textContent = "Quản lý đặt Tour";
@@ -379,6 +380,7 @@ function switchTab(tab) {
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = true;
     if (panelReviews) panelReviews.hidden = true;
+    if (panelTours) panelTours.hidden = true;
 
     bcParent.textContent = "Tiện ích quản trị";
     bcChild.textContent = "Biểu mẫu liên hệ";
@@ -391,6 +393,7 @@ function switchTab(tab) {
     panelCustomers.hidden = false;
     if (panelDestinations) panelDestinations.hidden = true;
     if (panelReviews) panelReviews.hidden = true;
+    if (panelTours) panelTours.hidden = true;
 
     bcParent.textContent = "Tiện ích quản trị";
     bcChild.textContent = "Quản lý khách hàng";
@@ -403,6 +406,7 @@ function switchTab(tab) {
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = false;
     if (panelReviews) panelReviews.hidden = true;
+    if (panelTours) panelTours.hidden = true;
 
     bcParent.textContent = "Quản lý địa điểm";
     bcChild.textContent = "Danh mục địa điểm";
@@ -410,12 +414,27 @@ function switchTab(tab) {
     viewSubtitle.textContent = "Quản lý danh mục địa điểm du lịch, thông tin mô tả, khu vực và các tour liên kết.";
 
     loadDestinations();
+  } else if (tab === "tours") {
+    panelBookings.hidden = true;
+    panelInquiries.hidden = true;
+    panelCustomers.hidden = true;
+    if (panelDestinations) panelDestinations.hidden = true;
+    if (panelReviews) panelReviews.hidden = true;
+    if (panelTours) panelTours.hidden = false;
+
+    bcParent.textContent = "Quản lý Tour";
+    bcChild.textContent = "Danh sách Tour du lịch";
+    viewTitle.textContent = "Quản lý Tour du lịch";
+    viewSubtitle.textContent = "Quản lý các tour du lịch hiện có, giá tour, thời gian, lịch trình, sức chứa và trạng thái hoạt động.";
+
+    loadTours();
   } else if (tab === "reviews") {
     panelBookings.hidden = true;
     panelInquiries.hidden = true;
     panelCustomers.hidden = true;
     if (panelDestinations) panelDestinations.hidden = true;
     if (panelReviews) panelReviews.hidden = false;
+    if (panelTours) panelTours.hidden = true;
 
     bcParent.textContent = "Quản lý Tour";
     bcChild.textContent = "Đánh giá và chấm điểm Tour";
@@ -1819,6 +1838,707 @@ if (revDeleteModalSubmit) revDeleteModalSubmit.addEventListener("click", handleD
 
 // Đóng modal khi bấm vào vùng nền bên ngoài (Backdrop click)
 [bookingDetailModal, rejectModal].forEach((dialog) => {
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) {
+      const rect = dialog.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX && event.clientX <= rect.left + rect.width
+      );
+      if (!isInDialog) dialog.close();
+    }
+  });
+});
+
+
+// ========================================================
+// QUẢN LÝ TOUR DU LỊCH (Admin Tour Management)
+// ========================================================
+
+const panelTours = document.getElementById("panel-tours");
+const badgeToursCount = document.getElementById("badge-tours-count");
+const adminRefreshTours = document.getElementById("admin-refresh-tours");
+const adminBtnAddTour = document.getElementById("admin-btn-add-tour");
+const tourFilters = document.getElementById("admin-tour-filters");
+const filterTourQ = document.getElementById("filter-tour-q");
+const filterTourRegion = document.getElementById("filter-tour-region");
+const filterTourStatus = document.getElementById("filter-tour-status");
+const filterTourPrice = document.getElementById("filter-tour-price");
+const filterTourSort = document.getElementById("filter-tour-sort");
+const adminTourFilterReset = document.getElementById("admin-tour-filter-reset");
+
+const statToursAll = document.getElementById("stat-tours-all");
+const statToursActive = document.getElementById("stat-tours-active");
+const statToursInactive = document.getElementById("stat-tours-inactive");
+
+const toursLoading = document.getElementById("tours-loading");
+const toursError = document.getElementById("tours-error");
+const toursErrorMsg = document.getElementById("tours-error-msg");
+const btnRetryTours = document.getElementById("btn-retry-tours");
+const toursEmpty = document.getElementById("tours-empty");
+const btnEmptyAddTour = document.getElementById("btn-empty-add-tour");
+const toursTableWrapper = document.getElementById("tours-table-wrapper");
+const adminToursTbody = document.getElementById("admin-tours-tbody");
+
+// Tour Form Modal
+const tourFormModal = document.getElementById("tour-form-modal");
+const tourFormModalTitle = document.getElementById("tour-form-modal-title");
+const tourFormModalClose = document.getElementById("tour-form-modal-close");
+const tourFormModalCancel = document.getElementById("tour-form-modal-cancel");
+const tourFormModalSubmit = document.getElementById("tour-form-modal-submit");
+const tourFormSubmitText = document.getElementById("tour-form-submit-text");
+const tourForm = document.getElementById("tour-form");
+const tourFormError = document.getElementById("tour-form-error");
+const tourFormErrorText = document.getElementById("tour-form-error-text");
+
+const tourInputId = document.getElementById("tour-input-id");
+const tourInputName = document.getElementById("tour-input-name");
+const tourInputStatus = document.getElementById("tour-input-status");
+const tourInputPlace = document.getElementById("tour-input-place");
+const tourInputRegion = document.getElementById("tour-input-region");
+const tourInputDuration = document.getElementById("tour-input-duration");
+const tourInputPrice = document.getElementById("tour-input-price");
+const tourInputMaxGuests = document.getElementById("tour-input-max-guests");
+const tourInputImage = document.getElementById("tour-input-image");
+const btnPreviewTourImage = document.getElementById("btn-preview-tour-image");
+const tourImagePreviewBox = document.getElementById("tour-image-preview-box");
+const tourImagePreviewImg = document.getElementById("tour-image-preview-img");
+const tourInputDepartures = document.getElementById("tour-input-departures");
+const tourInputItinerary = document.getElementById("tour-input-itinerary");
+const tourItineraryCounter = document.getElementById("tour-itinerary-counter");
+
+// Tour Detail Modal
+const tourDetailModal = document.getElementById("tour-detail-modal");
+const tourDetailModalClose = document.getElementById("tour-detail-modal-close");
+const tourDetailTitle = document.getElementById("tour-detail-modal-title");
+const tourDetailStatusBadge = document.getElementById("tour-detail-status-badge");
+const tourDetailImage = document.getElementById("tour-detail-image");
+const tourDetailCodeBadge = document.getElementById("tour-detail-code-badge");
+const tourDetailPrice = document.getElementById("tour-detail-price");
+const tourDetailDuration = document.getElementById("tour-detail-duration");
+const tourDetailPlace = document.getElementById("tour-detail-place");
+const tourDetailCapacity = document.getElementById("tour-detail-capacity");
+const tourDetailRating = document.getElementById("tour-detail-rating");
+const tourDetailBookingsCount = document.getElementById("tour-detail-bookings-count");
+const tourDetailItineraryContent = document.getElementById("tour-detail-itinerary-content");
+const tourDetailDeparturesChips = document.getElementById("tour-detail-departures-chips");
+const tourDetailBookingsWrapper = document.getElementById("tour-detail-bookings-wrapper");
+const tourDetailBookingsTotal = document.getElementById("tour-detail-bookings-total");
+const tourDetailBookingsTbody = document.getElementById("tour-detail-bookings-tbody");
+const tourDetailNoBookings = document.getElementById("tour-detail-no-bookings");
+const tourDetailBtnEdit = document.getElementById("tour-detail-btn-edit");
+const tourDetailBtnDelete = document.getElementById("tour-detail-btn-delete");
+const tourDetailBtnClose = document.getElementById("tour-detail-btn-close");
+
+// Tour Delete Modal
+const tourDeleteModal = document.getElementById("tour-delete-modal");
+const tourDeleteModalClose = document.getElementById("tour-delete-modal-close");
+const tourDeleteModalCancel = document.getElementById("tour-delete-modal-cancel");
+const tourDeleteModalSubmit = document.getElementById("tour-delete-modal-submit");
+const tourDeleteBlockedBox = document.getElementById("tour-delete-blocked-box");
+const tourDeleteBlockedMsg = document.getElementById("tour-delete-blocked-msg");
+const tourDeleteConfirmBox = document.getElementById("tour-delete-confirm-box");
+const tourDeleteName = document.getElementById("tour-delete-name");
+
+let currentToursList = [];
+let selectedTourDetail = null;
+let deletingTourId = null;
+
+function buildTourImg(image) {
+  if (!image) return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80";
+  if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:")) {
+    return image;
+  }
+  return `https://images.unsplash.com/${image}?auto=format&fit=crop&w=800&q=80`;
+}
+
+async function loadTours() {
+  if (!toursLoading) return;
+  toursLoading.hidden = false;
+  toursError.hidden = true;
+  toursEmpty.hidden = true;
+  toursTableWrapper.hidden = true;
+
+  const params = new URLSearchParams();
+  if (filterTourQ && filterTourQ.value.trim()) {
+    params.set("q", filterTourQ.value.trim());
+  }
+  if (filterTourRegion && filterTourRegion.value) {
+    params.set("region", filterTourRegion.value);
+  }
+  if (filterTourStatus && filterTourStatus.value && filterTourStatus.value !== "all") {
+    params.set("status", filterTourStatus.value);
+  }
+  if (filterTourSort && filterTourSort.value && filterTourSort.value !== "default") {
+    params.set("sort", filterTourSort.value);
+  }
+
+  // Price range mapping
+  if (filterTourPrice && filterTourPrice.value) {
+    if (filterTourPrice.value === "under-2m") {
+      params.set("minPrice", "0");
+      params.set("maxPrice", "2500000");
+    } else if (filterTourPrice.value === "2m-5m") {
+      params.set("minPrice", "2500000");
+      params.set("maxPrice", "5000000");
+    } else if (filterTourPrice.value === "above-5m") {
+      params.set("minPrice", "5000001");
+    }
+  }
+
+  try {
+    const data = await requestJson(`/api/admin/tours?${params.toString()}`);
+    toursLoading.hidden = true;
+    currentToursList = data.tours || [];
+
+    // Cập nhật thống kê nhanh
+    if (statToursAll) statToursAll.textContent = data.counts?.all ?? data.total ?? currentToursList.length;
+    if (statToursActive) statToursActive.textContent = data.counts?.active ?? 0;
+    if (statToursInactive) statToursInactive.textContent = data.counts?.inactive ?? 0;
+    if (badgeToursCount) badgeToursCount.textContent = data.counts?.all ?? data.total ?? currentToursList.length;
+
+    // Cập nhật dropdown khu vực nếu chưa có options
+    if (filterTourRegion && data.regions) {
+      const currentSelected = filterTourRegion.value;
+      const opts = ['<option value="">Tất cả khu vực</option>'];
+      data.regions.forEach((r) => {
+        opts.push(`<option value="${escapeHtml(r)}"${currentSelected === r ? " selected" : ""}>${escapeHtml(r)}</option>`);
+      });
+      filterTourRegion.innerHTML = opts.join("");
+    }
+
+    if (currentToursList.length === 0) {
+      toursEmpty.hidden = false;
+      return;
+    }
+
+    renderToursTable(currentToursList);
+    toursTableWrapper.hidden = false;
+  } catch (error) {
+    toursLoading.hidden = true;
+    toursErrorMsg.textContent = error.message || "Không thể tải danh sách Tour du lịch. Vui lòng thử lại.";
+    toursError.hidden = false;
+  }
+}
+
+function renderToursTable(tours) {
+  if (!adminToursTbody) return;
+  adminToursTbody.innerHTML = "";
+
+  tours.forEach((tour) => {
+    const tr = document.createElement("tr");
+
+    const statusBadge = tour.status === "inactive"
+      ? '<span class="tour-badge-inactive"><span class="status-indicator status-indicator--inactive"></span> Ngừng hoạt động</span>'
+      : '<span class="tour-badge-active"><span class="status-indicator status-indicator--active"></span> Đang hoạt động</span>';
+
+    const departuresDisplay = Array.isArray(tour.departures) && tour.departures.length > 0
+      ? tour.departures.slice(0, 2).map((d) => `<span class="badge badge--pill" style="font-size: 11px;">${escapeHtml(d)}</span>`).join(" ") + (tour.departures.length > 2 ? ` <small class="text-muted">+ ${tour.departures.length - 2}</small>` : "")
+      : '<span class="text-muted" style="font-size: 12px;">Chưa cập nhật</span>';
+
+    const ratingDisplay = tour.reviewCount > 0
+      ? `<span class="badge-rating" style="font-size: 12px;">★ ${tour.averageRating.toFixed(1)}</span> <small class="text-muted">(${tour.reviewCount})</small>`
+      : '<span class="text-muted" style="font-size: 12px;">Chưa có</span>';
+
+    const bookingsDisplay = tour.totalBookings > 0
+      ? `<strong style="color: #057569;">${tour.totalBookings}</strong> <small class="text-muted">đơn (${tour.bookedCount || 0} khách)</small>`
+      : '<span class="text-muted" style="font-size: 12px;">0 đơn</span>';
+
+    tr.innerHTML = `
+      <td>
+        <div class="tour-table-title-cell">
+          <img src="${buildTourImg(tour.image)}" alt="${escapeHtml(tour.name)}" class="tour-table-thumb" loading="lazy" />
+          <div class="tour-title-info">
+            <span class="tour-title-name">${escapeHtml(tour.name)}</span>
+            <span class="tour-title-code">Mã: ${escapeHtml(tour.id)}</span>
+            <div style="margin-top: 2px;">${departuresDisplay}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="font-weight: 600; color: #1f2937;">${escapeHtml(tour.place)}</div>
+        <small class="text-muted">${escapeHtml(tour.region)}</small>
+      </td>
+      <td>
+        <strong style="color: #057569; font-size: 14px;">${formatCurrency(tour.price)}</strong>
+      </td>
+      <td>
+        <div>${escapeHtml(tour.duration)}</div>
+        <small class="text-muted">Tối đa: ${tour.maxGuests || 25} khách</small>
+      </td>
+      <td>
+        <button type="button" class="btn-toggle-status" data-tour-id="${tour.id}" data-current-status="${tour.status}" title="Bấm để đổi trạng thái" style="background: none; border: none; padding: 0; cursor: pointer; text-align: left;">
+          ${statusBadge}
+        </button>
+      </td>
+      <td>
+        <div>${bookingsDisplay}</div>
+        <div style="margin-top: 3px;">${ratingDisplay}</div>
+      </td>
+      <td class="text-center">
+        <div class="table-actions" style="justify-content: center; gap: 6px;">
+          <button type="button" class="admin-action-button btn-view-tour" data-tour-id="${tour.id}" title="Xem chi tiết Tour">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Xem
+          </button>
+          <button type="button" class="admin-action-button btn-edit-tour" data-tour-id="${tour.id}" title="Sửa thông tin Tour">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            Sửa
+          </button>
+          <button type="button" class="admin-action-button text-danger btn-delete-tour" data-tour-id="${tour.id}" title="Xóa Tour">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Xóa
+          </button>
+        </div>
+      </td>
+    `;
+
+    adminToursTbody.appendChild(tr);
+  });
+}
+
+// Mở modal Thêm Tour mới
+function openCreateTourModal() {
+  if (!tourFormModal) return;
+  tourForm.reset();
+  tourInputId.value = "";
+  tourInputStatus.value = "active";
+  tourInputMaxGuests.value = "25";
+  tourFormError.hidden = true;
+  tourFormModalTitle.textContent = "Thêm Tour du lịch mới";
+  tourFormSubmitText.textContent = "Lưu Tour du lịch";
+  if (tourImagePreviewBox) tourImagePreviewBox.hidden = true;
+  if (tourItineraryCounter) tourItineraryCounter.textContent = "0/3000";
+
+  tourFormModal.showModal();
+}
+
+// Mở modal Sửa Tour
+async function openEditTourModal(tourId) {
+  if (!tourFormModal) return;
+  tourForm.reset();
+  tourFormError.hidden = true;
+  tourFormModalTitle.textContent = "Cập nhật Tour du lịch";
+  tourFormSubmitText.textContent = "Lưu thay đổi";
+
+  try {
+    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(tourId)}`);
+    const tour = data.tour;
+    if (!tour) throw new Error("Không tìm thấy dữ liệu Tour.");
+
+    tourInputId.value = tour.id || "";
+    tourInputName.value = tour.name || "";
+    tourInputStatus.value = tour.status || "active";
+    tourInputPlace.value = tour.place || "";
+    tourInputRegion.value = tour.region || "";
+    tourInputDuration.value = tour.duration || "";
+    tourInputPrice.value = tour.price || "";
+    tourInputMaxGuests.value = tour.maxGuests || 25;
+    tourInputImage.value = tour.image || "";
+    tourInputDepartures.value = Array.isArray(tour.departures) ? tour.departures.join(", ") : "";
+    tourInputItinerary.value = tour.itinerary || "";
+
+    if (tourItineraryCounter) {
+      tourItineraryCounter.textContent = `${(tour.itinerary || "").length}/3000`;
+    }
+
+    if (tour.image && tourImagePreviewBox && tourImagePreviewImg) {
+      tourImagePreviewImg.src = buildTourImg(tour.image);
+      tourImagePreviewBox.hidden = false;
+    } else if (tourImagePreviewBox) {
+      tourImagePreviewBox.hidden = true;
+    }
+
+    tourFormModal.showModal();
+  } catch (error) {
+    showToast(error.message || "Không thể tải thông tin Tour.", "error");
+  }
+}
+
+// Xử lý gửi biểu mẫu Thêm/Sửa Tour
+async function handleTourFormSubmit(event) {
+  event.preventDefault();
+  tourFormError.hidden = true;
+
+  const id = tourInputId.value.trim();
+  const name = tourInputName.value.trim();
+  const status = tourInputStatus.value;
+  const place = tourInputPlace.value.trim();
+  const region = tourInputRegion.value.trim();
+  const duration = tourInputDuration.value.trim();
+  const rawPrice = tourInputPrice.value.trim();
+  const rawMaxGuests = tourInputMaxGuests.value.trim();
+  const image = tourInputImage.value.trim();
+  const rawDepartures = tourInputDepartures.value.trim();
+  const itinerary = tourInputItinerary.value.trim();
+
+  // Ngoại lệ 1: Thiếu thông tin bắt buộc
+  if (!name || !place || !region || !duration || !rawPrice || !image || !rawDepartures || !itinerary) {
+    tourFormErrorText.textContent = "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên Tour, địa điểm, khu vực, thời gian, giá Tour, hình ảnh, ngày khởi hành và lịch trình.";
+    tourFormError.hidden = false;
+    return;
+  }
+
+  // Ngoại lệ 2: Giá Tour hoặc thời gian không hợp lệ
+  const price = Number(rawPrice);
+  if (!Number.isFinite(price) || price <= 0) {
+    tourFormErrorText.textContent = "Giá Tour không hợp lệ: Giá Tour phải là số nguyên dương lớn hơn 0.";
+    tourFormError.hidden = false;
+    return;
+  }
+
+  const maxGuests = Number(rawMaxGuests) || 25;
+  if (!Number.isFinite(maxGuests) || maxGuests < 1 || maxGuests > 200) {
+    tourFormErrorText.textContent = "Số lượng khách tối đa không hợp lệ (phải từ 1 đến 200 khách).";
+    tourFormError.hidden = false;
+    return;
+  }
+
+  // Parse departures
+  const departures = rawDepartures.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  for (const dep of departures) {
+    if (!datePattern.test(dep) || Number.isNaN(Date.parse(dep))) {
+      tourFormErrorText.textContent = `Ngày khởi hành "${dep}" không đúng định dạng YYYY-MM-DD.`;
+      tourFormError.hidden = false;
+      return;
+    }
+  }
+
+  const payload = {
+    name,
+    status,
+    place,
+    region,
+    duration,
+    price,
+    maxGuests,
+    image,
+    departures,
+    itinerary,
+  };
+
+  const isEdit = Boolean(id);
+  const url = isEdit ? `/api/admin/tours/${encodeURIComponent(id)}` : "/api/admin/tours";
+  const method = isEdit ? "PUT" : "POST";
+
+  tourFormModalSubmit.disabled = true;
+  tourFormSubmitText.textContent = "Đang lưu...";
+
+  try {
+    const data = await requestJson(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    tourFormModal.close();
+    showToast(data.message || (isEdit ? "Cập nhật Tour du lịch thành công." : "Thêm Tour du lịch mới thành công."), "success");
+    await loadTours();
+  } catch (error) {
+    tourFormErrorText.textContent = error.message || "Không thể lưu Tour du lịch. Vui lòng kiểm tra lại.";
+    tourFormError.hidden = false;
+  } finally {
+    tourFormModalSubmit.disabled = false;
+    tourFormSubmitText.textContent = isEdit ? "Lưu thay đổi" : "Lưu Tour du lịch";
+  }
+}
+
+// Mở modal Xem chi tiết Tour
+async function openTourDetailModal(tourId) {
+  if (!tourDetailModal) return;
+
+  try {
+    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(tourId)}`);
+    const tour = data.tour;
+    const bookings = data.bookings || [];
+    selectedTourDetail = tour;
+
+    tourDetailTitle.textContent = tour.name || "Chi tiết Tour";
+    tourDetailCodeBadge.textContent = `Mã Tour: ${tour.id}`;
+    tourDetailImage.src = buildTourImg(tour.image);
+
+    if (tour.status === "inactive") {
+      tourDetailStatusBadge.className = "tour-badge-inactive";
+      tourDetailStatusBadge.innerHTML = '<span class="status-indicator status-indicator--inactive"></span> Ngừng hoạt động';
+    } else {
+      tourDetailStatusBadge.className = "tour-badge-active";
+      tourDetailStatusBadge.innerHTML = '<span class="status-indicator status-indicator--active"></span> Đang hoạt động';
+    }
+
+    tourDetailPrice.textContent = formatCurrency(tour.price);
+    tourDetailDuration.textContent = tour.duration || "—";
+    tourDetailPlace.textContent = `${tour.place}, ${tour.region}`;
+    tourDetailCapacity.textContent = `Tối đa ${tour.maxGuests || 25} khách`;
+
+    if (tour.reviewCount > 0) {
+      tourDetailRating.textContent = `★ ${tour.averageRating.toFixed(1)} (${tour.reviewCount} đánh giá)`;
+    } else {
+      tourDetailRating.textContent = "Chưa có đánh giá";
+    }
+
+    tourDetailBookingsCount.textContent = `${bookings.length} đơn (${tour.bookedCount || 0} khách)`;
+    tourDetailItineraryContent.textContent = tour.itinerary || "Chưa có thông tin lịch trình chi tiết.";
+
+    // Render departure chips
+    if (Array.isArray(tour.departures) && tour.departures.length > 0) {
+      tourDetailDeparturesChips.innerHTML = tour.departures
+        .map((d) => `<span class="tour-dep-chip">📅 ${escapeHtml(d)}</span>`)
+        .join("");
+    } else {
+      tourDetailDeparturesChips.innerHTML = '<span class="text-muted" style="font-size: 13px;">Chưa có ngày khởi hành nào.</span>';
+    }
+
+    // Render bookings table
+    tourDetailBookingsTotal.textContent = String(bookings.length);
+    if (bookings.length > 0) {
+      tourDetailBookingsTbody.innerHTML = bookings
+        .map((b) => {
+          let badgeClass = "badge-pending";
+          let badgeText = "Chờ xác nhận";
+          if (b.status === "confirmed") {
+            badgeClass = "badge-confirmed";
+            badgeText = "Đã xác nhận";
+          } else if (b.status === "cancelled") {
+            badgeClass = "badge-cancelled";
+            badgeText = "Đã hủy";
+          }
+
+          return `
+            <tr>
+              <td><strong class="text-mono">${escapeHtml(b.code || b.id)}</strong></td>
+              <td>${escapeHtml(b.customerName)}<br><small class="text-muted">${escapeHtml(b.phone || "")}</small></td>
+              <td>${escapeHtml(b.departureDate)}</td>
+              <td>${b.passengersCount} khách</td>
+              <td><strong>${formatCurrency(b.total)}</strong></td>
+              <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+            </tr>
+          `;
+        })
+        .join("");
+      tourDetailBookingsTable.hidden = false;
+      tourDetailNoBookings.hidden = true;
+    } else {
+      tourDetailBookingsTbody.innerHTML = "";
+      tourDetailBookingsTable.hidden = true;
+      tourDetailNoBookings.hidden = false;
+    }
+
+    tourDetailModal.showModal();
+  } catch (error) {
+    showToast(error.message || "Không thể tải chi tiết Tour.", "error");
+  }
+}
+
+// Mở modal Xác nhận xóa Tour (Xử lý Ngoại lệ 3: Chặn xóa nếu có đơn đặt)
+async function openDeleteTourModal(tourId) {
+  if (!tourDeleteModal) return;
+  deletingTourId = tourId;
+
+  try {
+    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(tourId)}`);
+    const tour = data.tour;
+    const bookings = data.bookings || [];
+
+    tourDeleteName.textContent = tour.name;
+
+    // Ngoại lệ 3: Tour đã có đơn đặt: Chặn xóa và hiển thị thông báo
+    if (bookings.length > 0) {
+      tourDeleteBlockedBox.hidden = false;
+      tourDeleteConfirmBox.hidden = true;
+      const codes = bookings.map((b) => b.code || b.id).slice(0, 5).join(", ") + (bookings.length > 5 ? "..." : "");
+      tourDeleteBlockedMsg.textContent = `Tour "${tour.name}" hiện đang có ${bookings.length} đơn đặt tour liên kết (Mã: ${codes}). Vui lòng kiểm tra và xử lý hoặc hủy các đơn liên quan trước khi xóa tour này.`;
+      tourDeleteModalSubmit.hidden = true;
+      tourDeleteModalCancel.textContent = "Đóng";
+    } else {
+      tourDeleteBlockedBox.hidden = true;
+      tourDeleteConfirmBox.hidden = false;
+      tourDeleteModalSubmit.hidden = false;
+      tourDeleteModalCancel.textContent = "Hủy bỏ";
+    }
+
+    tourDeleteModal.showModal();
+  } catch (error) {
+    showToast(error.message || "Không thể kiểm tra dữ liệu xóa Tour.", "error");
+  }
+}
+
+// Xử lý xác nhận xóa Tour
+async function handleDeleteTourSubmit() {
+  if (!deletingTourId) return;
+
+  tourDeleteModalSubmit.disabled = true;
+  try {
+    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(deletingTourId)}`, {
+      method: "DELETE",
+    });
+
+    tourDeleteModal.close();
+    if (tourDetailModal && tourDetailModal.open) {
+      tourDetailModal.close();
+    }
+
+    showToast(data.message || "Đã xóa vĩnh viễn Tour du lịch thành công.", "success");
+    await loadTours();
+  } catch (error) {
+    showToast(error.message || "Không thể xóa Tour du lịch.", "error");
+    if (error.status === 409) {
+      tourDeleteBlockedBox.hidden = false;
+      tourDeleteConfirmBox.hidden = true;
+      tourDeleteBlockedMsg.textContent = error.message;
+      tourDeleteModalSubmit.hidden = true;
+      tourDeleteModalCancel.textContent = "Đóng";
+    }
+  } finally {
+    tourDeleteModalSubmit.disabled = false;
+  }
+}
+
+// Toggle nhanh trạng thái tour (active <-> inactive)
+async function toggleTourStatus(tourId, currentStatus) {
+  const newStatus = currentStatus === "active" ? "inactive" : "active";
+  try {
+    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(tourId)}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    showToast(data.message || "Đã cập nhật trạng thái tour.", "success");
+    await loadTours();
+  } catch (error) {
+    showToast(error.message || "Không thể đổi trạng thái tour.", "error");
+  }
+}
+
+
+// ========================================================
+// SỰ KIỆN QUẢN LÝ TOUR DU LỊCH
+// ========================================================
+
+if (adminRefreshTours) {
+  adminRefreshTours.addEventListener("click", () => {
+    loadTours();
+    showToast("Đã làm mới danh sách Tour du lịch.", "info");
+  });
+}
+if (adminBtnAddTour) {
+  adminBtnAddTour.addEventListener("click", openCreateTourModal);
+}
+if (btnEmptyAddTour) {
+  btnEmptyAddTour.addEventListener("click", openCreateTourModal);
+}
+if (btnRetryTours) {
+  btnRetryTours.addEventListener("click", () => loadTours());
+}
+
+if (tourFilters) {
+  tourFilters.addEventListener("submit", (event) => {
+    event.preventDefault();
+    loadTours();
+  });
+}
+if (adminTourFilterReset) {
+  adminTourFilterReset.addEventListener("click", () => {
+    tourFilters.reset();
+    document.querySelectorAll(".quick-stat-pill").forEach((p) => p.classList.remove("is-active-pill"));
+    const allPill = document.querySelector('.quick-stat-pill[data-status-filter="all"]');
+    if (allPill) allPill.classList.add("is-active-pill");
+    loadTours();
+  });
+}
+
+// Bấm vào quick stat pill để lọc theo trạng thái
+document.querySelectorAll(".quick-stat-pill").forEach((pill) => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".quick-stat-pill").forEach((p) => p.classList.remove("is-active-pill"));
+    pill.classList.add("is-active-pill");
+    const st = pill.dataset.statusFilter;
+    if (filterTourStatus) {
+      filterTourStatus.value = st;
+      loadTours();
+    }
+  });
+});
+
+// Xem trước ảnh tour
+if (btnPreviewTourImage && tourInputImage && tourImagePreviewBox && tourImagePreviewImg) {
+  btnPreviewTourImage.addEventListener("click", () => {
+    const val = tourInputImage.value.trim();
+    if (!val) {
+      tourImagePreviewBox.hidden = true;
+      return;
+    }
+    tourImagePreviewImg.src = buildTourImg(val);
+    tourImagePreviewBox.hidden = false;
+  });
+}
+
+// Counter đếm ký tự lịch trình
+if (tourInputItinerary && tourItineraryCounter) {
+  tourInputItinerary.addEventListener("input", () => {
+    tourItineraryCounter.textContent = `${tourInputItinerary.value.length}/3000`;
+  });
+}
+
+// Sự kiện biểu mẫu Tour
+if (tourForm) tourForm.addEventListener("submit", handleTourFormSubmit);
+if (tourFormModalClose) tourFormModalClose.addEventListener("click", () => tourFormModal.close());
+if (tourFormModalCancel) tourFormModalCancel.addEventListener("click", () => tourFormModal.close());
+
+// Sự kiện bảng Tour (Xem, Sửa, Xóa, Toggle status)
+if (adminToursTbody) {
+  adminToursTbody.addEventListener("click", (event) => {
+    const viewBtn = event.target.closest(".btn-view-tour");
+    if (viewBtn) {
+      openTourDetailModal(viewBtn.dataset.tourId);
+      return;
+    }
+    const editBtn = event.target.closest(".btn-edit-tour");
+    if (editBtn) {
+      openEditTourModal(editBtn.dataset.tourId);
+      return;
+    }
+    const deleteBtn = event.target.closest(".btn-delete-tour");
+    if (deleteBtn) {
+      openDeleteTourModal(deleteBtn.dataset.tourId);
+      return;
+    }
+    const toggleBtn = event.target.closest(".btn-toggle-status");
+    if (toggleBtn) {
+      toggleTourStatus(toggleBtn.dataset.tourId, toggleBtn.dataset.currentStatus);
+      return;
+    }
+  });
+}
+
+// Sự kiện Modal Chi tiết Tour
+if (tourDetailModalClose) tourDetailModalClose.addEventListener("click", () => tourDetailModal.close());
+if (tourDetailBtnClose) tourDetailBtnClose.addEventListener("click", () => tourDetailModal.close());
+if (tourDetailBtnEdit) {
+  tourDetailBtnEdit.addEventListener("click", () => {
+    if (selectedTourDetail) {
+      tourDetailModal.close();
+      openEditTourModal(selectedTourDetail.id);
+    }
+  });
+}
+if (tourDetailBtnDelete) {
+  tourDetailBtnDelete.addEventListener("click", () => {
+    if (selectedTourDetail) {
+      openDeleteTourModal(selectedTourDetail.id);
+    }
+  });
+}
+
+// Sự kiện Modal Xóa Tour
+if (tourDeleteModalClose) tourDeleteModalClose.addEventListener("click", () => tourDeleteModal.close());
+if (tourDeleteModalCancel) tourDeleteModalCancel.addEventListener("click", () => tourDeleteModal.close());
+if (tourDeleteModalSubmit) tourDeleteModalSubmit.addEventListener("click", handleDeleteTourSubmit);
+
+// Đóng các modal tour khi click vào vùng backdrop bên ngoài
+[tourFormModal, tourDetailModal, tourDeleteModal].forEach((dialog) => {
+  if (!dialog) return;
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) {
       const rect = dialog.getBoundingClientRect();

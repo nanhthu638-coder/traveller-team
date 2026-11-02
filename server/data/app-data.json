@@ -26,6 +26,22 @@
       "hash": "717149bb5cb44a936e03e7f002071ff388c6aa4406a24fbb85465aba309f80b243d21a3cfbea66c5803b574f278a5c1f4b61c1c07bc4a287444cb3f02acf2d7d",
       "createdAt": "2026-10-30T22:40:07.960Z",
       "role": "admin"
+    },
+    {
+      "id": "e86fa4cf-b049-4860-aaa8-618a9d662fb9",
+      "name": "Khách Hàng Thường",
+      "email": "testuser_1793642184673@example.com",
+      "salt": "ca11a91b2d2e9e2481009a99ac1b2ebb",
+      "hash": "a726184d3eff0518b16e1cfe3f51318de213fe3ba4deb277011a61248f8055e003ed5853f79ebbc0611cb7f076116844e68630d2ab39198c5e2340914bf3914e",
+      "createdAt": "2026-11-02T17:56:24.728Z"
+    },
+    {
+      "id": "eea29c3e-2489-4b6d-9a58-c4852ed675fe",
+      "name": "Khách Hàng Thường",
+      "email": "testuser_1793642398434@example.com",
+      "salt": "aebc68a06a8c5dcb5d6f0a638e4deeb0",
+      "hash": "a2ae900b063594286a7618ba961a26919adf907cec486c846c67e60fb546867f57d306afaf432ba77fd29cdaec630d8edb27de83a1e0b6ca3740c5d11f85be6d",
+      "createdAt": "2026-11-02T17:59:58.494Z"
     }
   ],
   "inquiries": [],
@@ -492,6 +508,26 @@
       "id": "1ca3fde5fcc8d392b764551db3babf6afb63b5345246bb37e9d3a440f9b50a11",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-09T17:21:04.055Z"
+    },
+    {
+      "id": "09e2d711fde090b1092e3efc1211fb7d01f35eca1b1245a2460619cb7a9668df",
+      "userId": "e86fa4cf-b049-4860-aaa8-618a9d662fb9",
+      "expiresAt": "2026-11-09T17:56:24.822Z"
+    },
+    {
+      "id": "6602720908dcea71b9b7fa0e5aa5b00476b49c69df66b04c2bab47345a51f103",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-09T17:56:24.885Z"
+    },
+    {
+      "id": "ed1f4fc89b9d489d9c2e4b6645712c3d81033c4c2f49260a9cf8adabf9d064c2",
+      "userId": "eea29c3e-2489-4b6d-9a58-c4852ed675fe",
+      "expiresAt": "2026-11-09T17:59:58.552Z"
+    },
+    {
+      "id": "f62d8da9d24798362ac0be28f149f50f711c3438ff6e54984bd3f9aacb860c2d",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-09T17:59:58.630Z"
     }
   ]
 }

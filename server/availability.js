@@ -24,7 +24,7 @@ export const seatsOf = (passengers) => (passengers?.adult || 0) + (passengers?.c
 
 /** Tình trạng chỗ của một ngày khởi hành: { date, capacity, booked, remaining }. */
 export function departureAvailability(tour, date, bookings) {
-  const capacity = capacityOf(tour.id);
+  const capacity = Number(tour.maxGuests) || capacityOf(tour.id);
   const booked = bookings
     .filter((booking) => booking.status !== "cancelled" && booking.tour?.id === tour.id && booking.departureDate === date)
     .reduce((sum, booking) => sum + seatsOf(booking.passengers), 0);

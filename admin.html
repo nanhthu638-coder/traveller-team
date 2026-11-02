@@ -93,6 +93,11 @@
           <span>Tất cả đơn đặt Tour</span>
           <span class="tab-badge tab-badge-neutral" id="badge-all-count">0</span>
         </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-tours" role="tab" aria-selected="false" data-tab="tours">
+          <span class="tab-icon">🧭</span>
+          <span>Danh sách Tour du lịch</span>
+          <span class="tab-badge tab-badge-neutral" id="badge-tours-count">0</span>
+        </button>
         <button type="button" class="admin-tab-btn" id="tab-btn-destinations" role="tab" aria-selected="false" data-tab="destinations">
           <span class="tab-icon">📍</span>
           <span>Quản lý địa điểm</span>
@@ -225,6 +230,142 @@
               </tr>
             </thead>
             <tbody id="admin-bookings-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB: QUẢN LÝ TOUR (Danh sách Tour du lịch) -->
+      <section id="panel-tours" class="admin-panel" aria-labelledby="admin-tours-title" hidden>
+        <div class="admin-section-heading">
+          <div>
+            <h2 id="admin-tours-title">Danh sách Tour du lịch</h2>
+            <p id="admin-tours-desc">Quản lý các tour du lịch hiện có, giá tour, thời gian, lịch trình, sức chứa và trạng thái hoạt động.</p>
+          </div>
+          <div class="admin-heading-actions">
+            <button id="admin-refresh-tours" class="admin-secondary-button" type="button" title="Làm mới danh sách Tour">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Làm mới
+            </button>
+            <button id="admin-btn-add-tour" class="admin-primary-button" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Thêm Tour mới
+            </button>
+          </div>
+        </div>
+
+        <!-- Thống kê nhanh trạng thái tour -->
+        <div class="admin-quick-stats-row" style="margin-bottom: 16px;">
+          <div class="quick-stat-pill is-active-pill" data-status-filter="all">
+            <span>Tất cả Tour:</span> <strong id="stat-tours-all">0</strong>
+          </div>
+          <div class="quick-stat-pill" data-status-filter="active">
+            <span class="status-indicator status-indicator--active"></span>
+            <span>Đang hoạt động:</span> <strong id="stat-tours-active">0</strong>
+          </div>
+          <div class="quick-stat-pill" data-status-filter="inactive">
+            <span class="status-indicator status-indicator--inactive"></span>
+            <span>Ngừng hoạt động:</span> <strong id="stat-tours-inactive">0</strong>
+          </div>
+        </div>
+
+        <!-- Bộ lọc & Tìm kiếm Tour -->
+        <form id="admin-tour-filters" class="admin-filters-grid" novalidate>
+          <div class="filter-field filter-field--search">
+            <label for="filter-tour-q">Tìm kiếm Tour</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="filter-tour-q" name="q" type="search" maxlength="100" placeholder="Tên Tour, địa điểm, tỉnh thành, mã tour..." autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-tour-region">Khu vực / Tỉnh thành</label>
+            <select id="filter-tour-region" name="region">
+              <option value="">Tất cả khu vực</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-tour-status">Trạng thái Tour</label>
+            <select id="filter-tour-status" name="status">
+              <option value="all" selected>Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Ngừng hoạt động</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-tour-price">Khoảng giá</label>
+            <select id="filter-tour-price" name="priceRange">
+              <option value="all" selected>Tất cả mức giá</option>
+              <option value="under-2m">Dưới 2.500.000 ₫</option>
+              <option value="2m-5m">2.500.000 ₫ - 5.000.000 ₫</option>
+              <option value="above-5m">Trên 5.000.000 ₫</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-tour-sort">Sắp xếp</label>
+            <select id="filter-tour-sort" name="sort">
+              <option value="default">Mặc định</option>
+              <option value="price-asc">Giá: Thấp đến cao</option>
+              <option value="price-desc">Giá: Cao đến thấp</option>
+              <option value="name-asc">Tên: A - Z</option>
+              <option value="newest">Mới cập nhật</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <button class="admin-primary-button" type="submit">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Lọc danh sách
+            </button>
+            <button id="admin-tour-filter-reset" class="admin-secondary-button" type="button">Đặt lại</button>
+          </div>
+        </form>
+
+        <!-- Trạng thái: Đang tải -->
+        <div id="tours-loading" class="admin-state-box" hidden>
+          <div class="state-spinner"></div>
+          <p class="admin-status-text">Đang tải danh sách Tour du lịch...</p>
+        </div>
+
+        <!-- Trạng thái ngoại lệ 5: Lỗi hệ thống / Lỗi tải dữ liệu -->
+        <div id="tours-error" class="admin-state-box is-error" hidden>
+          <div class="state-icon">⚠️</div>
+          <h3>Lỗi tải danh sách Tour</h3>
+          <p id="tours-error-msg">Không thể kết nối máy chủ để tải danh sách tour du lịch. Vui lòng thử lại.</p>
+          <button id="btn-retry-tours" class="admin-primary-button" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            Thử lại
+          </button>
+        </div>
+
+        <!-- Trạng thái: Không có tour nào -->
+        <div id="tours-empty" class="admin-state-box is-empty" hidden>
+          <div class="state-icon">🧭</div>
+          <h3 id="tours-empty-title">Không tìm thấy Tour du lịch</h3>
+          <p id="tours-empty-desc">Chưa có Tour du lịch nào phù hợp với bộ lọc tìm kiếm.</p>
+          <button id="btn-empty-add-tour" class="admin-primary-button" type="button" style="margin-top: 12px;">
+            + Thêm Tour mới ngay
+          </button>
+        </div>
+
+        <!-- Bảng danh sách Tour du lịch -->
+        <div id="tours-table-wrapper" class="admin-table-container">
+          <table class="admin-table" id="tours-table">
+            <thead>
+              <tr>
+                <th scope="col" style="min-width: 240px;">Tour du lịch</th>
+                <th scope="col" style="min-width: 140px;">Địa điểm / Tỉnh thành</th>
+                <th scope="col" style="min-width: 130px;">Giá Tour</th>
+                <th scope="col" style="min-width: 130px;">Thời gian & Sức chứa</th>
+                <th scope="col" style="min-width: 130px;">Trạng thái</th>
+                <th scope="col" style="min-width: 130px;">Đơn đặt & Đánh giá</th>
+                <th scope="col" class="text-center" style="min-width: 220px;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="admin-tours-tbody"></tbody>
           </table>
         </div>
       </section>
@@ -952,6 +1093,255 @@
         <footer class="admin-modal-footer">
           <button type="button" class="admin-secondary-button" id="rev-delete-modal-cancel">Hủy bỏ</button>
           <button type="button" class="admin-danger-button" id="rev-delete-modal-submit">Xác nhận xóa vĩnh viễn</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL: THÊM / SỬA TOUR DU LỊCH -->
+    <dialog id="tour-form-modal" class="admin-modal" aria-labelledby="tour-form-modal-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <div>
+            <span class="admin-modal-eyebrow" id="tour-form-modal-eyebrow">Quản lý Tour</span>
+            <h2 id="tour-form-modal-title" class="admin-modal-title">Thêm Tour du lịch mới</h2>
+          </div>
+          <button type="button" class="admin-modal-close" id="tour-form-modal-close" aria-label="Đóng biểu mẫu">✕</button>
+        </header>
+
+        <form id="tour-form" class="admin-modal-body" novalidate>
+          <div id="tour-form-error" class="admin-alert-banner admin-alert-danger" hidden>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span id="tour-form-error-text"></span>
+          </div>
+
+          <input type="hidden" id="tour-input-id" name="id" />
+
+          <div class="admin-modal-form-grid">
+            <label class="admin-modal-label">
+              <span>Tên Tour du lịch <strong class="text-danger">*</strong></span>
+              <input type="text" id="tour-input-name" name="name" required maxlength="150" placeholder="Ví dụ: Vịnh Hạ Long · 3 ngày 2 đêm" autocomplete="off" />
+              <small class="field-hint">Tên hiển thị công khai cho tour du lịch.</small>
+            </label>
+
+            <label class="admin-modal-label">
+              <span>Trạng thái Tour <strong class="text-danger">*</strong></span>
+              <select id="tour-input-status" name="status" required>
+                <option value="active">Đang hoạt động</option>
+                <option value="inactive">Ngừng hoạt động</option>
+              </select>
+              <small class="field-hint">Tour "Ngừng hoạt động" sẽ không nhận đơn đặt mới.</small>
+            </label>
+          </div>
+
+          <div class="admin-modal-form-grid">
+            <label class="admin-modal-label">
+              <span>Địa điểm cụ thể <strong class="text-danger">*</strong></span>
+              <input type="text" id="tour-input-place" name="place" required maxlength="100" placeholder="Ví dụ: Hạ Long, Hội An, Tà Xùa..." autocomplete="off" />
+              <small class="field-hint">Điểm tham quan chính.</small>
+            </label>
+
+            <label class="admin-modal-label">
+              <span>Khu vực / Tỉnh thành <strong class="text-danger">*</strong></span>
+              <input type="text" id="tour-input-region" name="region" required maxlength="100" placeholder="Ví dụ: Quảng Ninh, Quảng Nam, Kiên Giang..." autocomplete="off" />
+              <small class="field-hint">Tỉnh thành hoặc khu vực.</small>
+            </label>
+          </div>
+
+          <div class="admin-modal-form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <label class="admin-modal-label">
+              <span>Thời gian / Thời lượng <strong class="text-danger">*</strong></span>
+              <input type="text" id="tour-input-duration" name="duration" required maxlength="80" placeholder="Ví dụ: 3 ngày 2 đêm" autocomplete="off" />
+              <small class="field-hint">Thời gian diễn ra tour.</small>
+            </label>
+
+            <label class="admin-modal-label">
+              <span>Giá Tour niêm yết (VNĐ) <strong class="text-danger">*</strong></span>
+              <input type="number" id="tour-input-price" name="price" required min="1000" step="1000" placeholder="Ví dụ: 3490000" autocomplete="off" />
+              <small class="field-hint">Giá vé mỗi khách (số nguyên > 0).</small>
+            </label>
+
+            <label class="admin-modal-label">
+              <span>Số lượng khách tối đa <strong class="text-danger">*</strong></span>
+              <input type="number" id="tour-input-max-guests" name="maxGuests" required min="1" max="200" value="25" placeholder="Ví dụ: 25 hoặc 30" autocomplete="off" />
+              <small class="field-hint">Sức chứa mỗi chuyến khởi hành (1-200).</small>
+            </label>
+          </div>
+
+          <label class="admin-modal-label">
+            <span>Hình ảnh Tour (URL hoặc mã Unsplash) <strong class="text-danger">*</strong></span>
+            <div class="dest-image-input-row">
+              <input type="text" id="tour-input-image" name="image" required maxlength="500" placeholder="https://images.unsplash.com/... hoặc mã photo-..." autocomplete="off" />
+              <button type="button" id="btn-preview-tour-image" class="admin-secondary-button">Xem trước ảnh</button>
+            </div>
+            <small class="field-hint">Hỗ trợ URL trực tiếp hoặc mã ảnh từ Unsplash.</small>
+          </label>
+
+          <div id="tour-image-preview-box" class="dest-preview-wrapper" hidden>
+            <img id="tour-image-preview-img" src="" alt="Xem trước ảnh tour" class="dest-preview-image" />
+          </div>
+
+          <label class="admin-modal-label">
+            <span>Các ngày khởi hành (YYYY-MM-DD) <strong class="text-danger">*</strong></span>
+            <input type="text" id="tour-input-departures" name="departures" required maxlength="500" placeholder="2026-11-15, 2026-11-25, 2026-12-10" autocomplete="off" />
+            <small class="field-hint">Định dạng YYYY-MM-DD, phân tách bởi dấu phẩy. Ví dụ: 2026-11-15, 2026-11-25, 2026-12-10</small>
+          </label>
+
+          <label class="admin-modal-label">
+            <span>Lịch trình Tour du lịch chi tiết <strong class="text-danger">*</strong></span>
+            <textarea id="tour-input-itinerary" name="itinerary" rows="5" required maxlength="3000" placeholder="Ngày 1: Hà Nội - Vịnh Hạ Long - Thăm hang Sửng Sốt&#10;Ngày 2: Đảo Ti Tốp - Chèo thuyền Kayak vịnh Lan Hạ&#10;Ngày 3: Làng chài Ba Hang - Mua sắm đặc sản - Trở về Hà Nội"></textarea>
+            <div class="textarea-counter-row">
+              <small class="field-hint">Chi tiết các hoạt động diễn ra theo từng ngày của chuyến đi.</small>
+              <small id="tour-itinerary-counter" class="text-muted">0/3000</small>
+            </div>
+          </label>
+        </form>
+
+        <footer class="admin-modal-footer">
+          <button type="button" class="admin-secondary-button" id="tour-form-modal-cancel">Hủy bỏ</button>
+          <button type="submit" form="tour-form" class="admin-primary-button" id="tour-form-modal-submit">
+            <span id="tour-form-submit-text">Lưu Tour</span>
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL: XEM CHI TIẾT TOUR DU LỊCH -->
+    <dialog id="tour-detail-modal" class="admin-modal" aria-labelledby="tour-detail-modal-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <div>
+            <span class="admin-modal-eyebrow">Chi tiết Tour du lịch</span>
+            <h2 id="tour-detail-modal-title" class="admin-modal-title">...</h2>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="tour-detail-status-badge" class="admin-badge"></span>
+            <button type="button" class="admin-modal-close" id="tour-detail-modal-close" aria-label="Đóng">✕</button>
+          </div>
+        </header>
+
+        <div class="admin-modal-body" style="padding-top: 12px;">
+          <!-- Ảnh bìa lớn -->
+          <div class="dest-detail-banner-wrapper">
+            <img id="tour-detail-image" src="" alt="" class="dest-detail-banner" />
+            <div class="dest-detail-overlay">
+              <span id="tour-detail-code-badge" class="dest-detail-badge">Mã Tour: ...</span>
+            </div>
+          </div>
+
+          <!-- Lưới thông số chính -->
+          <div class="dest-detail-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-top: 16px;">
+            <div class="dest-stat-card">
+              <span class="dest-stat-label">Giá niêm yết</span>
+              <strong id="tour-detail-price" class="dest-stat-value text-accent" style="font-size: 18px;">...</strong>
+            </div>
+            <div class="dest-stat-card">
+              <span class="dest-stat-label">Thời gian</span>
+              <strong id="tour-detail-duration" class="dest-stat-value">...</strong>
+            </div>
+            <div class="dest-stat-card">
+              <span class="dest-stat-label">Điểm đến</span>
+              <strong id="tour-detail-place" class="dest-stat-value">...</strong>
+            </div>
+            <div class="dest-stat-card">
+              <span class="dest-stat-label">Sức chứa tối đa</span>
+              <strong id="tour-detail-capacity" class="dest-stat-value">...</strong>
+            </div>
+            <div class="dest-stat-card">
+              <span class="dest-stat-label">Đánh giá</span>
+              <strong id="tour-detail-rating" class="dest-stat-value">...</strong>
+            </div>
+            <div class="dest-stat-card">
+              <span class="dest-stat-label">Tổng đơn đặt</span>
+              <strong id="tour-detail-bookings-count" class="dest-stat-value">...</strong>
+            </div>
+          </div>
+
+          <!-- Lịch trình chi tiết -->
+          <div class="dest-tours-section" style="margin-top: 20px;">
+            <h3 class="dest-tours-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Lịch trình tour du lịch
+            </h3>
+            <div id="tour-detail-itinerary-content" class="tour-itinerary-box"></div>
+          </div>
+
+          <!-- Lịch khởi hành -->
+          <div class="dest-tours-section" style="margin-top: 16px;">
+            <h3 class="dest-tours-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              Các ngày khởi hành
+            </h3>
+            <div id="tour-detail-departures-chips" class="tour-departures-chips"></div>
+          </div>
+
+          <!-- Danh sách đơn đặt liên kết -->
+          <div class="dest-tours-section" style="margin-top: 16px;">
+            <h3 class="dest-tours-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Đơn đặt Tour liên kết (<span id="tour-detail-bookings-total">0</span>)
+            </h3>
+            <div id="tour-detail-bookings-wrapper">
+              <table class="admin-table admin-table--compact" id="tour-detail-bookings-table">
+                <thead>
+                  <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Ngày khởi hành</th>
+                    <th>Số khách</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody id="tour-detail-bookings-tbody"></tbody>
+              </table>
+              <p id="tour-detail-no-bookings" class="text-muted" style="font-size: 13px; font-style: italic; margin: 8px 0;" hidden>Tour này chưa có đơn đặt nào.</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="admin-modal-footer">
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="admin-secondary-button" id="tour-detail-btn-edit">Sửa Tour này</button>
+            <button type="button" class="admin-danger-button" id="tour-detail-btn-delete">Xóa Tour</button>
+          </div>
+          <button type="button" class="admin-primary-button" id="tour-detail-btn-close">Đóng</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL: XÁC NHẬN XÓA TOUR DU LỊCH -->
+    <dialog id="tour-delete-modal" class="admin-modal admin-modal--sm" aria-labelledby="tour-delete-modal-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <h2 id="tour-delete-modal-title" class="admin-modal-title">Xác nhận xóa Tour du lịch</h2>
+          <button type="button" class="admin-modal-close" id="tour-delete-modal-close" aria-label="Đóng">✕</button>
+        </header>
+
+        <div class="admin-modal-body">
+          <!-- Trường hợp có đơn đặt liên kết: Chặn xóa (Ngoại lệ 3) -->
+          <div id="tour-delete-blocked-box" hidden>
+            <div class="admin-alert-banner admin-alert-danger" style="margin-bottom: 14px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <div>
+                <strong>Không thể xóa Tour này!</strong>
+                <p id="tour-delete-blocked-msg" style="margin: 4px 0 0; font-size: 13px; line-height: 1.45;"></p>
+              </div>
+            </div>
+            <p style="font-size: 13px; color: #4b5563;">Vui lòng kiểm tra và xử lý hoặc hủy các đơn đặt tour liên quan trước khi thực hiện xóa Tour này.</p>
+          </div>
+
+          <!-- Trường hợp chưa có đơn đặt: Cho phép xác nhận xóa -->
+          <div id="tour-delete-confirm-box">
+            <p style="margin: 0 0 10px; font-size: 14px;">
+              Bạn có chắc chắn muốn xóa Tour <strong id="tour-delete-name" class="text-danger"></strong> khỏi danh sách Tour du lịch không?
+            </p>
+            <p class="field-hint" style="color: #6b7280; margin: 0;">Hành động này sẽ xóa vĩnh viễn tour du lịch khỏi hệ thống và không thể hoàn tác.</p>
+          </div>
+        </div>
+
+        <footer class="admin-modal-footer">
+          <button type="button" class="admin-secondary-button" id="tour-delete-modal-cancel">Hủy bỏ</button>
+          <button type="button" class="admin-danger-button" id="tour-delete-modal-submit">Xác nhận xóa</button>
         </footer>
       </div>
     </dialog>
