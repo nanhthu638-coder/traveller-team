@@ -103,7 +103,7 @@
         }
       ],
       "total": 6980000,
-      "status": "pending",
+      "status": "confirmed",
       "paymentStatus": "unpaid",
       "contact": {
         "name": "Thư Nguyễn",
@@ -112,7 +112,8 @@
       },
       "note": "",
       "createdAt": "2026-10-21T03:07:59.298Z",
-      "updatedAt": "2026-10-21T03:07:59.298Z"
+      "updatedAt": "2026-11-02T06:40:46.467Z",
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
     },
     {
       "id": "3e869595-2bc2-4214-9913-5d0dcabc6854",
@@ -345,6 +346,16 @@
       "id": "64cc254e23fdc3d98912ac1c3baebf76d4399086c3c145173c5630ac3e210803",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-09T06:21:21.997Z"
+    },
+    {
+      "id": "8c1b0f918938f8408bc0aee4888e18a6166f51eee6968363f058b9d53b1e206d",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-09T06:40:17.236Z"
+    },
+    {
+      "id": "125be5dad01d618fae187c59926af52e60554c1726e41f93d4175aa933c5aca2",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-09T07:38:47.264Z"
     }
   ]
 }

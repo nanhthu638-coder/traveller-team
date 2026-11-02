@@ -4,7 +4,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import express from "express";
-import { searchTours } from "./tours.js";
+import { searchTours, normalizeText } from "./tours.js";
+import { DEFAULT_DESTINATIONS } from "./destinations-data.js";
 import {
 	IMAGE_FILE_PATTERN,
 	IMAGE_URL_PREFIX,
@@ -44,7 +45,8 @@ let store = {
     reviews: [],
     vouchers: [],
     payments: [],
-    sessions: []
+    sessions: [],
+    destinations: []
 };
 
 let writeQueue = Promise.resolve();
@@ -971,6 +973,270 @@ app.delete("/api/admin/customers/:id", async (request, response, next) => {
 	}
 });
 
+// ===== Quản lý Danh mục Địa điểm (Thêm, Sửa, Xóa) =====
+
+/**
+ * Tìm các Tour đang sử dụng một địa điểm du lịch.
+ * Khớp theo ID địa điểm, địa danh (place), tỉnh thành (region) hoặc tên địa điểm xuất hiện trong tour.
+ */
+function getToursUsingDestination(destination) {
+	const normName = normalizeText(destination.name || "");
+	const normRegion = normalizeText(destination.region || "");
+	const allTours = searchTours().tours;
+
+	return allTours
+		.filter((tour) => {
+			if (tour.destinationId && tour.destinationId === destination.id) return true;
+			const tourPlace = normalizeText(tour.place || "");
+			const tourRegion = normalizeText(tour.region || "");
+			const tourName = normalizeText(tour.name || "");
+
+			if (tourPlace && (normName.includes(tourPlace) || tourPlace.includes(normName))) return true;
+			if (normName.length >= 3 && tourName.includes(normName)) return true;
+			const coreName = normName.replace(/^(vinh|pho co|dao ngoc|co do|thanh pho|quan dao|quan the|thi xa)s+/, "");
+			if (coreName.length >= 3 && (tourName.includes(coreName) || (tourPlace && tourPlace.includes(coreName)))) return true;
+			return false;
+		})
+		.map((tour) => ({
+			id: tour.id,
+			name: tour.name,
+			place: tour.place,
+			region: tour.region,
+			duration: tour.duration,
+			price: tour.price,
+		}));
+}
+
+// API công khai danh sách địa điểm (cho tìm kiếm hoặc hiển thị)
+app.get("/api/destinations", (request, response) => {
+	const list = (store.destinations || []).map((d) => ({
+		id: d.id,
+		name: d.name,
+		region: d.region,
+		description: d.description,
+		image: d.image,
+	}));
+	return response.json({ destinations: list, total: list.length });
+});
+
+// GET /api/admin/destinations: Danh sách địa điểm du lịch, tìm kiếm, lọc khu vực & trạng thái liên kết
+app.get("/api/admin/destinations", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const keyword = typeof request.query.q === "string" ? cleanText(request.query.q, 100) : "";
+	const region = typeof request.query.region === "string" ? cleanText(request.query.region, 100) : "";
+	const usage = typeof request.query.usage === "string" ? request.query.usage : "all"; // "all" | "in-use" | "unused"
+
+	const normKeyword = normalizeText(keyword);
+	const normRegion = normalizeText(region);
+
+	const allWithTours = (store.destinations || []).map((d) => {
+		const tours = getToursUsingDestination(d);
+		return {
+			...d,
+			tours,
+			toursCount: tours.length,
+		};
+	});
+
+	const regions = Array.from(new Set((store.destinations || []).map((d) => d.region).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
+
+	const filtered = allWithTours.filter((d) => {
+		if (normKeyword) {
+			const haystack = normalizeText(`${d.name} ${d.region} ${d.description}`);
+			if (!haystack.includes(normKeyword)) return false;
+		}
+		if (normRegion && normalizeText(d.region) !== normRegion) return false;
+		if (usage === "in-use" && d.toursCount === 0) return false;
+		if (usage === "unused" && d.toursCount > 0) return false;
+		return true;
+	});
+
+	return response.json({
+		destinations: filtered,
+		total: filtered.length,
+		regions,
+		counts: {
+			all: allWithTours.length,
+			inUse: allWithTours.filter((d) => d.toursCount > 0).length,
+			unused: allWithTours.filter((d) => d.toursCount === 0).length,
+		},
+	});
+});
+
+// GET /api/admin/destinations/:id: Chi tiết một địa điểm kèm danh sách các tour liên quan
+app.get("/api/admin/destinations/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const destination = (store.destinations || []).find((d) => d.id === request.params.id);
+	if (!destination) {
+		return response.status(404).json({ error: "Không tìm thấy địa điểm du lịch." });
+	}
+	const tours = getToursUsingDestination(destination);
+	return response.json({
+		destination: {
+			...destination,
+			tours,
+			toursCount: tours.length,
+		},
+	});
+});
+
+// POST /api/admin/destinations: Thêm địa điểm du lịch mới
+app.post("/api/admin/destinations", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const name = cleanText(request.body?.name, 120);
+		const region = cleanText(request.body?.region, 100);
+		const description = cleanText(request.body?.description, 1000);
+		const image = cleanText(request.body?.image, 500);
+
+		// Ngoại lệ 1: Thiếu thông tin bắt buộc
+		if (!name || !region || !description || !image) {
+			return response.status(400).json({
+				error: "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên địa điểm, khu vực/tỉnh thành, mô tả và hình ảnh.",
+			});
+		}
+		if (name.length < 2) {
+			return response.status(400).json({ error: "Tên địa điểm phải có ít nhất 2 ký tự." });
+		}
+		if (description.length < 10) {
+			return response.status(400).json({ error: "Mô tả địa điểm phải có ít nhất 10 ký tự." });
+		}
+
+		// Kiểm tra trùng lặp tên địa điểm trong cùng khu vực
+		const duplicate = (store.destinations || []).some(
+			(d) => normalizeText(d.name) === normalizeText(name) && normalizeText(d.region) === normalizeText(region)
+		);
+		if (duplicate) {
+			return response.status(409).json({ error: "Địa điểm này đã tồn tại trong cùng khu vực/tỉnh thành." });
+		}
+
+		const now = new Date().toISOString();
+		const destination = {
+			id: randomUUID(),
+			name,
+			region,
+			description,
+			image,
+			createdAt: now,
+			updatedAt: now,
+		};
+
+		if (!Array.isArray(store.destinations)) store.destinations = [];
+		store.destinations.unshift(destination);
+
+		try {
+			await persistStore();
+		} catch (error) {
+			store.destinations = store.destinations.filter((d) => d.id !== destination.id);
+			throw error;
+		}
+
+		return response.status(201).json({
+			message: "Thêm địa điểm du lịch thành công.",
+			destination: { ...destination, tours: [], toursCount: 0 },
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// PUT /api/admin/destinations/:id: Cập nhật thông tin địa điểm du lịch
+app.put("/api/admin/destinations/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const destination = (store.destinations || []).find((d) => d.id === request.params.id);
+		if (!destination) {
+			return response.status(404).json({ error: "Không tìm thấy địa điểm du lịch." });
+		}
+
+		const name = cleanText(request.body?.name, 120);
+		const region = cleanText(request.body?.region, 100);
+		const description = cleanText(request.body?.description, 1000);
+		const image = cleanText(request.body?.image, 500);
+
+		// Ngoại lệ 1: Thiếu thông tin bắt buộc
+		if (!name || !region || !description || !image) {
+			return response.status(400).json({
+				error: "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên địa điểm, khu vực/tỉnh thành, mô tả và hình ảnh.",
+			});
+		}
+		if (name.length < 2) {
+			return response.status(400).json({ error: "Tên địa điểm phải có ít nhất 2 ký tự." });
+		}
+		if (description.length < 10) {
+			return response.status(400).json({ error: "Mô tả địa điểm phải có ít nhất 10 ký tự." });
+		}
+
+		// Kiểm tra trùng lặp với địa điểm khác
+		const duplicate = (store.destinations || []).some(
+			(d) => d.id !== destination.id && normalizeText(d.name) === normalizeText(name) && normalizeText(d.region) === normalizeText(region)
+		);
+		if (duplicate) {
+			return response.status(409).json({ error: "Tên địa điểm đã tồn tại trong cùng khu vực/tỉnh thành." });
+		}
+
+		const previous = { ...destination };
+		destination.name = name;
+		destination.region = region;
+		destination.description = description;
+		destination.image = image;
+		destination.updatedAt = new Date().toISOString();
+
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(destination, previous);
+			throw error;
+		}
+
+		const tours = getToursUsingDestination(destination);
+		return response.json({
+			message: "Cập nhật thông tin địa điểm thành công.",
+			destination: { ...destination, tours, toursCount: tours.length },
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// DELETE /api/admin/destinations/:id: Xóa địa điểm (Kiểm tra ngoại lệ địa điểm đang được dùng trong tour)
+app.delete("/api/admin/destinations/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const destination = (store.destinations || []).find((d) => d.id === request.params.id);
+		if (!destination) {
+			return response.status(404).json({ error: "Không tìm thấy địa điểm du lịch." });
+		}
+
+		// Ngoại lệ 2: Địa điểm đang được sử dụng trong Tour -> Không cho phép xóa
+		const linkedTours = getToursUsingDestination(destination);
+		if (linkedTours.length > 0) {
+			const tourNames = linkedTours.map((t) => `"${t.name}"`).join(", ");
+			return response.status(409).json({
+				error: `Không thể xóa địa điểm này vì đang được sử dụng trong ${linkedTours.length} tour du lịch (${tourNames}). Vui lòng xử lý hoặc chuyển liên kết tour trước khi xóa.`,
+				linkedTours,
+			});
+		}
+
+		const previous = store.destinations;
+		store.destinations = store.destinations.filter((d) => d.id !== destination.id);
+
+		try {
+			await persistStore();
+		} catch (error) {
+			store.destinations = previous;
+			throw error;
+		}
+
+		return response.json({
+			success: true,
+			message: "Đã xóa địa điểm du lịch thành công.",
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
 // ===== Đánh giá và chấm điểm tour =====
 async function saveImages(buffers) {
 	await mkdir(imagesDirectory, { recursive: true });
@@ -1212,6 +1478,7 @@ async function start() {
 			vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
 			payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 			sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
+			destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
 		};
 		console.log("Using app-data.json as local fallback storage.");
 	} catch (error) {
@@ -1224,12 +1491,16 @@ async function start() {
 			vouchers: structuredClone(DEMO_VOUCHERS),
 			payments: [],
 			sessions: [],
+			destinations: structuredClone(DEFAULT_DESTINATIONS),
 		};
 		console.log("No local data file found; created a fresh in-memory store.");
 	}
 
 	if (!store.vouchers.length) {
 		store.vouchers = structuredClone(DEMO_VOUCHERS);
+	}
+	if (!store.destinations || !store.destinations.length) {
+		store.destinations = structuredClone(DEFAULT_DESTINATIONS);
 	}
 	await persistStore();
 

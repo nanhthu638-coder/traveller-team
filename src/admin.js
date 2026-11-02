@@ -62,6 +62,70 @@ const badgeAllCount = document.getElementById("badge-all-count");
 const panelBookings = document.getElementById("panel-bookings");
 const panelInquiries = document.getElementById("panel-inquiries");
 const panelCustomers = document.getElementById("panel-customers");
+const panelDestinations = document.getElementById("panel-destinations");
+
+// Destinations DOM Elements
+const badgeDestinationsCount = document.getElementById("badge-destinations-count");
+const destinationsLoading = document.getElementById("destinations-loading");
+const destinationsError = document.getElementById("destinations-error");
+const destinationsErrorMsg = document.getElementById("destinations-error-msg");
+const btnRetryDestinations = document.getElementById("btn-retry-destinations");
+const destinationsEmpty = document.getElementById("destinations-empty");
+const destinationsTableWrapper = document.getElementById("destinations-table-wrapper");
+const destinationsTbody = document.getElementById("admin-destinations-tbody");
+const destinationFilters = document.getElementById("admin-destination-filters");
+const filterDestQ = document.getElementById("filter-dest-q");
+const filterDestRegion = document.getElementById("filter-dest-region");
+const filterDestUsage = document.getElementById("filter-dest-usage");
+const adminRefreshDestinations = document.getElementById("admin-refresh-destinations");
+const adminBtnAddDestination = document.getElementById("admin-btn-add-destination");
+const adminDestFilterReset = document.getElementById("admin-dest-filter-reset");
+
+// Destination Form Modal
+const destFormModal = document.getElementById("destination-form-modal");
+const destFormModalClose = document.getElementById("dest-form-modal-close");
+const destFormModalCancel = document.getElementById("dest-form-modal-cancel");
+const destFormModalTitle = document.getElementById("dest-form-modal-title");
+const destFormModalEyebrow = document.getElementById("dest-form-modal-eyebrow");
+const destFormSubmitText = document.getElementById("dest-form-submit-text");
+const destinationForm = document.getElementById("destination-form");
+const destFormError = document.getElementById("dest-form-error");
+const destFormErrorText = document.getElementById("dest-form-error-text");
+const destInputId = document.getElementById("dest-input-id");
+const destInputName = document.getElementById("dest-input-name");
+const destInputRegion = document.getElementById("dest-input-region");
+const destInputImage = document.getElementById("dest-input-image");
+const btnPreviewDestImage = document.getElementById("btn-preview-dest-image");
+const destImagePreviewBox = document.getElementById("dest-image-preview-box");
+const destImagePreviewImg = document.getElementById("dest-image-preview-img");
+const destInputDescription = document.getElementById("dest-input-description");
+const destDescCounter = document.getElementById("dest-desc-counter");
+
+// Destination Detail Modal
+const destDetailModal = document.getElementById("destination-detail-modal");
+const destDetailModalClose = document.getElementById("dest-detail-modal-close");
+const destDetailModalCloseBtn = document.getElementById("dest-detail-modal-close-btn");
+const destDetailBtnEdit = document.getElementById("dest-detail-btn-edit");
+const destDetailModalTitle = document.getElementById("dest-detail-modal-title");
+const destDetailRegionBadge = document.getElementById("dest-detail-region-badge");
+const destDetailImage = document.getElementById("dest-detail-image");
+const destDetailName = document.getElementById("dest-detail-name");
+const destDetailRegion = document.getElementById("dest-detail-region");
+const destDetailCreated = document.getElementById("dest-detail-created");
+const destDetailUpdated = document.getElementById("dest-detail-updated");
+const destDetailDescription = document.getElementById("dest-detail-description");
+const destDetailToursCount = document.getElementById("dest-detail-tours-count");
+const destDetailToursList = document.getElementById("dest-detail-tours-list");
+
+// Destination Delete Modal
+const destDeleteModal = document.getElementById("destination-delete-modal");
+const destDeleteModalClose = document.getElementById("dest-delete-modal-close");
+const destDeleteModalCancel = document.getElementById("dest-delete-modal-cancel");
+const destDeleteModalSubmit = document.getElementById("dest-delete-modal-submit");
+const destDeleteBlockedBox = document.getElementById("dest-delete-blocked-box");
+const destDeleteBlockedMsg = document.getElementById("dest-delete-blocked-msg");
+const destDeleteConfirmBox = document.getElementById("dest-delete-confirm-box");
+const destDeleteName = document.getElementById("dest-delete-name");
 
 // Booking Filters & Table
 const bookingFilters = document.getElementById("admin-booking-filters");
@@ -111,6 +175,8 @@ let currentBookings = [];
 let selectedBooking = null;
 let pendingRejectBookingId = null;
 let toursList = [];
+let destinationsList = [];
+let selectedDestination = null;
 let toastTimeout = null;
 
 // ========================================================
@@ -216,6 +282,7 @@ function switchTab(tab) {
     panelBookings.hidden = false;
     panelInquiries.hidden = true;
     panelCustomers.hidden = true;
+    if (panelDestinations) panelDestinations.hidden = true;
 
     if (tab === "new-bookings") {
       bcParent.textContent = "Quản lý đặt Tour";
@@ -246,6 +313,7 @@ function switchTab(tab) {
     panelBookings.hidden = true;
     panelInquiries.hidden = false;
     panelCustomers.hidden = true;
+    if (panelDestinations) panelDestinations.hidden = true;
 
     bcParent.textContent = "Tiện ích quản trị";
     bcChild.textContent = "Biểu mẫu liên hệ";
@@ -256,12 +324,25 @@ function switchTab(tab) {
     panelBookings.hidden = true;
     panelInquiries.hidden = true;
     panelCustomers.hidden = false;
+    if (panelDestinations) panelDestinations.hidden = true;
 
     bcParent.textContent = "Tiện ích quản trị";
     bcChild.textContent = "Quản lý khách hàng";
     viewTitle.textContent = "Quản lý khách hàng";
     viewSubtitle.textContent = "Danh sách tài khoản khách hàng, thêm mới hoặc điều chỉnh thông tin.";
     loadCustomers();
+  } else if (tab === "destinations") {
+    panelBookings.hidden = true;
+    panelInquiries.hidden = true;
+    panelCustomers.hidden = true;
+    if (panelDestinations) panelDestinations.hidden = false;
+
+    bcParent.textContent = "Quản lý địa điểm";
+    bcChild.textContent = "Danh mục địa điểm";
+    viewTitle.textContent = "Quản lý địa điểm";
+    viewSubtitle.textContent = "Quản lý danh mục địa điểm du lịch, thông tin mô tả, khu vực và các tour liên kết.";
+
+    loadDestinations();
   }
 }
 
@@ -757,6 +838,292 @@ async function printTourPassengers() {
 }
 
 // ========================================================
+// QUẢN LÝ DANH MỤC ĐỊA ĐIỂM (DESTINATIONS)
+// ========================================================
+
+function resolveImageUrl(image) {
+  if (!image) return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80";
+  if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("/")) {
+    return image;
+  }
+  return `https://images.unsplash.com/${image}?auto=format&fit=crop&w=800&q=80`;
+}
+
+async function loadDestinations() {
+  destinationsLoading.hidden = false;
+  destinationsError.hidden = true;
+  destinationsEmpty.hidden = true;
+  destinationsTableWrapper.hidden = true;
+
+  try {
+    const params = new URLSearchParams();
+    if (filterDestQ.value.trim()) params.set("q", filterDestQ.value.trim());
+    if (filterDestRegion.value) params.set("region", filterDestRegion.value);
+    if (filterDestUsage.value && filterDestUsage.value !== "all") params.set("usage", filterDestUsage.value);
+
+    const data = await requestJson(`/api/admin/destinations?${params.toString()}`);
+    destinationsList = data.destinations || [];
+
+    // Cập nhật danh sách khu vực vào dropdown
+    const currentRegionVal = filterDestRegion.value;
+    if (Array.isArray(data.regions)) {
+      filterDestRegion.innerHTML = '<option value="">Tất cả khu vực</option>' +
+        data.regions.map((r) => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+      filterDestRegion.value = currentRegionVal;
+    }
+
+    if (badgeDestinationsCount) {
+      badgeDestinationsCount.textContent = data.counts?.all ?? destinationsList.length;
+    }
+
+    destinationsLoading.hidden = true;
+
+    if (destinationsList.length === 0) {
+      destinationsEmpty.hidden = false;
+      return;
+    }
+
+    renderDestinationsTable(destinationsList);
+    destinationsTableWrapper.hidden = false;
+  } catch (error) {
+    destinationsLoading.hidden = true;
+    destinationsError.hidden = false;
+    destinationsErrorMsg.textContent = error.message || "Không thể kết nối máy chủ để tải danh mục địa điểm. Vui lòng thử lại.";
+  }
+}
+
+function renderDestinationsTable(list) {
+  destinationsTbody.innerHTML = list.map((dest) => {
+    const imgUrl = resolveImageUrl(dest.image);
+    const hasTours = dest.toursCount > 0;
+    const tourBadgeClass = hasTours ? "dest-tours-pill is-in-use" : "dest-tours-pill is-unused";
+    const tourBadgeText = hasTours ? `${dest.toursCount} tour liên kết` : "Chưa có tour";
+
+    return `
+      <tr class="destination-row" data-id="${escapeHtml(dest.id)}">
+        <td>
+          <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(dest.name)}" class="dest-thumb" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=200&q=80'" />
+        </td>
+        <td>
+          <div class="dest-name-cell">${escapeHtml(dest.name)}</div>
+          <small class="text-secondary" style="font-size: 11px;">Mã: ${escapeHtml(dest.id.slice(0, 8))}</small>
+        </td>
+        <td>
+          <span class="dest-region-pill">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            ${escapeHtml(dest.region)}
+          </span>
+        </td>
+        <td>
+          <div class="dest-desc-cell" title="${escapeHtml(dest.description)}">
+            ${escapeHtml(dest.description)}
+          </div>
+        </td>
+        <td>
+          <span class="${tourBadgeClass}">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
+            ${escapeHtml(tourBadgeText)}
+          </span>
+        </td>
+        <td>
+          <div class="table-actions">
+            <button type="button" class="btn-action btn-view-detail" data-action="view-dest" data-id="${escapeHtml(dest.id)}" title="Xem thông tin chi tiết địa điểm">
+              Xem chi tiết
+            </button>
+            <button type="button" class="btn-action btn-edit" data-action="edit-dest" data-id="${escapeHtml(dest.id)}" title="Chỉnh sửa thông tin địa điểm">
+              Sửa
+            </button>
+            <button type="button" class="btn-action btn-delete" data-action="delete-dest" data-id="${escapeHtml(dest.id)}" title="${hasTours ? 'Địa điểm đang có Tour sử dụng' : 'Xóa địa điểm này'}">
+              Xóa
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function openCreateDestinationModal() {
+  destinationForm.reset();
+  destInputId.value = "";
+  destFormError.hidden = true;
+  destImagePreviewBox.hidden = true;
+  destDescCounter.textContent = "0/1000";
+  destFormModalTitle.textContent = "Thêm địa điểm du lịch";
+  destFormModalEyebrow.textContent = "Thêm mới danh mục";
+  destFormSubmitText.textContent = "Lưu địa điểm";
+  destFormModal.showModal();
+}
+
+function openEditDestinationModal(id) {
+  const dest = destinationsList.find((d) => d.id === id);
+  if (!dest) return;
+  selectedDestination = dest;
+
+  destinationForm.reset();
+  destInputId.value = dest.id;
+  destInputName.value = dest.name;
+  destInputRegion.value = dest.region;
+  destInputImage.value = dest.image;
+  destInputDescription.value = dest.description;
+  destDescCounter.textContent = `${dest.description.length}/1000`;
+
+  // Hiển thị ảnh xem trước
+  destImagePreviewImg.src = resolveImageUrl(dest.image);
+  destImagePreviewBox.hidden = false;
+
+  destFormError.hidden = true;
+  destFormModalTitle.textContent = "Chỉnh sửa địa điểm du lịch";
+  destFormModalEyebrow.textContent = "Cập nhật danh mục";
+  destFormSubmitText.textContent = "Lưu thay đổi";
+  destFormModal.showModal();
+}
+
+async function handleDestinationFormSubmit(event) {
+  event.preventDefault();
+  destFormError.hidden = true;
+
+  const id = destInputId.value.trim();
+  const name = destInputName.value.trim();
+  const region = destInputRegion.value.trim();
+  const image = destInputImage.value.trim();
+  const description = destInputDescription.value.trim();
+
+  // Luồng ngoại lệ 1: Thiếu thông tin bắt buộc
+  if (!name || !region || !image || !description) {
+    destFormErrorText.textContent = "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên địa điểm, khu vực/tỉnh thành, hình ảnh và mô tả.";
+    destFormError.hidden = false;
+    return;
+  }
+  if (name.length < 2) {
+    destFormErrorText.textContent = "Tên địa điểm phải có ít nhất 2 ký tự.";
+    destFormError.hidden = false;
+    return;
+  }
+  if (description.length < 10) {
+    destFormErrorText.textContent = "Mô tả địa điểm phải có ít nhất 10 ký tự.";
+    destFormError.hidden = false;
+    return;
+  }
+
+  const isEdit = Boolean(id);
+  const url = isEdit ? `/api/admin/destinations/${encodeURIComponent(id)}` : "/api/admin/destinations";
+  const method = isEdit ? "PUT" : "POST";
+
+  const submitBtn = document.getElementById("dest-form-modal-submit");
+  submitBtn.disabled = true;
+
+  try {
+    const data = await requestJson(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, region, image, description }),
+    });
+
+    destFormModal.close();
+    showToast(data.message || (isEdit ? "Cập nhật địa điểm thành công." : "Thêm địa điểm thành công."), "success");
+    await loadDestinations();
+  } catch (error) {
+    destFormErrorText.textContent = error.message || "Không thể lưu thông tin địa điểm. Vui lòng thử lại.";
+    destFormError.hidden = false;
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+async function openDestinationDetail(id) {
+  try {
+    const data = await requestJson(`/api/admin/destinations/${encodeURIComponent(id)}`);
+    const dest = data.destination;
+    selectedDestination = dest;
+
+    destDetailModalTitle.textContent = dest.name;
+    destDetailRegionBadge.textContent = dest.region;
+    destDetailImage.src = resolveImageUrl(dest.image);
+    destDetailName.textContent = dest.name;
+    destDetailRegion.textContent = dest.region;
+    destDetailCreated.textContent = formatDateTime(dest.createdAt);
+    destDetailUpdated.textContent = formatDateTime(dest.updatedAt);
+    destDetailDescription.textContent = dest.description;
+
+    const tours = dest.tours || [];
+    destDetailToursCount.textContent = tours.length;
+
+    if (tours.length === 0) {
+      destDetailToursList.innerHTML = `
+        <div class="dest-empty-tours">
+          Địa điểm này hiện chưa có tour du lịch nào liên kết. Có thể an toàn xóa hoặc tạo tour mới gắn với địa điểm này.
+        </div>
+      `;
+    } else {
+      destDetailToursList.innerHTML = tours.map((tour) => `
+        <a href="/tour-detail.html?id=${encodeURIComponent(tour.id)}" target="_blank" class="dest-tour-card" title="Xem trang chi tiết tour">
+          <div>
+            <div class="dest-tour-card-title">${escapeHtml(tour.name)}</div>
+            <div class="dest-tour-card-meta">${escapeHtml(tour.duration)} · Khởi hành từ ${escapeHtml(tour.place)} (${escapeHtml(tour.region)})</div>
+          </div>
+          <div class="dest-tour-card-price">${formatPrice(tour.price)}</div>
+        </a>
+      `).join("");
+    }
+
+    destDetailModal.showModal();
+  } catch (error) {
+    showToast(error.message || "Không thể tải chi tiết địa điểm.", "error");
+  }
+}
+
+function openDeleteDestinationModal(id) {
+  const dest = destinationsList.find((d) => d.id === id);
+  if (!dest) return;
+  selectedDestination = dest;
+
+  const hasTours = dest.toursCount > 0;
+  if (hasTours) {
+    // Luồng ngoại lệ 2: Địa điểm đang được sử dụng trong Tour -> Không cho phép xóa
+    destDeleteBlockedBox.hidden = false;
+    destDeleteConfirmBox.hidden = true;
+    destDeleteModalSubmit.hidden = true;
+
+    const tourNames = (dest.tours || []).map((t) => `"${t.name}"`).join(", ");
+    destDeleteBlockedMsg.textContent = `Địa điểm "${dest.name}" đang được sử dụng trong ${dest.toursCount} tour du lịch (${tourNames}). Vui lòng xử lý hoặc chuyển liên kết tour trước khi xóa.`;
+  } else {
+    // Luồng ngoại lệ 3: Hộp thoại xác nhận trước khi xóa
+    destDeleteBlockedBox.hidden = true;
+    destDeleteConfirmBox.hidden = false;
+    destDeleteModalSubmit.hidden = false;
+    destDeleteName.textContent = `"${dest.name}" (${dest.region})`;
+  }
+
+  destDeleteModal.showModal();
+}
+
+async function handleDeleteDestinationSubmit() {
+  if (!selectedDestination) return;
+  destDeleteModalSubmit.disabled = true;
+
+  try {
+    const data = await requestJson(`/api/admin/destinations/${encodeURIComponent(selectedDestination.id)}`, {
+      method: "DELETE",
+    });
+
+    destDeleteModal.close();
+    showToast(data.message || "Đã xóa địa điểm du lịch thành công.", "success");
+    await loadDestinations();
+  } catch (error) {
+    showToast(error.message || "Không thể xóa địa điểm này.", "error");
+    if (error.status === 409) {
+      destDeleteBlockedBox.hidden = false;
+      destDeleteConfirmBox.hidden = true;
+      destDeleteModalSubmit.hidden = true;
+      destDeleteBlockedMsg.textContent = error.message;
+    }
+  } finally {
+    destDeleteModalSubmit.disabled = false;
+  }
+}
+
+// ========================================================
 // INITIALIZATION & EVENT LISTENERS
 // ========================================================
 
@@ -796,6 +1163,16 @@ async function initialize() {
       filterTourSelect.innerHTML = '<option value="">Tất cả tour</option>' + toursList.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join("");
     } catch {
       // Bỏ qua lỗi load tour options
+    }
+
+    // Preload destination badge count
+    try {
+      const destSummary = await requestJson("/api/admin/destinations");
+      if (badgeDestinationsCount) {
+        badgeDestinationsCount.textContent = destSummary.counts?.all ?? (destSummary.destinations || []).length;
+      }
+    } catch {
+      // Bỏ qua lỗi preload badge
     }
 
     // Bắt đầu tại tab "Đơn đặt Tour mới"
@@ -871,6 +1248,109 @@ modalBtnReject.addEventListener("click", () => {
 rejectModalClose.addEventListener("click", () => rejectModal.close());
 rejectModalCancel.addEventListener("click", () => rejectModal.close());
 rejectModalForm.addEventListener("submit", handleRejectSubmit);
+
+// ========================================================
+// DESTINATIONS EVENT LISTENERS
+// ========================================================
+
+// Refresh & Add buttons
+if (adminRefreshDestinations) {
+  adminRefreshDestinations.addEventListener("click", () => loadDestinations());
+}
+if (adminBtnAddDestination) {
+  adminBtnAddDestination.addEventListener("click", () => openCreateDestinationModal());
+}
+if (btnRetryDestinations) {
+  btnRetryDestinations.addEventListener("click", () => loadDestinations());
+}
+const btnEmptyAddDest = document.getElementById("btn-empty-add-dest");
+if (btnEmptyAddDest) {
+  btnEmptyAddDest.addEventListener("click", () => openCreateDestinationModal());
+}
+
+// Destination Filters
+if (destinationFilters) {
+  destinationFilters.addEventListener("submit", (event) => {
+    event.preventDefault();
+    loadDestinations();
+  });
+}
+if (adminDestFilterReset) {
+  adminDestFilterReset.addEventListener("click", () => {
+    destinationFilters.reset();
+    loadDestinations();
+  });
+}
+
+// Destination Table Actions (Delegate click)
+if (destinationsTbody) {
+  destinationsTbody.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-action]");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    if (!id) return;
+
+    if (action === "view-dest") {
+      openDestinationDetail(id);
+    } else if (action === "edit-dest") {
+      openEditDestinationModal(id);
+    } else if (action === "delete-dest") {
+      openDeleteDestinationModal(id);
+    }
+  });
+}
+
+// Destination Form Modal Events
+if (destFormModalClose) destFormModalClose.addEventListener("click", () => destFormModal.close());
+if (destFormModalCancel) destFormModalCancel.addEventListener("click", () => destFormModal.close());
+if (destinationForm) destinationForm.addEventListener("submit", handleDestinationFormSubmit);
+
+if (btnPreviewDestImage) {
+  btnPreviewDestImage.addEventListener("click", () => {
+    const val = destInputImage.value.trim();
+    if (val) {
+      destImagePreviewImg.src = resolveImageUrl(val);
+      destImagePreviewBox.hidden = false;
+    }
+  });
+}
+
+if (destInputDescription) {
+  destInputDescription.addEventListener("input", () => {
+    destDescCounter.textContent = `${destInputDescription.value.length}/1000`;
+  });
+}
+
+// Destination Detail Modal Events
+if (destDetailModalClose) destDetailModalClose.addEventListener("click", () => destDetailModal.close());
+if (destDetailModalCloseBtn) destDetailModalCloseBtn.addEventListener("click", () => destDetailModal.close());
+if (destDetailBtnEdit) {
+  destDetailBtnEdit.addEventListener("click", () => {
+    destDetailModal.close();
+    if (selectedDestination) openEditDestinationModal(selectedDestination.id);
+  });
+}
+
+// Destination Delete Modal Events
+if (destDeleteModalClose) destDeleteModalClose.addEventListener("click", () => destDeleteModal.close());
+if (destDeleteModalCancel) destDeleteModalCancel.addEventListener("click", () => destDeleteModal.close());
+if (destDeleteModalSubmit) destDeleteModalSubmit.addEventListener("click", handleDeleteDestinationSubmit);
+
+// Đóng các modal địa điểm khi click vào vùng backdrop bên ngoài
+[destFormModal, destDetailModal, destDeleteModal].forEach((dialog) => {
+  if (!dialog) return;
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) {
+      const rect = dialog.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX && event.clientX <= rect.left + rect.width
+      );
+      if (!isInDialog) dialog.close();
+    }
+  });
+});
 
 // Đóng modal khi bấm vào vùng nền bên ngoài (Backdrop click)
 [bookingDetailModal, rejectModal].forEach((dialog) => {

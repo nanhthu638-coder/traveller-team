@@ -93,6 +93,11 @@
           <span>Tất cả đơn đặt Tour</span>
           <span class="tab-badge tab-badge-neutral" id="badge-all-count">0</span>
         </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-destinations" role="tab" aria-selected="false" data-tab="destinations">
+          <span class="tab-icon">📍</span>
+          <span>Quản lý địa điểm</span>
+          <span class="tab-badge tab-badge-neutral" id="badge-destinations-count">0</span>
+        </button>
         <button type="button" class="admin-tab-btn" id="tab-btn-inquiries" role="tab" aria-selected="false" data-tab="inquiries">
           <span class="tab-icon">💬</span>
           <span>Biểu mẫu liên hệ</span>
@@ -219,7 +224,103 @@
         </div>
       </section>
 
-      <!-- TAB 3: BIỂU MẪU LIÊN HỆ -->
+      <!-- TAB 3: QUẢN LÝ ĐỊA ĐIỂM (Danh mục địa điểm du lịch) -->
+      <section id="panel-destinations" class="admin-panel" aria-labelledby="admin-destinations-title" hidden>
+        <div class="admin-section-heading">
+          <div>
+            <h2 id="admin-destinations-title">Danh mục địa điểm du lịch</h2>
+            <p id="admin-destinations-desc">Quản lý danh sách các điểm đến, khu vực/tỉnh thành và kiểm tra liên kết với các tour.</p>
+          </div>
+          <div class="admin-heading-actions">
+            <button id="admin-refresh-destinations" class="admin-secondary-button" type="button" title="Làm mới danh sách địa điểm">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Làm mới
+            </button>
+            <button id="admin-btn-add-destination" class="admin-primary-button" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Thêm địa điểm
+            </button>
+          </div>
+        </div>
+
+        <!-- Bộ lọc & Tìm kiếm địa điểm -->
+        <form id="admin-destination-filters" class="admin-filters-grid" novalidate>
+          <div class="filter-field filter-field--search">
+            <label for="filter-dest-q">Tìm kiếm địa điểm</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="filter-dest-q" name="q" type="search" maxlength="100" placeholder="Tên địa điểm, khu vực, mô tả..." autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-dest-region">Khu vực / Tỉnh thành</label>
+            <select id="filter-dest-region" name="region">
+              <option value="">Tất cả khu vực</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="filter-dest-usage">Liên kết Tour</label>
+            <select id="filter-dest-usage" name="usage">
+              <option value="all" selected>Tất cả trạng thái</option>
+              <option value="in-use">Đang có Tour sử dụng</option>
+              <option value="unused">Chưa có Tour (Có thể xóa)</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <button class="admin-primary-button" type="submit">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Lọc địa điểm
+            </button>
+            <button id="admin-dest-filter-reset" class="admin-secondary-button" type="button">Đặt lại</button>
+          </div>
+        </form>
+
+        <!-- Trạng thái: Đang tải -->
+        <div id="destinations-loading" class="admin-state-box" hidden>
+          <div class="state-spinner"></div>
+          <p class="admin-status-text">Đang tải danh mục địa điểm...</p>
+        </div>
+
+        <!-- Trạng thái ngoại lệ 4: Lỗi tải dữ liệu -->
+        <div id="destinations-error" class="admin-state-box is-error" hidden>
+          <div class="state-icon">⚠️</div>
+          <h3>Lỗi tải dữ liệu địa điểm</h3>
+          <p id="destinations-error-msg">Không thể kết nối máy chủ để tải danh mục địa điểm. Vui lòng thử lại.</p>
+          <button id="btn-retry-destinations" class="admin-primary-button" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            Thử lại
+          </button>
+        </div>
+
+        <!-- Trạng thái: Không có kết quả -->
+        <div id="destinations-empty" class="admin-state-box is-empty" hidden>
+          <div class="state-icon">📍</div>
+          <h3 id="dest-empty-title">Không tìm thấy địa điểm</h3>
+          <p id="dest-empty-desc">Chưa có địa điểm nào phù hợp với điều kiện tìm kiếm hoặc danh mục đang trống.</p>
+        </div>
+
+        <!-- Bảng danh mục địa điểm -->
+        <div id="destinations-table-wrapper" class="admin-table-container">
+          <table class="admin-table" id="destinations-table">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 80px;">Hình ảnh</th>
+                <th scope="col" style="min-width: 180px;">Tên địa điểm</th>
+                <th scope="col" style="min-width: 140px;">Khu vực / Tỉnh thành</th>
+                <th scope="col" style="min-width: 260px;">Mô tả</th>
+                <th scope="col" style="min-width: 130px;">Tour liên kết</th>
+                <th scope="col" class="text-center" style="min-width: 220px;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="admin-destinations-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 4: BIỂU MẪU LIÊN HỆ -->
       <section id="panel-inquiries" class="admin-panel" aria-labelledby="admin-inquiries-title" hidden>
         <div class="admin-section-heading">
           <div>
@@ -418,6 +519,168 @@
           <button type="submit" class="admin-danger-button" id="reject-modal-submit">Xác nhận từ chối</button>
         </footer>
       </form>
+    </dialog>
+
+    <!-- DIALOG / MODAL: THÊM & SỬA ĐỊA ĐIỂM DU LỊCH -->
+    <dialog id="destination-form-modal" class="admin-modal" aria-labelledby="dest-form-modal-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <div>
+            <span class="admin-modal-eyebrow" id="dest-form-modal-eyebrow">Quản lý địa điểm</span>
+            <h2 id="dest-form-modal-title" class="admin-modal-title">Thêm địa điểm du lịch</h2>
+          </div>
+          <button type="button" class="admin-modal-close" id="dest-form-modal-close" aria-label="Đóng biểu mẫu">✕</button>
+        </header>
+
+        <form id="destination-form" class="admin-modal-body" novalidate>
+          <div id="dest-form-error" class="admin-alert-banner admin-alert-danger" hidden>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span id="dest-form-error-text"></span>
+          </div>
+
+          <input type="hidden" id="dest-input-id" name="id" />
+
+          <div class="admin-modal-form-grid">
+            <label class="admin-modal-label">
+              <span>Tên địa điểm du lịch <strong class="text-danger">*</strong></span>
+              <input type="text" id="dest-input-name" name="name" required maxlength="120" placeholder="Ví dụ: Vịnh Hạ Long, Phố cổ Hội An..." autocomplete="off" />
+              <small class="field-hint">Tên danh lam thắng cảnh hoặc điểm đến du lịch.</small>
+            </label>
+
+            <label class="admin-modal-label">
+              <span>Khu vực / Tỉnh thành <strong class="text-danger">*</strong></span>
+              <input type="text" id="dest-input-region" name="region" required maxlength="100" placeholder="Ví dụ: Quảng Ninh, Quảng Nam, Kiên Giang..." autocomplete="off" />
+              <small class="field-hint">Tỉnh thành hoặc địa phương trực thuộc.</small>
+            </label>
+          </div>
+
+          <label class="admin-modal-label">
+            <span>Hình ảnh địa điểm (URL hoặc mã ảnh Unsplash) <strong class="text-danger">*</strong></span>
+            <div class="dest-image-input-row">
+              <input type="text" id="dest-input-image" name="image" required maxlength="500" placeholder="https://images.unsplash.com/... hoặc mã photo-..." autocomplete="off" />
+              <button type="button" id="btn-preview-dest-image" class="admin-secondary-button">Xem trước ảnh</button>
+            </div>
+            <small class="field-hint">Hỗ trợ đường dẫn ảnh trực tiếp hoặc mã ảnh từ Unsplash.</small>
+          </label>
+
+          <!-- Xem trước ảnh -->
+          <div id="dest-image-preview-box" class="dest-preview-wrapper" hidden>
+            <img id="dest-image-preview-img" src="" alt="Xem trước ảnh" class="dest-preview-image" />
+          </div>
+
+          <label class="admin-modal-label">
+            <span>Mô tả địa điểm du lịch <strong class="text-danger">*</strong></span>
+            <textarea id="dest-input-description" name="description" rows="4" required maxlength="1000" placeholder="Giới thiệu cảnh sắc, khí hậu, các điểm nổi bật cuốn hút du khách..."></textarea>
+            <div class="textarea-counter-row">
+              <small class="field-hint">Tối thiểu 10 ký tự, tối đa 1000 ký tự.</small>
+              <small id="dest-desc-counter" class="text-muted">0/1000</small>
+            </div>
+          </label>
+        </form>
+
+        <footer class="admin-modal-footer">
+          <button type="button" class="admin-secondary-button" id="dest-form-modal-cancel">Hủy bỏ</button>
+          <button type="submit" form="destination-form" class="admin-primary-button" id="dest-form-modal-submit">
+            <span id="dest-form-submit-text">Lưu địa điểm</span>
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL: XEM CHI TIẾT ĐỊA ĐIỂM DU LỊCH -->
+    <dialog id="destination-detail-modal" class="admin-modal" aria-labelledby="dest-detail-modal-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <div>
+            <span class="admin-modal-eyebrow">Chi tiết địa điểm du lịch</span>
+            <h2 id="dest-detail-modal-title" class="admin-modal-title">Vịnh Hạ Long</h2>
+          </div>
+          <div class="admin-modal-header-right">
+            <span id="dest-detail-region-badge" class="admin-badge"></span>
+            <button type="button" class="admin-modal-close" id="dest-detail-modal-close" aria-label="Đóng chi tiết">✕</button>
+          </div>
+        </header>
+
+        <div class="admin-modal-body" id="dest-detail-body">
+          <div class="dest-detail-hero">
+            <img id="dest-detail-image" src="" alt="" class="dest-detail-img" />
+          </div>
+
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              Thông tin chung
+            </h3>
+            <dl class="admin-modal-dl">
+              <div><dt>Tên địa điểm:</dt><dd><strong id="dest-detail-name">—</strong></dd></div>
+              <div><dt>Khu vực / Tỉnh thành:</dt><dd id="dest-detail-region">—</dd></div>
+              <div><dt>Ngày tạo danh mục:</dt><dd id="dest-detail-created">—</dd></div>
+              <div><dt>Cập nhật lần cuối:</dt><dd id="dest-detail-updated">—</dd></div>
+            </dl>
+          </div>
+
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              Mô tả giới thiệu
+            </h3>
+            <p id="dest-detail-description" class="dest-detail-desc-text"></p>
+          </div>
+
+          <div class="admin-modal-section">
+            <h3 class="admin-modal-section-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
+              Các Tour đang sử dụng địa điểm này (<span id="dest-detail-tours-count">0</span> tour)
+            </h3>
+            <div id="dest-detail-tours-list" class="dest-detail-tours-wrapper"></div>
+          </div>
+        </div>
+
+        <footer class="admin-modal-footer">
+          <button type="button" class="admin-secondary-button" id="dest-detail-modal-close-btn">Đóng</button>
+          <button type="button" class="admin-primary-button" id="dest-detail-btn-edit">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            Chỉnh sửa địa điểm
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <!-- DIALOG / MODAL: XÁC NHẬN XÓA ĐỊA ĐIỂM -->
+    <dialog id="destination-delete-modal" class="admin-modal admin-modal--sm" aria-labelledby="dest-delete-modal-title">
+      <div class="admin-modal-card">
+        <header class="admin-modal-header">
+          <h2 id="dest-delete-modal-title" class="admin-modal-title">Xác nhận xóa địa điểm</h2>
+          <button type="button" class="admin-modal-close" id="dest-delete-modal-close" aria-label="Đóng">✕</button>
+        </header>
+
+        <div class="admin-modal-body">
+          <!-- Trường hợp có Tour liên kết: Không cho phép xóa (Ngoại lệ 2) -->
+          <div id="dest-delete-blocked-box" hidden>
+            <div class="admin-alert-banner admin-alert-danger" style="margin-bottom: 14px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <div>
+                <strong>Không thể xóa địa điểm này!</strong>
+                <p id="dest-delete-blocked-msg" style="margin: 4px 0 0; font-size: 13px; line-height: 1.45;"></p>
+              </div>
+            </div>
+            <p style="font-size: 13px; color: #4b5563;">Vui lòng cập nhật hoặc chuyển liên kết tour du lịch trước khi thực hiện xóa địa điểm này.</p>
+          </div>
+
+          <!-- Trường hợp chưa có Tour liên kết: Cho phép xóa -->
+          <div id="dest-delete-confirm-box">
+            <p style="margin: 0 0 10px; font-size: 14px;">
+              Bạn có chắc chắn muốn xóa địa điểm <strong id="dest-delete-name" class="text-danger"></strong> khỏi danh mục địa điểm không?
+            </p>
+            <p class="field-hint" style="color: #6b7280; margin: 0;">Hành động này sẽ xóa vĩnh viễn địa điểm khỏi hệ thống và không thể hoàn tác.</p>
+          </div>
+        </div>
+
+        <footer class="admin-modal-footer">
+          <button type="button" class="admin-secondary-button" id="dest-delete-modal-cancel">Hủy bỏ</button>
+          <button type="button" class="admin-danger-button" id="dest-delete-modal-submit">Xác nhận xóa</button>
+        </footer>
+      </div>
     </dialog>
 
     <!-- Khu vực in / xuất PDF -->
