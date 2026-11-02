@@ -945,7 +945,7 @@ function resolveImageUrl(image) {
   if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("/")) {
     return image;
   }
-  return `https://images.unsplash.com/${image}?auto=format&fit=crop&w=800&q=80`;
+  return `https://images.unsplash.com/${image}?auto=format&fit=crop&w=1200&q=85`;
 }
 
 async function loadDestinations() {
@@ -1949,7 +1949,7 @@ function buildTourImg(image) {
   if (image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:")) {
     return image;
   }
-  return `https://images.unsplash.com/${image}?auto=format&fit=crop&w=800&q=80`;
+  return `https://images.unsplash.com/${image}?auto=format&fit=crop&w=1200&q=85`;
 }
 
 async function loadTours() {
@@ -2550,6 +2550,21 @@ if (tourDeleteModalSubmit) tourDeleteModalSubmit.addEventListener("click", handl
     }
   });
 });
+
+
+// Bấm vào ảnh bìa để mở ảnh kích thước đầy đủ
+const destDetailHeroBox = document.getElementById("dest-detail-hero-box");
+if (destDetailHeroBox && destDetailImage) {
+  destDetailHeroBox.addEventListener("click", () => {
+    if (destDetailImage.src) window.open(destDetailImage.src, "_blank");
+  });
+}
+const tourDetailBannerBox = document.getElementById("tour-detail-banner-box");
+if (tourDetailBannerBox && tourDetailImage) {
+  tourDetailBannerBox.addEventListener("click", () => {
+    if (tourDetailImage.src) window.open(tourDetailImage.src, "_blank");
+  });
+}
 
 // Inquiries Actions
 inquiryList.addEventListener("click", async (event) => {
