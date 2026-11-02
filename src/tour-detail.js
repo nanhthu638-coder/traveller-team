@@ -73,7 +73,7 @@ function renderTourDetail(tour, availability) {
           <p class="availability-note is-muted" data-availability hidden></p>
           <p class="booking-error" data-booking-error role="alert" hidden></p>
           <button class="submit-button booking-submit" type="button" data-booking-continue${canBook ? "" : " disabled"}><span data-booking-label>Tiếp tục nhập thông tin hành khách</span> <span aria-hidden="true">↗</span></button>
-          <a class="booking-help" href="/index.html#contact">Cần tư vấn thêm? Liên hệ chúng tôi</a>
+          <a class="booking-help" href="/index.html#contact-form">Cần tư vấn thêm? Liên hệ chúng tôi</a>
         </div></aside>
       </div>
     </div>`;

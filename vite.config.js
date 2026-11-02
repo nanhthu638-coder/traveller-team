@@ -18,6 +18,8 @@ export default defineConfig({
         checkout: resolve(projectRoot, "checkout.html"),
         profile: resolve(projectRoot, "profile.html"),
         contact: resolve(projectRoot, "contact.html"),
+        "admin-login": resolve(projectRoot, "admin-login.html"),
+        admin: resolve(projectRoot, "admin.html"),
       },
     },
   },

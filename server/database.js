@@ -30,6 +30,11 @@ function getConfig(database = process.env.SQLSERVER_DATABASE || "TravellerTeam")
 }
 
 export async function connectDatabase() {
+	const hasSqlCredentials = Boolean(process.env.SQLSERVER_USER && process.env.SQLSERVER_PASSWORD);
+	if (!hasSqlCredentials) {
+		return null;
+	}
+
 	const databaseName = process.env.SQLSERVER_DATABASE || "TravellerTeam";
 	if (!/^[A-Za-z0-9_]+$/.test(databaseName)) throw new Error("SQLSERVER_DATABASE chỉ được chứa chữ, số và dấu gạch dưới.");
 	const pool = await new sql.ConnectionPool(getConfig(databaseName)).connect();
@@ -62,6 +67,7 @@ export async function connectDatabase() {
 }
 
 export async function loadDatabaseState(pool) {
+	if (!pool) return Object.fromEntries(COLLECTIONS.map((collection) => [collection, []]));
 	const result = await pool.request().query("SELECT Collection, RecordId, Payload FROM dbo.AppRecords");
 	const state = Object.fromEntries(COLLECTIONS.map((collection) => [collection, []]));
 	for (const row of result.recordset) {
@@ -72,6 +78,7 @@ export async function loadDatabaseState(pool) {
 }
 
 export async function saveDatabaseState(pool, state) {
+	if (!pool) return;
 	const records = COLLECTIONS.flatMap((collection) => (state[collection] || []).map((item) => {
 		if (!item || typeof item.id !== "string") throw new Error(`Bản ghi ${collection} thiếu id hợp lệ.`);
 		return { collection, id: item.id, payload: JSON.stringify(item) };

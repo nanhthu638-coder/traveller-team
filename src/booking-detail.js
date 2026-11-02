@@ -31,11 +31,23 @@ function statusNote(booking) {
   if (booking.status === "cancelled") {
     return booking.paymentStatus === "refunded"
       ? { tone: "danger", text: "Đơn này đã được hủy và số tiền đã được hoàn lại cho bạn." }
-      : { tone: "danger", text: "Đơn này đã được hủy." };
+      : { tone: "danger", text: "Đơn này đã được hủy. Nếu bạn đã thanh toán, vui lòng liên hệ Traveller Team để được hướng dẫn hoàn tiền." };
   }
   if (booking.status === "completed") return { tone: "done", text: "Chuyến đi đã hoàn thành. Cảm ơn bạn đã đồng hành cùng Traveller Team!" };
   if (booking.status === "confirmed") return { tone: "info", text: "Đơn đã được xác nhận. Chúc bạn có một chuyến đi thật vui." };
   return { tone: "warn", text: "Đơn đang chờ Traveller Team xử lý. Chúng tôi sẽ liên hệ xác nhận sớm nhất có thể." };
+}
+
+function cancellationPanel(booking) {
+  if (booking.status === "cancelled" || booking.status === "completed") return "";
+  const request = booking.cancellationRequest;
+  if (request?.status === "pending") {
+    return `<section class="detail-section bd-cancellation"><h2>Yêu cầu hủy</h2><p>Yêu cầu hủy của bạn đang chờ Traveller Team xử lý.</p>${request.reason ? `<p><strong>Lý do:</strong> ${escapeHtml(request.reason)}</p>` : ""}</section>`;
+  }
+  const previousRequestNote = request?.status === "rejected"
+    ? "<p>Yêu cầu hủy trước đó đã bị từ chối. Nếu cần, bạn có thể gửi yêu cầu mới.</p>"
+    : "";
+  return `<section class="detail-section bd-cancellation"><h2>Yêu cầu hủy đơn</h2>${previousRequestNote}<p>Nếu bạn muốn hủy chuyến đi, gửi yêu cầu để Traveller Team xem xét.</p><button class="secondary-cta" type="button" data-booking-action="request-cancellation">Gửi yêu cầu hủy</button><p class="review-inline-error" data-cancellation-error role="alert" hidden></p></section>`;
 }
 
 function priceLines(booking) {
@@ -132,6 +144,8 @@ function renderBooking(booking, review) {
 
         ${passengerSection(booking)}
 
+        ${cancellationPanel(booking)}
+
         ${reviewPanel(booking, review)}
       </div>
 
@@ -222,8 +236,31 @@ async function callApi(url, method, failMessage) {
   }
 }
 
+async function requestCancellation() {
+  const button = container.querySelector('[data-booking-action="request-cancellation"]');
+  const error = container.querySelector("[data-cancellation-error]");
+  if (!button || !window.confirm("Gửi yêu cầu hủy đơn này để Traveller Team xem xét?")) return;
+  button.disabled = true;
+  error.hidden = true;
+  try {
+    const response = await fetch(`/api/bookings/${encodeURIComponent(currentBooking.id)}/cancellation-request`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Không thể gửi yêu cầu hủy.");
+    await loadBooking();
+  } catch (failure) {
+    error.textContent = failure instanceof TypeError ? "Không thể kết nối máy chủ. Vui lòng thử lại." : failure.message;
+    error.hidden = false;
+    button.disabled = false;
+  }
+}
+
 container.addEventListener("click", (event) => {
   if (event.target.closest('[data-action="retry"]')) loadBooking();
+  if (event.target.closest('[data-booking-action="request-cancellation"]')) requestCancellation();
   const action = event.target.closest("[data-review-action]")?.dataset.reviewAction;
   if (action === "write") startReview();
   if (action === "edit") startReview(currentReview);
