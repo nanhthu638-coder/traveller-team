@@ -6,7 +6,9 @@ import { departureOptions, fetchAvailability, initBooking } from "./features/boo
 
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(Math.round(value))}đ`;
-const imageUrl = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+const imageUrl = (id) => id.startsWith("/api/tour-images/") || /^https?:\/\//i.test(id)
+  ? id
+  : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
 
 const MAX_PER_TYPE = 20;
 
@@ -14,7 +16,7 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 }
 
-function renderTourDetail(tour, availability) {
+function renderTourDetail(tour, availability, tourContent) {
   const highlights = [
     "Khám phá các địa danh nổi bật cùng hướng dẫn viên địa phương.",
     "Thưởng thức ẩm thực đặc sản và trải nghiệm văn hóa tại điểm đến.",
@@ -29,6 +31,21 @@ function renderTourDetail(tour, availability) {
     { id: "da-lat-3n2d", name: "Đà Lạt", image: "photo-1531058020387-3be344556be6" },
     { id: "sa-pa-3n2d", name: "Sa Pa", image: "photo-1470770841072-f978cf4d019e" },
   ].filter((item) => item.id !== tour.id);
+  const detailImages = tourContent.images.length
+    ? tourContent.images.map((image) => image.url)
+    : [
+      imageUrl(tour.image),
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=900&q=80",
+    ];
+  const meals = { breakfast: "Sáng", lunch: "Trưa", dinner: "Tối" };
+  const itineraryHtml = tourContent.itinerary.map((day, index) => `
+    <article class="itinerary-item">
+      <h3>${escapeHtml(day.title || `Ngày ${index + 1}`)}</h3>
+      <p>${escapeHtml(day.description)}</p>
+      ${day.meals?.length ? `<p class="itinerary-meta"><strong>Bữa ăn:</strong> ${day.meals.map((meal) => meals[meal]).filter(Boolean).join(" · ")}</p>` : ""}
+      ${day.stay ? `<p class="itinerary-meta"><strong>Lưu trú:</strong> ${escapeHtml(day.stay)}</p>` : ""}
+    </article>`).join("");
 
   return `
     <div class="detail-shell">
@@ -39,9 +56,7 @@ function renderTourDetail(tour, availability) {
         <div class="detail-meta"><span>${escapeHtml(tour.place)}, ${escapeHtml(tour.region)}</span><span>${escapeHtml(tour.duration)}</span><span data-rating-meta>${ratingBadge(tour)}</span></div>
       </header>
       <div class="detail-media">
-        <div class="media-frame media-frame--wide"><img src="${imageUrl(tour.image)}" alt="${escapeHtml(tour.name)}" /></div>
-        <div class="media-frame"><img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80" alt="Cảnh quan hành trình" /></div>
-        <div class="media-frame"><img src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=900&q=80" alt="Trải nghiệm du lịch" /></div>
+        ${detailImages.map((url, index) => `<div class="media-frame${index === 0 ? " media-frame--wide" : ""}"><img src="${escapeHtml(url)}" alt="${escapeHtml(tour.name)} · ảnh ${index + 1}" /></div>`).join("")}
       </div>
       <div class="detail-summary">
         <div><span>Thời gian</span><strong>${escapeHtml(tour.duration)}</strong></div>
@@ -53,9 +68,7 @@ function renderTourDetail(tour, availability) {
         <div class="detail-content">
           <section class="detail-section"><h2>Điểm nổi bật</h2><ul>${highlights.map((item) => `<li>${item}</li>`).join("")}</ul></section>
           <section class="detail-section"><h2>Lịch trình</h2>
-            <article class="itinerary-item"><h3>Ngày 1: Khởi hành và khám phá</h3><p>Đón khách, di chuyển đến điểm đến, dùng bữa địa phương và nhận phòng nghỉ ngơi.</p></article>
-            <article class="itinerary-item"><h3>Ngày 2: Trải nghiệm địa phương</h3><p>Tham quan những địa danh nổi bật, thưởng thức ẩm thực và khám phá văn hóa bản địa.</p></article>
-            <article class="itinerary-item"><h3>Ngày cuối: Trở về</h3><p>Dùng bữa sáng, tham quan điểm cuối trong lịch trình và khởi hành về điểm đón.</p></article>
+            ${itineraryHtml}
           </section>
           <section class="detail-section"><h2>Giá tour bao gồm</h2><ul><li>Phương tiện di chuyển theo chương trình.</li><li>Lưu trú và các bữa ăn theo lịch trình.</li><li>Vé tham quan, hướng dẫn viên và bảo hiểm du lịch.</li></ul></section>
           <section class="detail-section reviews-section" id="reviews" data-reviews></section>
@@ -73,7 +86,7 @@ function renderTourDetail(tour, availability) {
           <p class="availability-note is-muted" data-availability hidden></p>
           <p class="booking-error" data-booking-error role="alert" hidden></p>
           <button class="submit-button booking-submit" type="button" data-booking-continue${canBook ? "" : " disabled"}><span data-booking-label>Tiếp tục nhập thông tin hành khách</span> <span aria-hidden="true">↗</span></button>
-          <a class="booking-help" href="/index.html#contact">Cần tư vấn thêm? Liên hệ chúng tôi</a>
+          <a class="booking-help" href="/index.html#contact-form">Cần tư vấn thêm? Liên hệ chúng tôi</a>
         </div></aside>
       </div>
     </div>`;
@@ -106,8 +119,11 @@ async function initTourDetailPage() {
       showError(detailPage, "Tour này không tồn tại.");
       return;
     }
+    const contentResponse = await fetch(`/api/tours/${encodeURIComponent(tourId)}/content`);
+    const contentData = await contentResponse.json();
+    if (!contentResponse.ok) throw new Error(contentData.error || "Không thể tải lịch trình tour.");
 
-    detailPage.innerHTML = renderTourDetail(tour, availability);
+    detailPage.innerHTML = renderTourDetail(tour, availability, contentData);
     document.title = `${tour.name} | Traveller Team`;
     detailPage.querySelector("[data-back-to-list]").addEventListener("click", () => {
       window.location.href = "/tour-list.html";

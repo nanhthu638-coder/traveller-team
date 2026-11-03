@@ -34,7 +34,10 @@ form.addEventListener("submit", async (event) => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Không thể gửi lời nhắn.");
-    showAlert("success", `Đã nhận lời nhắn của ${data.inquiry.name}. Mã tham chiếu: ${data.inquiry.id}.`);
+    const trackingNote = data.trackedInAccount
+      ? " Bạn có thể xem trạng thái xử lý trong Hồ sơ cá nhân."
+      : " Để theo dõi trạng thái, hãy đăng nhập trước khi gửi biểu mẫu.";
+    showAlert("success", `Biểu mẫu của bạn đã được gửi thành công và chuyển đến bộ phận quản lý xử lý.${trackingNote} Mã tham chiếu: ${data.inquiry.id}.`);
     form.reset();
   } catch (error) {
     showAlert("error", error instanceof TypeError ? "Không thể kết nối máy chủ. Vui lòng thử lại." : error.message);

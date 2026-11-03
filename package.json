@@ -13,12 +13,17 @@
 	"dependencies": {
 		"express": "^5.1.0",
 		"mssql": "^11.0.2",
-		"qrcode": "^1.5.4"
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.13",
+		"@vitejs/plugin-react": "^5.2.0",
 		"concurrently": "^9.2.1",
 		"tailwindcss": "^4.1.13",
 		"vite": "^7.1.7"
+	},
+	"allowScripts": {
+		"esbuild@0.28.2": true
 	}
 }
