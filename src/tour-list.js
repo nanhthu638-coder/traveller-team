@@ -6,7 +6,6 @@ import { FALLBACK_TOUR_IMAGE, renderSeatBadge, resolveTourImageUrl, showRealtime
 
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(Math.round(value))}đ`;
-
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
