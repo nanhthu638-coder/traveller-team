@@ -289,6 +289,7 @@ function formatDateTime(value) {
 function formatPrice(value) {
   return `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
 }
+const formatCurrency = formatPrice;
 
 function guestCountSummary(passengers = {}) {
   const adult = Number(passengers.adult || 0);
@@ -1235,10 +1236,16 @@ const ratingTextLabels = {
 };
 
 function renderStarsHtml(rating) {
-  const r = Math.max(1, Math.min(5, Number(rating) || 5));
-  const full = "★".repeat(r);
-  const empty = "★".repeat(5 - r);
-  return `<span class="rev-stars-display" aria-label="${r} trên 5 sao">${full}<span class="rev-stars-empty">${empty}</span></span>`;
+  const r = Math.max(1, Math.min(5, Math.round(Number(rating) || 5)));
+  let stars = "";
+  for (let i = 1; i <= 5; i++) {
+    if (i <= r) {
+      stars += '<span class="rev-star is-filled" aria-hidden="true">★</span>';
+    } else {
+      stars += '<span class="rev-star is-empty" aria-hidden="true">★</span>';
+    }
+  }
+  return `<span class="rev-stars-display" aria-label="${r} trên 5 sao">${stars}</span>`;
 }
 
 async function loadReviews() {
@@ -1297,10 +1304,10 @@ function renderTourReviewSummaries(summaries) {
 
   revTourSummariesGrid.innerHTML = summaries.map((item) => {
     const isSelected = activeTourId === item.tourId;
-    const hasRating = item.averageRating !== null && item.visibleReviews > 0;
+    const hasRating = item.averageRating !== null && item.averageRating !== undefined && item.visibleReviews > 0;
     const avgBadge = hasRating
-      ? `<span class="rev-tour-avg-badge">${Number(item.averageRating).toFixed(1)} ★</span>`
-      : `<span class="rev-tour-avg-badge is-none">Chưa có ĐG</span>`;
+      ? `<span class="rev-tour-avg-badge"><span class="badge-star-icon">★</span>${Number(item.averageRating).toFixed(1)}</span>`
+      : `<span class="rev-tour-avg-badge is-none">Chưa có đánh giá</span>`;
 
     return `
       <button type="button" class="rev-tour-summary-card ${isSelected ? "is-active" : ""}" data-filter-tour="${escapeHtml(item.tourId)}" title="Nhấp để lọc đánh giá của ${escapeHtml(item.tourName)}">
@@ -1429,9 +1436,8 @@ async function openReviewDetailModal(id) {
     }
 
     // Điểm chấm & nội dung nhận xét
-    const fullStars = "★".repeat(rev.rating) + "☆".repeat(5 - rev.rating);
     revDetailRatingBox.innerHTML = `
-      <span class="rev-detail-stars-big">${fullStars}</span>
+      <div class="rev-detail-stars-big">${renderStarsHtml(rev.rating)}</div>
       <span class="rev-detail-rating-label">${escapeHtml(ratingTextLabels[rev.rating] || `${rev.rating}/5 sao`)}</span>
     `;
     revDetailComment.textContent = rev.comment;
@@ -2037,7 +2043,7 @@ function renderToursTable(tours) {
       : '<span class="text-muted" style="font-size: 12px;">Chưa cập nhật</span>';
 
     const ratingDisplay = tour.reviewCount > 0
-      ? `<span class="badge-rating" style="font-size: 12px;">★ ${tour.averageRating.toFixed(1)}</span> <small class="text-muted">(${tour.reviewCount})</small>`
+      ? `<span class="badge-rating"><span class="badge-star-icon">★</span>${tour.averageRating.toFixed(1)}</span> <small class="text-muted">(${tour.reviewCount})</small>`
       : '<span class="text-muted" style="font-size: 12px;">Chưa có</span>';
 
     const bookingsDisplay = tour.totalBookings > 0
@@ -2060,7 +2066,7 @@ function renderToursTable(tours) {
         <small class="text-muted">${escapeHtml(tour.region)}</small>
       </td>
       <td>
-        <strong style="color: #057569; font-size: 14px;">${formatCurrency(tour.price)}</strong>
+        <strong style="color: #057569; font-size: 14px;">${formatPrice(tour.price)}</strong>
       </td>
       <td>
         <div>${escapeHtml(tour.duration)}</div>
@@ -2266,13 +2272,13 @@ async function openTourDetailModal(tourId) {
       tourDetailStatusBadge.innerHTML = '<span class="status-indicator status-indicator--active"></span> Đang hoạt động';
     }
 
-    tourDetailPrice.textContent = formatCurrency(tour.price);
+    tourDetailPrice.textContent = formatPrice(tour.price);
     tourDetailDuration.textContent = tour.duration || "—";
     tourDetailPlace.textContent = `${tour.place}, ${tour.region}`;
     tourDetailCapacity.textContent = `Tối đa ${tour.maxGuests || 25} khách`;
 
     if (tour.reviewCount > 0) {
-      tourDetailRating.textContent = `★ ${tour.averageRating.toFixed(1)} (${tour.reviewCount} đánh giá)`;
+      tourDetailRating.innerHTML = `<span class="badge-rating"><span class="badge-star-icon">★</span>${tour.averageRating.toFixed(1)}</span> <span class="text-secondary" style="font-size: 13px;">(${tour.reviewCount} đánh giá)</span>`;
     } else {
       tourDetailRating.textContent = "Chưa có đánh giá";
     }
@@ -2310,7 +2316,7 @@ async function openTourDetailModal(tourId) {
               <td>${escapeHtml(b.customerName)}<br><small class="text-muted">${escapeHtml(b.phone || "")}</small></td>
               <td>${escapeHtml(b.departureDate)}</td>
               <td>${b.passengersCount} khách</td>
-              <td><strong>${formatCurrency(b.total)}</strong></td>
+              <td><strong>${formatPrice(b.total)}</strong></td>
               <td><span class="badge ${badgeClass}">${badgeText}</span></td>
             </tr>
           `;

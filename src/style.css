@@ -2779,7 +2779,12 @@ dialog.admin-modal::backdrop,
 /* ===== Quản lý Đánh giá và Chấm điểm Tour (Styles) ===== */
 
 .text-success { color: #15803d !important; }
-.rev-star-gold { color: #f59e0b; }
+.rev-star-gold {
+  color: #f59e0b;
+  filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.4));
+  display: inline-block;
+  margin: 0 1px;
+}
 
 /* Khối 4 thẻ thống kê tổng quan */
 .rev-overview-cards {
@@ -2889,7 +2894,11 @@ dialog.admin-modal::backdrop,
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
+}
+.rev-tour-card-top > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .rev-tour-card-name {
   font-weight: 700;
@@ -2913,20 +2922,33 @@ dialog.admin-modal::backdrop,
 .rev-tour-avg-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 3px 8px;
-  border-radius: 999px;
+  padding: 3px 9px;
+  border-radius: 9999px;
   background: #fffbeb;
   border: 1px solid #fde68a;
-  color: #b45309;
+  color: #92400e;
   font-weight: 700;
   font-size: 12.5px;
+  line-height: 1.2;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  min-width: max-content;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.08);
+}
+.rev-tour-avg-badge .badge-star-icon {
+  color: #f59e0b;
+  font-size: 13px;
+  line-height: 1;
 }
 .rev-tour-avg-badge.is-none {
   background: #f3f4f6;
   border-color: #e5e7eb;
   color: #6b7280;
   font-weight: 500;
+  font-size: 11.5px;
+  box-shadow: none;
 }
 .rev-tour-count-text {
   font-weight: 600;
@@ -2944,20 +2966,48 @@ dialog.admin-modal::backdrop,
 .rev-stars-display {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  color: #f59e0b;
-  font-size: 14px;
-  letter-spacing: 1px;
+  gap: 2.5px;
+  line-height: 1;
+  vertical-align: middle;
+  white-space: nowrap;
 }
-.rev-stars-empty {
-  color: #d1d5db;
+.rev-star {
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+  user-select: none;
+}
+.rev-star.is-filled {
+  color: #f59e0b;
+  filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.35));
+}
+.rev-star.is-empty {
+  color: #e2e8f0;
+}
+.badge-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.badge-rating .badge-star-icon {
+  color: #f59e0b;
+  font-size: 11px;
 }
 .rev-rating-num {
   display: block;
   font-size: 11.5px;
   font-weight: 600;
   color: #4b5563;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .rev-comment-text {
@@ -3035,10 +3085,11 @@ dialog.admin-modal::backdrop,
   background: #fffbeb;
   border: 1px solid #fde68a;
 }
-.rev-detail-stars-big {
-  font-size: 20px;
-  color: #f59e0b;
-  letter-spacing: 2px;
+.rev-detail-stars-big .rev-stars-display {
+  gap: 4px;
+}
+.rev-detail-stars-big .rev-star {
+  font-size: 22px;
 }
 .rev-detail-rating-label {
   font-weight: 700;
