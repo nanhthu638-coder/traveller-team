@@ -1079,7 +1079,7 @@ dialog.review-dialog::backdrop {
 .admin-section-heading h2 { margin: 0; color: #1C4349; font-family: var(--font-display); font-size: 23px; }
 .admin-section-heading p { margin: 5px 0 0; color: #64736e; font-size: 13px; line-height: 1.55; }
 .admin-filters { display: grid; grid-template-columns: minmax(180px, 1.3fr) minmax(180px, 1.2fr) minmax(140px, .8fr) auto auto; align-items: end; gap: 10px; }
-.admin-primary-button, .admin-secondary-button, .admin-danger-button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 8px; padding: 0 13px; color: #fff; background: #057569; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.admin-primary-button, .admin-secondary-button, .admin-danger-button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 8px; padding: 0 13px; color: #fff; background: #057569; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .admin-secondary-button { border-color: #aac9b5; background: #e3f1e8; color: #155b43; }
 .admin-danger-button { border-color: #f1c0b9; background: #fff4f1; color: #a53626; }
 .admin-primary-button:hover { background: #1C4349; }
@@ -1728,59 +1728,129 @@ dialog.review-dialog::backdrop {
 /* Heading Actions */
 .admin-heading-actions { display: flex; align-items: center; gap: 10px; }
 
-/* Filter Grid */
+/* Filter Grid / Bar (Đồng bộ, linh hoạt và không bị xếp lớp) */
 .admin-filters-grid {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.8fr) repeat(3, minmax(130px, 1fr)) repeat(2, minmax(130px, 1fr)) auto;
-  align-items: end;
-  gap: 12px;
-  padding: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 10px;
+  padding: 14px 18px;
   border-radius: 12px;
-  background: #f9fbf9;
+  background: #ffffff;
   border: 1px solid #dce7df;
   margin-bottom: 22px;
+  box-shadow: 0 2px 8px rgba(18, 43, 37, 0.04);
 }
-.filter-field { display: grid; gap: 6px; }
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 120px;
+  min-width: 110px;
+}
 .filter-field label {
   color: #1C4349;
   font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 .filter-field input, .filter-field select {
   height: 42px;
-  padding: 0 12px;
+  padding: 0 10px;
   border: 1.5px solid #cbd9d1;
   border-radius: 8px;
   background: #fff;
   color: #1B2121;
   font: inherit;
-  font-size: 13.5px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 13px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 .filter-field input:focus, .filter-field select:focus {
   border-color: #057569;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(109, 171, 140, 0.25);
+  box-shadow: 0 0 0 3px rgba(5, 117, 105, 0.15);
+}
+.filter-field input:hover, .filter-field select:hover {
+  border-color: #9eb5a8;
+}
+.filter-field select {
+  cursor: pointer;
+  padding-right: 22px;
+}
+
+/* Trường tìm kiếm chính (Search input) */
+.filter-field--search {
+  flex: 1.6 1 180px;
+  min-width: 170px;
 }
 .input-with-icon {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 .input-with-icon svg {
   position: absolute;
-  left: 12px;
+  left: 11px;
   color: #64736e;
   pointer-events: none;
+  flex-shrink: 0;
 }
 .input-with-icon input {
   width: 100%;
-  padding-left: 36px;
+  padding-left: 33px;
+  text-overflow: ellipsis;
 }
+.input-with-icon input::placeholder {
+  color: #82928b;
+  font-size: 12.5px;
+}
+
+/* Trường chọn ngày (Date input) */
+.filter-field--date {
+  flex: 1 1 115px;
+  min-width: 110px;
+}
+.filter-field--date input[type="date"] {
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0 6px 0 8px;
+  font-size: 12px;
+}
+
+/* Nhóm nút thao tác (Lọc & Đặt lại) */
 .filter-actions {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  height: 42px;
+}
+.filter-actions button,
+.filter-actions .admin-primary-button,
+.filter-actions .admin-secondary-button {
+  height: 42px;
+  min-height: 42px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  min-width: max-content;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.filter-actions .admin-primary-button svg {
+  flex-shrink: 0;
 }
 
 /* State Boxes */
@@ -2352,16 +2422,42 @@ dialog.admin-modal::backdrop,
 .print-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
 .print-table th, .print-table td { border: 1px solid #999; padding: 4px 8px; text-align: left; }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
+/* Responsive adjustments for admin filter bars */
+@media (max-width: 1180px) {
   .admin-filters-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 10px;
+    padding: 16px;
+  }
+  .filter-field--search {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .filter-actions {
+    margin-left: auto;
   }
 }
-@media (max-width: 640px) {
+
+@media (max-width: 768px) {
   .admin-filters-grid {
-    grid-template-columns: 1fr;
+    padding: 14px;
+    gap: 10px;
   }
+  .filter-field {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 140px;
+  }
+  .filter-field--search {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .filter-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
   .admin-modal-footer {
     flex-direction: column;
     align-items: stretch;
@@ -2370,6 +2466,23 @@ dialog.admin-modal::backdrop,
     flex-direction: column;
   }
   .admin-modal-footer-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .filter-field {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .filter-actions {
+    width: 100%;
+    flex-direction: column;
+    height: auto;
+  }
+  .filter-actions button,
+  .filter-actions .admin-primary-button,
+  .filter-actions .admin-secondary-button {
     width: 100%;
   }
 }
