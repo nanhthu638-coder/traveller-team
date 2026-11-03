@@ -1,3 +1,6 @@
+import { initRevenueAdmin } from "./features/admin-revenue.js";
+import { initTourContentAdmin } from "./features/admin-tour-content.js";
+
 const status = document.getElementById("admin-status");
 const content = document.getElementById("admin-content");
 const bookingList = document.getElementById("admin-bookings");
@@ -232,7 +235,9 @@ async function initialize() {
     tours = tourData.tours;
     const tourSelect = bookingFilters.elements.tourId;
     tourSelect.insertAdjacentHTML("beforeend", tours.map((tour) => `<option value="${escapeHtml(tour.id)}">${escapeHtml(tour.name)}</option>`).join(""));
-    await loadAll();
+    const revenue = initRevenueAdmin({ tours, requestJson });
+    initTourContentAdmin({ tours, requestJson });
+    await Promise.all([loadAll(), revenue.load()]);
   } catch (error) {
     showStatus(error instanceof TypeError ? "Không thể kết nối máy chủ. Vui lòng thử lại." : error.message, true);
   } finally {

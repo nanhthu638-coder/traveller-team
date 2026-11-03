@@ -4,7 +4,9 @@ import { formatRating, ratingBadge } from "./features/review-ui.js";
 
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(Math.round(value))}đ`;
-const imageUrl = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
+const imageUrl = (id) => id.startsWith("/api/tour-images/") || /^https?:\/\//i.test(id)
+  ? id
+  : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);

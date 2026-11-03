@@ -2,7 +2,9 @@
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(value)}đ`;
 const formatDate = (iso) => iso.split("-").reverse().join("/"); // 2026-10-18 -> 18/10/2026
-const imageUrl = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=700&q=80`;
+const imageUrl = (id) => id.startsWith("/api/tour-images/") || /^https?:\/\//i.test(id)
+  ? id
+  : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=700&q=80`;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);

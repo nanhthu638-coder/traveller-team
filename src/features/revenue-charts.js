@@ -53,7 +53,7 @@ export function revenueBarChart(series) {
       : "";
     return `<g class="rev-bar-group"><title>${escapeHtml(tip)}</title>
       <rect x="${margin.left + slot * index}" y="${margin.top}" width="${slot}" height="${plotHeight}" class="rev-hit" />
-      <rect x="${x}" y="${point.revenue > 0 ? y : margin.top + plotHeight - 2}" width="${barWidth}" height="${point.revenue > 0 ? Math.max(2, barHeight) : 2}" rx="3" class="${point.revenue > 0 ? "rev-bar" : "rev-bar is-empty"}" />${label}</g>`;
+      <rect x="${x}" y="${point.revenue > 0 ? y : margin.top + plotHeight - 2}" width="${barWidth}" height="${point.revenue > 0 ? Math.max(2, barHeight) : 2}" rx="3" class="${point.revenue > 0 ? "rev-bar" : "rev-bar is-empty"}" style="--bar-index:${Math.min(index, 18)}" />${label}</g>`;
   }).join("");
 
   return `<svg class="rev-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Biểu đồ cột doanh thu theo kỳ" preserveAspectRatio="xMidYMid meet">${grid}${bars}</svg>`;
@@ -68,7 +68,7 @@ export function tourRevenueBars(items) {
     <li>
       <div class="rev-tour-head"><span class="rev-tour-name">${escapeHtml(item.name)}</span><strong>${escapeHtml(formatVnd(item.revenue))}</strong></div>
       <div class="rev-track" role="img" aria-label="${escapeHtml(item.name)}: ${Math.round((item.revenue / total) * 100)}% tổng doanh thu"><span style="width:${Math.max(2, (item.revenue / max) * 100).toFixed(1)}%"></span></div>
-      <small>${Math.round((item.revenue / total) * 100)}% tổng · ${item.bookings} đơn · ${item.guests} khách</small>
+      <small>${Math.round((item.revenue / total) * 100)}% tổng · ${item.bookings} đơn · ${item.guests} khách · ${item.reviewCount} đánh giá</small>
     </li>`).join("")}</ol>`;
 }
 

@@ -16,13 +16,23 @@ npm run dev
 Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localhost:5173`). API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp tự động.
 Nếu không cấu hình SQL Server (`SQLSERVER_USER`/`SQLSERVER_PASSWORD`), máy chủ tự động chạy ở chế độ fallback bằng `server/data/app-data.json` để dự án vẫn khởi động được trong môi trường demo/local. Khi có SQL Server, bảng `dbo.AppRecords` được tạo nếu chưa có; nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
 
+## Thanh toán giả lập
+
+Trang checkout hỗ trợ thẻ Visa/Mastercard mẫu, thẻ ATM nội địa mẫu và mã seri được tạo cho từng giao dịch. API chỉ ghi nhận phương thức giả lập, không gửi hoặc lưu số thẻ/tên chủ thẻ. Khi xác nhận, máy chủ cập nhật trạng thái payment và booking, sau đó lưu vào SQL Server nếu đã cấu hình; nếu không, dữ liệu được lưu trong `server/data/app-data.json`. Luồng này chỉ phục vụ đồ án/demo, không xử lý tiền thật.
+
+Trạng thái tour không chuyển thành `completed` khi vừa thanh toán; trạng thái này chỉ dành cho tour đã hoàn thành.
+
+## Khôi phục mật khẩu
+
+Trong môi trường demo, người dùng có thể yêu cầu OTP 6 chữ số ở màn hình đăng nhập để đặt lại mật khẩu. OTP hết hạn sau 5 phút, giới hạn 5 lần nhập và chỉ được hiển thị trực tiếp trong giao diện demo; không gửi OTP qua email. API khôi phục mật khẩu bị tắt ở production cho tới khi cấu hình dịch vụ gửi email. Đăng nhập có tùy chọn “Ghi nhớ tôi”: bật sẽ giữ phiên 30 ngày; tắt dùng cookie phiên trình duyệt và phiên máy chủ hết hạn sau 12 giờ.
+
 ## Tính năng
 
 - Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
 - Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
 - Trang quản trị: quản lý đơn tour, khách hàng và biểu mẫu liên hệ.
 - Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
-- Lưu tài khoản, booking, thanh toán, đánh giá và lời nhắn trong SQL Server.
+- Lưu tài khoản, booking, thanh toán giả lập, đánh giá và lời nhắn trong SQL Server.
 
 ## Cấu trúc
 

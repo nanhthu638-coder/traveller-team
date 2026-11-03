@@ -13,7 +13,9 @@ export function initRevenueAdmin({ tours, requestJson }) {
   const rangeText = document.getElementById("admin-revenue-range");
   const tourBars = document.getElementById("admin-revenue-tours");
   const statusBar = document.getElementById("admin-revenue-status");
+  const leadersElement = document.getElementById("admin-revenue-leaders");
   const tourSelect = form.elements.tourId;
+  let latestLoad = 0;
   tourSelect.insertAdjacentHTML("beforeend", tours.map((tour) => `<option value="${escapeHtml(tour.id)}">${escapeHtml(tour.name)}</option>`).join(""));
 
   function setMessage(text, isError = false) {
@@ -31,7 +33,7 @@ export function initRevenueAdmin({ tours, requestJson }) {
   }
 
   function render(data) {
-    const { summary, series, byTour, statusBreakdown, range } = data;
+    const { summary, series, byTour, statusBreakdown, range, leaders } = data;
     kpis.innerHTML = `
       <article class="rev-kpi is-main"><span>Doanh thu</span><strong>${escapeHtml(formatVnd(summary.revenue))}</strong>${growthBadge(summary)}</article>
       <article class="rev-kpi"><span>Đơn đã thanh toán</span><strong>${summary.paidBookings.toLocaleString("vi-VN")}</strong></article>
@@ -44,19 +46,36 @@ export function initRevenueAdmin({ tours, requestJson }) {
       : '<p class="admin-empty">Chưa có đơn đã thanh toán trong khoảng thời gian này.</p>';
     tourBars.innerHTML = tourRevenueBars(byTour);
     statusBar.innerHTML = statusStackedBar(statusBreakdown, STATUS_LABELS, STATUS_COLORS);
+    const items = [
+      { key: "revenue", title: "Doanh thu cao nhất", icon: "↗", metric: (tour) => formatVnd(tour.revenue) },
+      { key: "bookings", title: "Được đặt nhiều nhất", icon: "✦", metric: (tour) => `${tour.bookings.toLocaleString("vi-VN")} đơn` },
+      { key: "reviews", title: "Được đánh giá nhiều", icon: "★", metric: (tour) => `${tour.reviewCount.toLocaleString("vi-VN")} đánh giá${tour.averageRating ? ` · ${tour.averageRating}/5` : ""}` },
+    ];
+    leadersElement.innerHTML = items.map(({ key, title, icon, metric }) => {
+      const tour = leaders?.[key];
+      if (!tour) return `<div class="admin-leader-chip is-empty"><span aria-hidden="true">${icon}</span><small>${title}</small><strong>Chưa có dữ liệu</strong></div>`;
+      const active = tourSelect.value === tour.tourId;
+      return `<button class="admin-leader-chip${active ? " is-active" : ""}" type="button" data-leader-tour-id="${escapeHtml(tour.tourId)}" aria-pressed="${active}">
+        <small>${title}</small><strong>${escapeHtml(tour.name)}</strong><span>${escapeHtml(metric(tour))}</span>
+      </button>`;
+    }).join("");
   }
 
   async function load() {
+    const requestId = ++latestLoad;
     const params = new URLSearchParams(new FormData(form));
     for (const [key, value] of [...params.entries()]) if (!String(value).trim()) params.delete(key);
     form.querySelector('button[type="submit"]').disabled = true;
     try {
-      render(await requestJson(`/api/admin/stats/revenue?${params}`));
+      const report = await requestJson(`/api/admin/stats/revenue?${params}`);
+      if (requestId !== latestLoad) return;
+      render(report);
       setMessage("");
     } catch (error) {
+      if (requestId !== latestLoad) return;
       setMessage(error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message, true);
     } finally {
-      form.querySelector('button[type="submit"]').disabled = false;
+      if (requestId === latestLoad) form.querySelector('button[type="submit"]').disabled = false;
     }
   }
 
@@ -73,6 +92,12 @@ export function initRevenueAdmin({ tours, requestJson }) {
   tourSelect.addEventListener("change", load);
   document.getElementById("admin-revenue-reset").addEventListener("click", () => {
     form.reset();
+    load();
+  });
+  leadersElement.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-leader-tour-id]");
+    if (!button) return;
+    tourSelect.value = button.dataset.leaderTourId;
     load();
   });
 

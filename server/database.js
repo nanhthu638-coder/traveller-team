@@ -1,6 +1,6 @@
 import sql from "mssql";
 
-const COLLECTIONS = ["users", "inquiries", "bookings", "reviews", "vouchers", "payments", "sessions"];
+const COLLECTIONS = ["users", "inquiries", "bookings", "reviews", "vouchers", "payments", "sessions", "tourContents"];
 
 function getConfig(database = process.env.SQLSERVER_DATABASE || "TravellerTeam") {
 	const server = process.env.SQLSERVER_SERVER || "localhost";
@@ -47,7 +47,7 @@ export async function connectDatabase() {
 				Payload NVARCHAR(MAX) NOT NULL,
 				UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_AppRecords_UpdatedAt DEFAULT SYSUTCDATETIME(),
 				CONSTRAINT PK_AppRecords PRIMARY KEY (Collection, RecordId),
-				CONSTRAINT CK_AppRecords_Collection CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions')),
+				CONSTRAINT CK_AppRecords_Collection CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions', 'tourContents')),
 				CONSTRAINT CK_AppRecords_Payload CHECK (ISJSON(Payload) = 1)
 			);
 		END
@@ -61,7 +61,7 @@ export async function connectDatabase() {
 		END
 		ALTER TABLE dbo.AppRecords
 		ADD CONSTRAINT CK_AppRecords_Collection
-			CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions'));
+			CHECK (Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions', 'tourContents'));
 	`);
 	return pool;
 }
@@ -106,7 +106,7 @@ export async function saveDatabaseState(pool, state) {
 
 			DELETE target
 			FROM dbo.AppRecords AS target
-			WHERE target.Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions')
+			WHERE target.Collection IN ('users', 'inquiries', 'bookings', 'reviews', 'vouchers', 'payments', 'sessions', 'tourContents')
 				AND NOT EXISTS (
 					SELECT 1 FROM @incoming AS source
 					WHERE source.Collection = target.Collection AND source.RecordId = target.RecordId

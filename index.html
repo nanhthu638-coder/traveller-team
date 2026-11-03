@@ -180,6 +180,8 @@
         <label>Email<input name="email" type="email" autocomplete="email" placeholder="ban@email.com" required maxlength="120" /></label>
         <label>Mật khẩu<span class="password-field"><input name="password" type="password" autocomplete="current-password" placeholder="Tối thiểu 8 ký tự" required minlength="8" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
         <label class="register-only" hidden>Nhập lại mật khẩu<span class="password-field"><input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" minlength="8" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+        <label class="auth-remember" data-login-only><input name="rememberMe" type="checkbox" /> <span>Ghi nhớ tôi</span></label>
+        <button class="auth-forgot-link" type="button" data-open-forgot data-login-only>Quên mật khẩu?</button>
         <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
         <div class="auth-actions">
           <button class="submit-button auth-submit" type="submit">Đăng nhập <span aria-hidden="true">↗</span></button>
@@ -187,6 +189,23 @@
         </div>
         <a class="admin-auth-link" href="/admin-login.html">Đăng nhập với quyền quản trị</a>
       </form>
+      <section id="auth-forgot" class="auth-forgot" hidden aria-labelledby="auth-forgot-title">
+        <h3 id="auth-forgot-title">Đặt lại mật khẩu</h3>
+        <p>Nhập email tài khoản để nhận mã OTP dùng một lần.</p>
+        <form id="auth-otp-request">
+          <label>Email<input name="email" type="email" autocomplete="email" placeholder="ban@email.com" required maxlength="120" /></label>
+          <button class="submit-button" type="submit">Tạo mã OTP</button>
+        </form>
+        <p id="auth-otp-demo" class="auth-otp-demo" role="status" hidden></p>
+        <form id="auth-password-reset" hidden>
+          <label>Mã OTP<input name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="Nhập mã 6 chữ số" /></label>
+          <label>Mật khẩu mới<span class="password-field"><input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required placeholder="Tối thiểu 8 ký tự" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+          <label>Nhập lại mật khẩu<span class="password-field"><input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256" required placeholder="Nhập lại mật khẩu" /><button class="password-toggle" type="button" aria-label="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path class="eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+          <button class="submit-button" type="submit">Đặt mật khẩu mới</button>
+        </form>
+        <p class="auth-error" id="auth-forgot-error" role="alert" aria-live="polite"></p>
+        <button class="auth-forgot-back" type="button" data-back-to-login>← Quay lại đăng nhập</button>
+      </section>
       <p class="demo-note">Mật khẩu được băm và lưu an toàn trên máy chủ.</p>
     </dialog>
 
