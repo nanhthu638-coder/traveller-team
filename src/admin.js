@@ -1,8 +1,5 @@
-// ========================================================
-// TRANG QUẢN TRỊ ADMIN - TRAVELLER TEAM
-// Chức năng: Quản lý đặt Tour → Đơn đặt Tour mới
-// ========================================================
-
+import { initRevenueAdmin } from "./features/admin-revenue.js";
+import { initTourContentAdmin } from "./features/admin-tour-content.js";
 import { onRealtimeStatus, subscribeRealtime } from "./features/realtime.js";
 
 const statusLabels = {
@@ -1659,7 +1656,6 @@ async function initialize() {
       document.getElementById("admin-forbidden-msg").textContent = `Tài khoản "${data.user.email}" không có quyền quản lý đặt Tour. Vui lòng đăng nhập với tài khoản quản trị viên.`;
       return;
     }
-
     // Đã xác thực admin thành công
     adminInitialState.hidden = true;
     adminForbiddenBox.hidden = true;
@@ -1677,8 +1673,11 @@ async function initialize() {
       if (filterRevTourSelect) {
         filterRevTourSelect.innerHTML = '<option value="">Tất cả các Tour</option>' + toursList.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`).join("");
       }
+      const revenue = initRevenueAdmin({ tours: toursList, requestJson });
+      initTourContentAdmin({ tours: toursList, requestJson });
+      await revenue.load();
     } catch {
-      // Bỏ qua lỗi load tour options
+      showToast("Không thể tải dữ liệu tour cho các tiện ích quản trị.", "error");
     }
 
     // Preload destination badge count

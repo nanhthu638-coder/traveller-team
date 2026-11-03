@@ -21,6 +21,17 @@ function escapeHtml(value) {
 }
 
 function renderItineraryHtml(itineraryText) {
+  if (Array.isArray(itineraryText)) {
+    const meals = { breakfast: "Sáng", lunch: "Trưa", dinner: "Tối" };
+    return itineraryText.map((day, index) => `
+      <article class="itinerary-item">
+        <h3>${escapeHtml(day.title || `Ngày ${index + 1}`)}</h3>
+        <p>${escapeHtml(day.description || "")}</p>
+        ${day.meals?.length ? `<p class="itinerary-meta"><strong>Bữa ăn:</strong> ${day.meals.map((meal) => meals[meal]).filter(Boolean).join(" · ")}</p>` : ""}
+        ${day.stay ? `<p class="itinerary-meta"><strong>Lưu trú:</strong> ${escapeHtml(day.stay)}</p>` : ""}
+      </article>`).join("");
+  }
+
   const lines = String(itineraryText || "")
     .split(/\r?\n/)
     .map((s) => s.trim())
@@ -45,7 +56,7 @@ function renderItineraryHtml(itineraryText) {
   }).join("");
 }
 
-function renderTourDetail(tour, availability, relatedTours = []) {
+function renderTourDetail(tour, availability, tourContent, relatedTours = []) {
   const highlights = [
     `Khám phá trọn vẹn vẻ đẹp đặc sắc tại ${tour.place}, ${tour.region} cùng hướng dẫn viên bản địa giàu kinh nghiệm.`,
     "Thưởng thức ẩm thực đặc sản vùng miền và trải nghiệm văn hóa truyền thống tại điểm đến.",
@@ -62,6 +73,14 @@ function renderTourDetail(tour, availability, relatedTours = []) {
   const related = (relatedTours.length ? relatedTours : fallbackRelated)
     .filter((item) => item.id !== tour.id)
     .slice(0, 3);
+  const detailImages = tourContent.images?.length
+    ? tourContent.images.map((image) => image.url)
+    : [
+      resolveTourImageUrl(tour.image, 1200),
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=900&q=80",
+    ];
+  const itineraryHtml = renderItineraryHtml(tourContent.itinerary || tour.itinerary);
 
   return `
     <div class="detail-shell">
@@ -77,9 +96,7 @@ function renderTourDetail(tour, availability, relatedTours = []) {
         </div>
       </header>
       <div class="detail-media">
-        <div class="media-frame media-frame--wide"><img data-tour-main-img src="${resolveTourImageUrl(tour.image, 1200)}" alt="${escapeHtml(tour.name)}" onerror="this.onerror=null;this.src='${FALLBACK_TOUR_IMAGE}';" /></div>
-        <div class="media-frame"><img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80" alt="Cảnh quan hành trình" /></div>
-        <div class="media-frame"><img src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=900&q=80" alt="Trải nghiệm du lịch" /></div>
+        ${detailImages.map((url, index) => `<div class="media-frame${index === 0 ? " media-frame--wide" : ""}"><img${index === 0 ? " data-tour-main-img" : ""} src="${escapeHtml(url)}" alt="${escapeHtml(tour.name)} · ảnh ${index + 1}" onerror="this.onerror=null;this.src='${FALLBACK_TOUR_IMAGE}';" /></div>`).join("")}
       </div>
       <div class="detail-summary">
         <div><span>Thời gian</span><strong data-tour-duration>${escapeHtml(tour.duration)}</strong></div>
@@ -91,7 +108,7 @@ function renderTourDetail(tour, availability, relatedTours = []) {
         <div class="detail-content">
           <section class="detail-section"><h2>Điểm nổi bật của hành trình</h2><ul>${highlights.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section>
           <section class="detail-section"><h2>Lịch trình chi tiết</h2>
-            <div data-tour-itinerary>${renderItineraryHtml(tour.itinerary)}</div>
+            <div data-tour-itinerary>${itineraryHtml}</div>
           </section>
           <section class="detail-section"><h2>Giá tour bao gồm</h2><ul><li>Phương tiện di chuyển đời mới đưa đón theo chương trình.</li><li>Khách sạn / Resort tiêu chuẩn và các bữa ăn đặc sản theo lịch trình.</li><li>Vé tham quan các điểm, hướng dẫn viên suốt tuyến và bảo hiểm du lịch tối đa 50.000.000đ/khách.</li></ul></section>
           <section class="detail-section reviews-section" id="reviews" data-reviews></section>
@@ -147,8 +164,11 @@ async function initTourDetailPage() {
       showError(detailPage, "Tour này không tồn tại.");
       return;
     }
+    const contentResponse = await fetch(`/api/tours/${encodeURIComponent(tourId)}/content`);
+    const contentData = await contentResponse.json();
+    if (!contentResponse.ok) throw new Error(contentData.error || "Không thể tải lịch trình tour.");
 
-    detailPage.innerHTML = renderTourDetail(tour, availability, allToursData.tours || []);
+    detailPage.innerHTML = renderTourDetail(tour, availability, contentData, allToursData.tours || []);
     document.title = `${tour.name} | Traveller Team`;
     detailPage.querySelector("[data-back-to-list]").addEventListener("click", () => {
       window.location.href = "/tour-list.html";

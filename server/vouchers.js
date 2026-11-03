@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 export const DEMO_VOUCHERS = [
 	{
@@ -84,6 +84,7 @@ export function createPayment({ booking, user }) {
 		userId: user.id,
 		amount: booking.total,
 		method: "demo",
+		mockSerial: `TRV-${randomBytes(4).toString("hex").toUpperCase()}`,
 		status: "pending",
 		createdAt: timestamp,
 		updatedAt: timestamp,

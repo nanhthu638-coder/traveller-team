@@ -85,6 +85,44 @@
         </div>
       </div>
 
+      <section class="admin-panel" aria-labelledby="admin-revenue-title">
+        <div class="admin-section-heading">
+          <div><h2 id="admin-revenue-title">Biến động doanh thu</h2><p>Theo dõi doanh thu đã thanh toán, đơn hàng và các tour nổi bật từ dữ liệu đang lưu.</p></div>
+          <span class="admin-live-tag"><i></i> Dữ liệu cập nhật</span>
+        </div>
+        <form id="admin-revenue-filters" class="admin-filters admin-revenue-filters">
+          <label>Từ ngày<input name="from" type="date" /></label>
+          <label>Đến ngày<input name="to" type="date" /></label>
+          <label>Gom theo
+            <select name="groupBy"><option value="day">Ngày</option><option value="month">Tháng</option></select>
+          </label>
+          <label>Tour
+            <select name="tourId"><option value="">Tất cả tour</option></select>
+          </label>
+          <button class="admin-primary-button" type="submit">Cập nhật biểu đồ</button>
+          <button id="admin-revenue-reset" class="admin-secondary-button" type="button">Đặt lại</button>
+        </form>
+        <p id="admin-revenue-message" class="admin-inline-status" role="status" aria-live="polite" hidden></p>
+        <div id="admin-revenue-kpis" class="admin-revenue-kpis" aria-live="polite"></div>
+        <div class="admin-revenue-grid">
+          <article class="admin-subpanel admin-chart-panel">
+            <div class="admin-subhead">
+              <div><h3>Doanh thu theo thời gian</h3><p id="admin-revenue-range">Đang tải dữ liệu…</p></div>
+              <span class="admin-chart-key"><i></i> Đã thanh toán</span>
+            </div>
+            <div id="admin-revenue-chart" class="admin-revenue-chart" aria-live="polite"></div>
+          </article>
+          <article class="admin-subpanel">
+            <div class="admin-subhead"><div><h3>Tour nổi bật</h3><p>Chọn một nhãn để xem biến động riêng của tour.</p></div></div>
+            <div id="admin-revenue-leaders" class="admin-revenue-leaders" aria-label="Tour nổi bật"></div>
+          </article>
+        </div>
+        <div class="admin-revenue-grid">
+          <article class="admin-subpanel"><div class="admin-subhead"><div><h3>Doanh thu theo tour</h3><p>So sánh doanh thu và lượng khách.</p></div></div><div id="admin-revenue-tours"></div></article>
+          <article class="admin-subpanel"><div class="admin-subhead"><div><h3>Trạng thái đơn</h3><p>Phân bố trạng thái trong kỳ lọc.</p></div></div><div id="admin-revenue-status"></div></article>
+        </div>
+      </section>
+
       <!-- Thanh Tabs điều hướng chức năng chính -->
       <div class="admin-nav-tabs" role="tablist" aria-label="Chọn chức năng quản trị">
         <button type="button" class="admin-tab-btn is-active" id="tab-btn-new-bookings" role="tab" aria-selected="true" data-tab="new-bookings">
@@ -659,6 +697,18 @@
           <button class="admin-primary-button" type="submit">Tạo tài khoản</button>
         </form>
         <div id="admin-customers" class="admin-list"></div>
+      </section>
+
+      <section class="admin-panel" aria-labelledby="admin-content-title">
+        <div class="admin-section-heading">
+          <div><h2 id="admin-content-title">Lịch trình &amp; hình ảnh tour</h2><p>Chỉnh sửa nội dung chi tiết và ảnh bìa mà không thay đổi đơn đặt hoặc dữ liệu tour hiện có.</p></div>
+          <span class="admin-live-tag"><i></i> Lưu an toàn</span>
+        </div>
+        <label class="admin-content-select">Chọn tour
+          <select id="admin-content-tour"><option value="">Chọn một tour</option></select>
+        </label>
+        <p id="admin-content-message" class="admin-inline-status" role="status" aria-live="polite" hidden></p>
+        <div id="admin-content-editor" class="admin-content-editor" aria-live="polite"><p class="admin-empty">Chọn tour để quản lý lịch trình và hình ảnh.</p></div>
       </section>
     </div>
 

@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomInt, randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,6 +26,8 @@ import { departureAvailability, seatsOf, tourAvailability } from "./availability
 import { parsePassengerDetails } from "./passengers.js";
 import { buildDemoBookings, calculateTotal, createBooking, findUserBooking, isValidPhone, listUserBookings, parsePassengers, todayInVietnam } from "./bookings.js";
 import { connectDatabase, loadDatabaseState, saveDatabaseState } from "./database.js";
+import { revenueReport } from "./admin-revenue.js";
+import { MAX_TOUR_IMAGES, MAX_TOUR_IMAGE_FILE, decodeTourImages, defaultItinerary, validateItinerary } from "./tour-content.js";
 import { createPayment, DEMO_VOUCHERS, listAvailableVouchers, quoteVoucher } from "./vouchers.js";
 
 const scrypt = promisify(scryptCallback);
@@ -35,9 +37,19 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dataDirectory = resolve(projectRoot, "server/data");
 const dataPath = resolve(dataDirectory, "app-data.json");
 const imagesDirectory = resolve(dataDirectory, "review-images");
+const tourImagesDirectory = resolve(dataDirectory, "tour-images");
 const profileImagesDirectory = resolve(dataDirectory, "profile-images");
 const buildDirectory = resolve(projectRoot, "dist");
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const REMEMBERED_SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+const SESSION_ONLY_DURATION_MS = 12 * 60 * 60 * 1000;
+const RESET_OTP_DURATION_MS = 5 * 60 * 1000;
+const RESET_OTP_MAX_ATTEMPTS = 5;
+const RESET_OTP_RATE_WINDOW_MS = 15 * 60 * 1000;
+const RESET_OTP_MAX_REQUESTS = 3;
+const resetOtpPepper = randomBytes(32);
+const passwordResetOtps = new Map();
+const passwordResetRequestLimits = new Map();
 
 
 let store = {
@@ -48,6 +60,7 @@ let store = {
     vouchers: [],
     payments: [],
     sessions: [],
+    tourContents: [],
     destinations: [],
     tours: [],
 };
@@ -87,6 +100,7 @@ let database;
 
 // API đánh giá nhận ảnh đính kèm dạng base64 nên cần giới hạn lớn hơn; phải khai báo TRƯỚC bộ đọc JSON mặc định.
 app.use(["/api/reviews", /^\/api\/bookings\/[^/]+\/review$/], express.json({ limit: "5mb" }));
+app.use(/^\/api\/admin\/tours\/[^/]+\/images$/, express.json({ limit: "6mb" }));
 app.use("/api/profile/avatar", express.json({ limit: "2mb" }));
 app.use(express.json({ limit: "64kb" }));
 
@@ -136,9 +150,10 @@ function cookieValue(request, name) {
 		?.slice(prefix.length);
 }
 
-function setSessionCookie(response, token) {
+function setSessionCookie(response, token, persistent = true) {
 	const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-	response.setHeader("Set-Cookie", `traveller_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DURATION_MS / 1000}${secure}`);
+	const maxAge = persistent ? `; Max-Age=${REMEMBERED_SESSION_DURATION_MS / 1000}` : "";
+	response.setHeader("Set-Cookie", `traveller_session=${token}; Path=/; HttpOnly; SameSite=Lax${maxAge}${secure}`);
 }
 
 function clearSessionCookie(response) {
@@ -171,6 +186,7 @@ async function persistStore() {
 			vouchers: snapshot.vouchers ?? [],
 			payments: snapshot.payments ?? [],
 			sessions: snapshot.sessions ?? [],
+			tourContents: snapshot.tourContents ?? [],
 			destinations: snapshot.destinations ?? [],
 			tours: snapshot.tours ?? [],
 		};
@@ -230,27 +246,68 @@ app.get("/api/realtime/stream", (request, response) => {
 // Gắn điểm trung bình + số lượt đánh giá thật + tình trạng chỗ trống theo thời gian thực vào tour
 function withRating(tour, ratings = ratingsByTour(store.reviews)) {
 	const info = ratings.get(tour.id);
+	const content = findTourContent(tour.id);
 	const today = todayInVietnam();
 	const slots = tourAvailability(tour, store.bookings || [], today);
-	const openSlot = slots.find((s) => s.remaining > 0) || slots[0] || null;
+	const openSlot = slots.find((slot) => slot.remaining > 0) || slots[0] || null;
 	const maxGuests = Number(tour.maxGuests) || 25;
 	const totalBooked = (store.bookings || [])
-		.filter((b) => b.status !== "cancelled" && b.tour?.id === tour.id)
-		.reduce((sum, b) => sum + seatsOf(b.passengers), 0);
+		.filter((booking) => booking.status !== "cancelled" && booking.tour?.id === tour.id)
+		.reduce((sum, booking) => sum + seatsOf(booking.passengers), 0);
 
 	return {
 		...tour,
+		image: content?.images?.[0]?.url || tour.image,
 		maxGuests,
 		status: tour.status || "active",
 		itinerary: tour.itinerary || "",
 		rating: info?.rating ?? null,
 		reviewCount: info?.reviewCount ?? 0,
-		upcomingDepartures: slots.map((s) => s.date),
+		upcomingDepartures: slots.map((slot) => slot.date),
 		nextDeparture: openSlot ? openSlot.date : (tour.departures?.[0] || ""),
 		remainingSeats: openSlot ? openSlot.remaining : maxGuests,
 		nextCapacity: openSlot ? openSlot.capacity : maxGuests,
 		totalBookedGuests: totalBooked,
 	};
+}
+
+function findTour(tourId) {
+	return getAllTours().find((tour) => tour.id === tourId);
+}
+
+function findTourContent(tourId) {
+	return store.tourContents.find((item) => item.id === tourId) || null;
+}
+
+function publicTourContent(tourId) {
+	const tour = findTour(tourId);
+	const stored = findTourContent(tourId);
+	return {
+		tour: tour ? withRating(tour) : null,
+		itinerary: stored?.itinerary || defaultItinerary(),
+		images: stored?.images || [],
+		isDefaultItinerary: !stored?.itinerary,
+		maxImages: MAX_TOUR_IMAGES,
+	};
+}
+
+async function updateTourContent(tourId, nextValue) {
+	const index = store.tourContents.findIndex((item) => item.id === tourId);
+	const previous = index < 0 ? null : structuredClone(store.tourContents[index]);
+	if (nextValue) {
+		if (index < 0) store.tourContents.push({ id: tourId, ...nextValue });
+		else store.tourContents[index] = { id: tourId, ...nextValue };
+	} else if (index >= 0) {
+		store.tourContents.splice(index, 1);
+	}
+	try {
+		await persistStore();
+	} catch (error) {
+		const currentIndex = store.tourContents.findIndex((item) => item.id === tourId);
+		if (currentIndex >= 0) store.tourContents.splice(currentIndex, 1);
+		if (previous) store.tourContents.splice(Math.min(index, store.tourContents.length), 0, previous);
+		throw error;
+	}
 }
 
 app.get("/api/tours", (request, response) => {
@@ -269,6 +326,23 @@ app.get("/api/tours/:id", (request, response) => {
 	return response.json({ tour: withRating(tour) });
 });
 
+app.get("/api/tours/:id/content", (request, response) => {
+	const content = publicTourContent(request.params.id);
+	if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+	return response.json(content);
+});
+
+app.get("/api/tour-images/:file", (request, response) => {
+	const file = request.params.file;
+	if (!MAX_TOUR_IMAGE_FILE.test(file) || !store.tourContents.some((content) => content.images?.some((image) => image.file === file))) {
+		return response.status(404).json({ error: "Không tìm thấy ảnh tour." });
+	}
+	response.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+	response.setHeader("X-Content-Type-Options", "nosniff");
+	return response.sendFile(file, { root: tourImagesDirectory }, (error) => {
+		if (error && !response.headersSent) response.status(404).json({ error: "Không tìm thấy ảnh tour." });
+	});
+});
 // Kiểm tra chỗ trống: sức chứa / đã đặt / còn lại của từng ngày khởi hành còn hiệu lực (công khai, chỉ đọc)
 app.get("/api/tours/:id/availability", (request, response) => {
 	const tour = getActiveTours().find((item) => item.id === request.params.id)
@@ -355,14 +429,16 @@ app.get("/api/bookings/:id/payment", async (request, response, next) => {
 			payment = createPayment({ booking, user });
 			store.payments.push(payment);
 			await persistStore();
-		} else if (payment.status !== "confirmed" && payment.amount !== booking.total) {
-			const previousAmount = payment.amount;
+		} else if (payment.status !== "confirmed" && (payment.amount !== booking.total || !payment.mockSerial)) {
+			const previousPayment = { amount: payment.amount, mockSerial: payment.mockSerial, method: payment.method };
 			payment.amount = booking.total;
+			payment.mockSerial ||= `TRV-${randomBytes(4).toString("hex").toUpperCase()}`;
+			if (payment.status !== "confirmed") payment.method = "mock";
 			payment.updatedAt = new Date().toISOString();
 			try {
 				await persistStore();
 			} catch (error) {
-				payment.amount = previousAmount;
+				Object.assign(payment, previousPayment);
 				throw error;
 			}
 		}
@@ -370,6 +446,7 @@ app.get("/api/bookings/:id/payment", async (request, response, next) => {
 		return response.json({
 			booking,
 			payment,
+			paymentMode: "mock",
 			vouchers: listAvailableVouchers(store.vouchers, subtotal, todayInVietnam()),
 		});
 	} catch (error) {
@@ -393,7 +470,6 @@ app.post("/api/bookings/:id/voucher", async (request, response, next) => {
 		if (quote.error) return response.status(400).json({ error: quote.error });
 		const payment = store.payments.find((item) => item.bookingId === booking.id && item.userId === user.id);
 		if (payment?.status === "confirmed") return response.status(409).json({ error: "Giao dịch đã thanh toán, không thể đổi voucher." });
-
 		const previousBooking = { subtotal: storedBooking.subtotal, discount: storedBooking.discount, voucher: storedBooking.voucher, total: storedBooking.total };
 		const previousPaymentAmount = payment?.amount;
 		Object.assign(storedBooking, {
@@ -430,25 +506,37 @@ app.post("/api/bookings/:id/voucher", async (request, response, next) => {
 	}
 });
 
-app.post("/api/payments/:id/demo-confirm", async (request, response, next) => {
+app.post("/api/payments/:id/mock-confirm", async (request, response, next) => {
 	try {
-		if (process.env.NODE_ENV === "production") return response.status(404).json({ error: "Không tìm thấy API." });
 		const user = currentUser(request);
 		if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để xác nhận thanh toán." });
 		const payment = store.payments.find((item) => item.id === request.params.id && item.userId === user.id);
 		if (!payment) return response.status(404).json({ error: "Không tìm thấy giao dịch thanh toán." });
 		const booking = store.bookings.find((item) => item.id === payment.bookingId && item.userId === user.id);
 		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour." });
-		if (booking.status === "cancelled") return response.status(409).json({ error: "Đơn đã hủy không thể thanh toán." });
+		if (booking.status === "cancelled" || booking.paymentStatus === "refunded") {
+			return response.status(409).json({ error: "Đơn đã hủy/hoàn tiền không thể thanh toán." });
+		}
+		const method = request.body?.method;
+		if (!["visa", "atm", "serial"].includes(method)) {
+			return response.status(400).json({ error: "Phương thức thanh toán giả lập không hợp lệ." });
+		}
+		if (method === "serial" && cleanText(request.body?.serial, 100).toUpperCase() !== payment.mockSerial) {
+			return response.status(400).json({ error: "Mã seri không chính xác." });
+		}
+		if (!Number.isSafeInteger(booking.total) || booking.total !== payment.amount) {
+			return response.status(409).json({ error: "Số tiền giao dịch không khớp với đơn đặt tour." });
+		}
 		if (payment.status !== "confirmed") {
 			const voucher = booking.voucher && store.vouchers.find((item) => item.id === booking.voucher.id);
 			if (voucher && (!voucher.active || voucher.usageCount >= voucher.usageLimit || todayInVietnam() > voucher.expiresAt)) {
 				return response.status(409).json({ error: "Voucher không còn hợp lệ. Vui lòng áp dụng mã khác." });
 			}
-			const previousPayment = { status: payment.status, updatedAt: payment.updatedAt };
+			const previousPayment = { status: payment.status, method: payment.method, updatedAt: payment.updatedAt };
 			const previousBooking = { paymentStatus: booking.paymentStatus, updatedAt: booking.updatedAt };
 			const previousUsageCount = voucher?.usageCount;
 			payment.status = "confirmed";
+			payment.method = method;
 			payment.updatedAt = new Date().toISOString();
 			booking.paymentStatus = "paid";
 			booking.updatedAt = payment.updatedAt;
@@ -601,6 +689,10 @@ async function login(request, response, next, adminOnly = false) {
 	try {
 		const email = cleanText(request.body?.email, 120).toLowerCase();
 		const password = typeof request.body?.password === "string" ? request.body.password : "";
+		const rememberMe = !adminOnly && request.body?.rememberMe === true;
+		const sessionDuration = adminOnly
+			? SESSION_DURATION_MS
+			: rememberMe ? REMEMBERED_SESSION_DURATION_MS : SESSION_ONLY_DURATION_MS;
 		const user = store.users.find((entry) => entry.email === email);
 		if (!user || !user.salt || !user.hash || (adminOnly && !adminEmails().includes(user.email.toLowerCase()))) {
 			return response.status(401).json({ error: "Email hoặc mật khẩu không chính xác." });
@@ -617,7 +709,7 @@ async function login(request, response, next, adminOnly = false) {
 		store.sessions.push({
 			id: createHash("sha256").update(token).digest("hex"),
 			userId: user.id,
-			expiresAt: new Date(Date.now() + SESSION_DURATION_MS).toISOString(),
+			expiresAt: new Date(Date.now() + sessionDuration).toISOString(),
 		});
 		try {
 			await persistStore();
@@ -625,7 +717,7 @@ async function login(request, response, next, adminOnly = false) {
 			store.sessions = previousSessions;
 			throw error;
 		}
-		setSessionCookie(response, token);
+		setSessionCookie(response, token, adminOnly || rememberMe);
 		return response.json({ user: publicUser(user) });
 	} catch (error) {
 		return next(error);
@@ -634,6 +726,96 @@ async function login(request, response, next, adminOnly = false) {
 
 app.post("/api/auth/login", (request, response, next) => login(request, response, next));
 app.post("/api/admin/login", (request, response, next) => login(request, response, next, true));
+
+function resetOtpHash(email, otp) {
+	return createHash("sha256").update(resetOtpPepper).update(email).update(":").update(otp).digest();
+}
+
+app.post("/api/auth/password-reset/request", (request, response) => {
+	if (process.env.NODE_ENV === "production") {
+		return response.status(503).json({ error: "Chưa cấu hình dịch vụ gửi OTP email cho môi trường production." });
+	}
+	const email = cleanText(request.body?.email, 120).toLowerCase();
+	if (!validEmail(email)) return response.status(400).json({ error: "Vui lòng nhập email hợp lệ." });
+
+	const now = Date.now();
+	for (const [key, limit] of passwordResetRequestLimits) {
+		if (limit.expiresAt <= now) passwordResetRequestLimits.delete(key);
+	}
+	const limitKey = `${request.ip || "unknown"}:${email}`;
+	let limit = passwordResetRequestLimits.get(limitKey);
+	if (!limit || limit.expiresAt <= now) {
+		limit = { count: 0, expiresAt: now + RESET_OTP_RATE_WINDOW_MS };
+		passwordResetRequestLimits.set(limitKey, limit);
+	}
+	if (limit.count >= RESET_OTP_MAX_REQUESTS) {
+		return response.status(429).json({ error: "Bạn đã yêu cầu OTP quá nhiều lần. Vui lòng thử lại sau 15 phút." });
+	}
+	limit.count += 1;
+
+	const user = store.users.find((entry) => entry.email === email);
+	const result = { message: "Nếu email đã đăng ký, mã OTP sẽ được tạo. Mã chỉ được hiển thị trong môi trường demo." };
+	if (user) {
+		const otp = String(randomInt(100000, 1000000));
+		passwordResetOtps.set(email, {
+			userId: user.id,
+			hash: resetOtpHash(email, otp),
+			expiresAt: now + RESET_OTP_DURATION_MS,
+			attemptsRemaining: RESET_OTP_MAX_ATTEMPTS,
+		});
+		if (process.env.NODE_ENV !== "production") result.demoOtp = otp;
+	}
+	return response.json(result);
+});
+
+app.post("/api/auth/password-reset/confirm", async (request, response, next) => {
+	try {
+		const email = cleanText(request.body?.email, 120).toLowerCase();
+		const otp = cleanText(request.body?.otp, 6);
+		const password = typeof request.body?.password === "string" ? request.body.password : "";
+		if (!validEmail(email) || !/^\d{6}$/.test(otp) || password.length < 8 || password.length > 256) {
+			return response.status(400).json({ error: "Email, mã OTP hoặc mật khẩu mới không hợp lệ." });
+		}
+
+		const challenge = passwordResetOtps.get(email);
+		if (!challenge || challenge.expiresAt <= Date.now() || challenge.attemptsRemaining <= 0) {
+			passwordResetOtps.delete(email);
+			return response.status(400).json({ error: "Mã OTP không hợp lệ hoặc đã hết hạn. Hãy tạo mã mới." });
+		}
+		const submittedHash = resetOtpHash(email, otp);
+		if (!timingSafeEqual(challenge.hash, submittedHash)) {
+			challenge.attemptsRemaining -= 1;
+			if (challenge.attemptsRemaining <= 0) passwordResetOtps.delete(email);
+			return response.status(400).json({ error: "Mã OTP không chính xác." });
+		}
+
+		const user = store.users.find((entry) => entry.id === challenge.userId && entry.email === email);
+		if (!user) {
+			passwordResetOtps.delete(email);
+			return response.status(400).json({ error: "Không thể đặt lại mật khẩu cho tài khoản này." });
+		}
+		const salt = randomBytes(16).toString("hex");
+		const hash = (await scrypt(password, salt, 64)).toString("hex");
+		const previousCredentials = { salt: user.salt, hash: user.hash };
+		const previousSessions = store.sessions;
+		user.salt = salt;
+		user.hash = hash;
+		store.sessions = previousSessions.filter((session) => session.userId !== user.id);
+		try {
+			await persistStore();
+		} catch (error) {
+			user.salt = previousCredentials.salt;
+			user.hash = previousCredentials.hash;
+			store.sessions = previousSessions;
+			throw error;
+		}
+		passwordResetOtps.delete(email);
+		clearSessionCookie(response);
+		return response.json({ message: "Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới." });
+	} catch (error) {
+		return next(error);
+	}
+});
 
 app.post("/api/auth/logout", async (request, response, next) => {
 	try {
@@ -894,19 +1076,16 @@ function formatAdminTour(tour, bookings = store.bookings || [], reviews = store.
 // GET /api/admin/tours: Danh sách Tour du lịch cho Admin, tìm kiếm và lọc Tour
 app.get("/api/admin/tours", (request, response) => {
 	if (!adminUser(request, response)) return;
-
 	const keyword = typeof request.query.q === "string" ? cleanText(request.query.q, 100) : "";
 	const place = typeof request.query.place === "string" ? cleanText(request.query.place, 100) : "";
 	const region = typeof request.query.region === "string" ? cleanText(request.query.region, 100) : "";
-	const status = typeof request.query.status === "string" ? request.query.status : "all"; // all | active | inactive
+	const status = typeof request.query.status === "string" ? request.query.status : "all";
 	const sort = typeof request.query.sort === "string" ? request.query.sort : "default";
-
 	const minPrice = Number(request.query.minPrice);
 	const maxPrice = Number(request.query.maxPrice);
-
 	const allTours = getAllTours();
-	const formattedList = allTours.map((t) => formatAdminTour(t, store.bookings, store.reviews));
-
+	const ratings = ratingsByTour(store.reviews);
+	const formattedList = allTours.map((tour) => formatAdminTour(withRating(tour, ratings), store.bookings, store.reviews));
 	const normKeyword = normalizeText(keyword);
 	const normPlace = normalizeText(place);
 	const normRegion = normalizeText(region);
@@ -931,20 +1110,159 @@ app.get("/api/admin/tours", (request, response) => {
 	else if (sort === "name-desc") filtered.sort((a, b) => b.name.localeCompare(a.name, "vi"));
 	else if (sort === "newest") filtered.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
-	const regions = Array.from(new Set(allTours.map((t) => t.region).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
-	const places = Array.from(new Set(allTours.map((t) => t.place).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
-
+	const regions = Array.from(new Set(allTours.map((tour) => tour.region).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
+	const places = Array.from(new Set(allTours.map((tour) => tour.place).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
 	return response.json({
 		tours: filtered,
 		total: filtered.length,
 		counts: {
 			all: formattedList.length,
-			active: formattedList.filter((t) => t.status === "active").length,
-			inactive: formattedList.filter((t) => t.status === "inactive").length,
+			active: formattedList.filter((tour) => tour.status === "active").length,
+			inactive: formattedList.filter((tour) => tour.status === "inactive").length,
 		},
 		regions,
 		places,
 	});
+});
+
+app.get("/api/admin/stats/revenue", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const report = revenueReport(store.bookings, store.reviews, request.query);
+	if (report.error) return response.status(400).json({ error: report.error });
+	return response.json(report);
+});
+
+app.get("/api/admin/tours/:id/content", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const content = publicTourContent(request.params.id);
+	if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+	return response.json(content);
+});
+
+app.put("/api/admin/tours/:id/itinerary", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const content = publicTourContent(request.params.id);
+		if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const result = validateItinerary(request.body?.itinerary);
+		if (result.error) return response.status(400).json({ error: result.error });
+		await updateTourContent(request.params.id, { itinerary: result.itinerary, images: content.images });
+		return response.json(publicTourContent(request.params.id));
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.delete("/api/admin/tours/:id/itinerary", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const content = publicTourContent(request.params.id);
+		if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const stored = findTourContent(request.params.id);
+		if (stored?.itinerary) {
+			const nextValue = { ...stored };
+			delete nextValue.itinerary;
+			await updateTourContent(request.params.id, nextValue.images?.length ? nextValue : null);
+		}
+		return response.json(publicTourContent(request.params.id));
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.post("/api/admin/tours/:id/images", async (request, response, next) => {
+	const createdFiles = [];
+	try {
+		if (!adminUser(request, response)) return;
+		const content = publicTourContent(request.params.id);
+		if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const decoded = decodeTourImages(request.body?.images);
+		if (decoded.error) return response.status(400).json({ error: decoded.error });
+		if (content.images.length + decoded.images.length > MAX_TOUR_IMAGES) {
+			return response.status(400).json({ error: `Mỗi tour tối đa ${MAX_TOUR_IMAGES} ảnh.` });
+		}
+		for (const image of decoded.images) {
+			const path = resolve(tourImagesDirectory, image.file);
+			await writeFile(path, image.buffer, { flag: "wx" });
+			createdFiles.push(path);
+		}
+		const images = [
+			...content.images,
+			...decoded.images.map(({ file }) => ({ file, url: `/api/tour-images/${encodeURIComponent(file)}` })),
+		];
+		try {
+			await updateTourContent(request.params.id, { itinerary: findTourContent(request.params.id)?.itinerary, images });
+		} catch (error) {
+			for (const path of createdFiles) {
+				try {
+					await unlink(path);
+				} catch (cleanupError) {
+					if (cleanupError.code !== "ENOENT") console.error("Could not remove an uncommitted tour image.", cleanupError);
+				}
+			}
+			throw error;
+		}
+		return response.status(201).json(publicTourContent(request.params.id));
+	} catch (error) {
+		for (const path of createdFiles) {
+			try {
+				await unlink(path);
+			} catch (cleanupError) {
+				if (cleanupError.code !== "ENOENT") console.error("Could not remove an incomplete tour image.", cleanupError);
+			}
+		}
+		return next(error);
+	}
+});
+
+app.put("/api/admin/tours/:id/images/order", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const content = publicTourContent(request.params.id);
+		if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const order = request.body?.order;
+		const currentFiles = content.images.map((image) => image.file);
+		if (!Array.isArray(order) || order.length !== currentFiles.length
+			|| new Set(order).size !== currentFiles.length
+			|| order.some((file) => !currentFiles.includes(file))) {
+			return response.status(400).json({ error: "Thứ tự ảnh không hợp lệ." });
+		}
+		const byFile = new Map(content.images.map((image) => [image.file, image]));
+		const stored = findTourContent(request.params.id);
+		await updateTourContent(request.params.id, {
+			itinerary: stored?.itinerary,
+			images: order.map((file) => byFile.get(file)),
+		});
+		return response.json(publicTourContent(request.params.id));
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.delete("/api/admin/tours/:id/images/:file", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const content = publicTourContent(request.params.id);
+		if (!content.tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const file = request.params.file;
+		if (!MAX_TOUR_IMAGE_FILE.test(file) || !content.images.some((image) => image.file === file)) {
+			return response.status(404).json({ error: "Không tìm thấy ảnh của tour này." });
+		}
+		const stored = findTourContent(request.params.id);
+		const nextImages = content.images.filter((image) => image.file !== file);
+		await updateTourContent(request.params.id, {
+			itinerary: stored?.itinerary,
+			images: nextImages,
+		});
+		try {
+			await unlink(resolve(tourImagesDirectory, file));
+		} catch (error) {
+			if (error.code !== "ENOENT") console.error("Could not remove deleted tour image.", error);
+		}
+		return response.json(publicTourContent(request.params.id));
+	} catch (error) {
+		return next(error);
+	}
 });
 
 // GET /api/admin/tours/:id: Xem chi tiết Tour du lịch kèm danh sách đơn đặt liên kết
@@ -2310,6 +2628,7 @@ function ensureTourDeparturesFresh(toursList) {
 async function start() {
 	await mkdir(dataDirectory, { recursive: true });
 	await mkdir(imagesDirectory, { recursive: true });
+	await mkdir(tourImagesDirectory, { recursive: true });
 
 	try {
 		database = await connectDatabase();
@@ -2336,6 +2655,7 @@ async function start() {
 						vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
 						payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 						sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
+						tourContents: Array.isArray(savedData.tourContents) ? savedData.tourContents : [],
 						destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
 						tours: Array.isArray(savedData.tours) && savedData.tours.length ? savedData.tours : structuredClone(DEFAULT_TOURS),
 					};
@@ -2350,9 +2670,16 @@ async function start() {
 				store.vouchers = structuredClone(DEMO_VOUCHERS);
 				shouldPersist = true;
 			}
+			if (!store.destinations || !store.destinations.length) {
+				store.destinations = structuredClone(DEFAULT_DESTINATIONS);
+				shouldPersist = true;
+			}
 			if (!store.tours || !store.tours.length) {
 				store.tours = structuredClone(DEFAULT_TOURS);
 				shouldPersist = true;
+			}
+			if (!Array.isArray(store.tourContents)) {
+				store.tourContents = [];
 			}
 			ensureTourDeparturesFresh(store.tours);
 			if (shouldPersist) await persistStore();
@@ -2377,6 +2704,7 @@ async function start() {
 			vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
 			payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 			sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
+			tourContents: Array.isArray(savedData.tourContents) ? savedData.tourContents : [],
 			destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
 			tours: Array.isArray(savedData.tours) && savedData.tours.length ? savedData.tours : structuredClone(DEFAULT_TOURS),
 		};
@@ -2391,6 +2719,7 @@ async function start() {
 			vouchers: structuredClone(DEMO_VOUCHERS),
 			payments: [],
 			sessions: [],
+			tourContents: [],
 			destinations: structuredClone(DEFAULT_DESTINATIONS),
 			tours: structuredClone(DEFAULT_TOURS),
 		};
