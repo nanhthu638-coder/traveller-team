@@ -528,6 +528,339 @@
       "id": "f62d8da9d24798362ac0be28f149f50f711c3438ff6e54984bd3f9aacb860c2d",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-09T17:59:58.630Z"
+    },
+    {
+      "id": "3d4edaa7cc71ea522968e98297cf013c30d7ca44492226c8fa9874a3c663b07c",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:15:38.320Z"
+    },
+    {
+      "id": "43f359206da1ca187ce8618691ee3ed28e3e6fec4dd5980985d79afef3ddbd85",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:16:25.975Z"
+    },
+    {
+      "id": "e13ed68ae505ad3a372228a4acca30b709a755b3adde0ea036bf7cf908e760b3",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:18:00.829Z"
+    },
+    {
+      "id": "7e4a8aabdab695b475fd8cd044d4ef09ff998cfb8bbae62969d94d7e3042cf52",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:20:29.020Z"
+    },
+    {
+      "id": "ed077801c9c888ce336eb18091ab794f6269ab5382e89e446e2c1f91cf50eb94",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:21:25.022Z"
+    },
+    {
+      "id": "0536e53ed44baacfa0570d47bb6db3f339ba0706bc83b6f7fa372d247cca11de",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:22:46.210Z"
+    },
+    {
+      "id": "a362f83282d6a181dd7014b4abb839ed41ddc3c785b0a77ff3aa1e75e8aee34a",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:23:57.331Z"
+    },
+    {
+      "id": "f1f7cd09c4bf313076fd6aa92533ffaef1e908e2e15993e80894f035f2e8d2f9",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:25:52.298Z"
+    },
+    {
+      "id": "145c5f23fe5f682e2ccd83eb2474cad4b144b166ae96b97f1b6449747c3a2c2b",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:54:28.041Z"
+    },
+    {
+      "id": "383cde4f909a5915b7b3b1ba34571f54909e9b6a0f48075eb745ed53b9da66a9",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T14:55:38.505Z"
+    }
+  ],
+  "destinations": [
+    {
+      "id": "ha-long",
+      "name": "Vịnh Hạ Long",
+      "region": "Quảng Ninh",
+      "description": "Kỳ quan thiên nhiên thế giới UNESCO với hàng ngàn đảo đá vôi kỳ vĩ nhô lên từ mặt nước biển xanh biếc tuyệt đẹp và hệ thống hang động tráng lệ.",
+      "image": "photo-1528127269322-539801943592",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "hoi-an",
+      "name": "Phố cổ Hội An",
+      "region": "Quảng Nam",
+      "description": "Đô thị cổ được bảo tồn trọn vẹn với những ngôi nhà cổ kính sơn vàng đặc trưng, giàn hoa giấy rực rỡ và ánh đèn lồng lung linh huyền ảo bên bờ sông Hoài.",
+      "image": "photo-1531058020387-3be344556be6",
+      "createdAt": "2026-10-02T08:00:00.000Z",
+      "updatedAt": "2026-10-02T08:00:00.000Z"
+    },
+    {
+      "id": "ta-xua",
+      "name": "Tà Xùa",
+      "region": "Sơn La",
+      "description": "Thiên đường săn mây bồng bềnh của núi rừng Tây Bắc với sống lưng khủng long hùng vĩ, biển mây cuồn cuộn và không khí trong lành nguyên sơ quanh năm.",
+      "image": "photo-1470770841072-f978cf4d019e",
+      "createdAt": "2026-10-03T08:00:00.000Z",
+      "updatedAt": "2026-10-03T08:00:00.000Z"
+    },
+    {
+      "id": "ha-giang",
+      "name": "Cao nguyên đá Hà Giang",
+      "region": "Hà Giang",
+      "description": "Vùng đất địa đầu Tổ quốc nổi danh với hẻm vực Tu Sản sâu nhất Đông Nam Á, đèo Mã Pí Lèng ngoạn mục, dòng sông Nho Quế xanh biếc và mùa hoa tam giác mạch.",
+      "image": "photo-1519681393784-d120267933ba",
+      "createdAt": "2026-10-04T08:00:00.000Z",
+      "updatedAt": "2026-10-04T08:00:00.000Z"
+    },
+    {
+      "id": "phu-quoc",
+      "name": "Đảo ngọc Phú Quốc",
+      "region": "Kiên Giang",
+      "description": "Hòn đảo du lịch nghỉ dưỡng hàng đầu với những bờ biển cát mịn trải dài, làn nước trong veo, hoàng hôn rực rỡ và các làng chài ven biển thanh bình.",
+      "image": "photo-1500375592092-40eb2168fd21",
+      "createdAt": "2026-10-05T08:00:00.000Z",
+      "updatedAt": "2026-10-05T08:00:00.000Z"
+    },
+    {
+      "id": "da-lat",
+      "name": "Thành phố Đà Lạt",
+      "region": "Lâm Đồng",
+      "description": "Thành phố sương mù mộng mơ xứ ngàn hoa với khí hậu se lạnh quanh năm, rừng thông reo bạt ngàn, hồ Xuân Hương thơ mộng và những quán cà phê lãng mạn.",
+      "image": "photo-1500530855697-b586d89ba3ee",
+      "createdAt": "2026-10-06T08:00:00.000Z",
+      "updatedAt": "2026-10-06T08:00:00.000Z"
+    },
+    {
+      "id": "sa-pa",
+      "name": "Thị xã Sa Pa",
+      "region": "Lào Cai",
+      "description": "Thị xã mù sương dưới chân dãy Hoàng Liên Sơn hùng vĩ, nơi hội tụ đỉnh Fansipan nóc nhà Đông Dương, những thửa ruộng bậc thang kỳ vĩ và bản sắc dân tộc độc đáo.",
+      "image": "photo-1501785888041-af3ef285b470",
+      "createdAt": "2026-10-07T08:00:00.000Z",
+      "updatedAt": "2026-10-07T08:00:00.000Z"
+    },
+    {
+      "id": "con-dao",
+      "name": "Quần đảo Côn Đảo",
+      "region": "Bà Rịa - Vũng Tàu",
+      "description": "Vùng đất thiêng liêng giàu giá trị lịch sử cách mạng, sở hữu những bãi biển nguyên sơ tuyệt đẹp, hệ sinh thái biển phong phú và không gian thanh tịnh bình yên.",
+      "image": "photo-1519046904884-53103b34b206",
+      "createdAt": "2026-10-08T08:00:00.000Z",
+      "updatedAt": "2026-10-08T08:00:00.000Z"
+    },
+    {
+      "id": "hue",
+      "name": "Cố đô Huế",
+      "region": "Thừa Thiên Huế",
+      "description": "Kinh đô xưa của triều đại nhà Nguyễn với quần thể di tích Đại Nội cổ kính, các lăng tẩm uy nghiêm tráng lệ và dòng sông Hương êm đềm trầm mặc.",
+      "image": "photo-1523906834658-6e24ef2386f9",
+      "createdAt": "2026-10-09T08:00:00.000Z",
+      "updatedAt": "2026-10-09T08:00:00.000Z"
+    },
+    {
+      "id": "nha-trang",
+      "name": "Vịnh biển Nha Trang",
+      "region": "Khánh Hòa",
+      "description": "Thành phố biển sôi động với vịnh biển thuộc top đẹp nhất hành tinh, bãi cát vàng thoai thoải, rạn san hô rực rỡ và nhiều hoạt động thể thao biển hấp dẫn.",
+      "image": "photo-1544644181-1484b3fdfc62",
+      "createdAt": "2026-10-10T08:00:00.000Z",
+      "updatedAt": "2026-10-10T08:00:00.000Z"
+    },
+    {
+      "id": "ninh-binh",
+      "name": "Quần thể Tràng An",
+      "region": "Ninh Bình",
+      "description": "Di sản thế giới kép về văn hóa và thiên nhiên với non nước hữu tình, các hang động ngập nước kỳ ảo và những ngôi đền chùa cổ kính trầm mặc soi bóng.",
+      "image": "photo-1568605117036-5fe5e7bab0b7",
+      "createdAt": "2026-10-11T08:00:00.000Z",
+      "updatedAt": "2026-10-11T08:00:00.000Z"
+    }
+  ],
+  "tours": [
+    {
+      "id": "ha-long-3n2d",
+      "name": "Vịnh Hạ Long · 3 ngày 2 đêm",
+      "place": "Hạ Long",
+      "region": "Quảng Ninh",
+      "duration": "3 ngày 2 đêm",
+      "price": 3490000,
+      "image": "photo-1528127269322-539801943592",
+      "departures": [
+        "2026-11-12",
+        "2026-11-20",
+        "2026-12-05",
+        "2026-12-18"
+      ],
+      "maxGuests": 30,
+      "itinerary": "Ngày 1: Hà Nội - Vịnh Hạ Long - Thăm hang Sửng Sốt\nNgày 2: Đảo Ti Tốp - Chèo thuyền Kayak vịnh Lan Hạ\nNgày 3: Làng chài Ba Hang - Mua sắm đặc sản - Trở về Hà Nội",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "hoi-an-2n1d",
+      "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+      "place": "Hội An",
+      "region": "Quảng Nam",
+      "duration": "2 ngày 1 đêm",
+      "price": 2150000,
+      "image": "photo-1531058020387-3be344556be6",
+      "departures": [
+        "2026-11-14",
+        "2026-11-28",
+        "2026-12-12",
+        "2026-12-26"
+      ],
+      "maxGuests": 25,
+      "itinerary": "Ngày 1: Khám phá Phố cổ Hội An - Chùa Cầu - Thả đèn hoa đăng sông Hoài\nNgày 2: Rừng dừa Bảy Mẫu - Trải nghiệm chèo thuyền thúng - Kết thúc tour",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "ta-xua-2n1d",
+      "name": "Tà Xùa săn mây · 2 ngày 1 đêm",
+      "place": "Bắc Yên",
+      "region": "Sơn La",
+      "duration": "2 ngày 1 đêm",
+      "price": 1890000,
+      "image": "photo-1470770841072-f978cf4d019e",
+      "departures": [
+        "2026-11-15",
+        "2026-11-29",
+        "2026-12-13",
+        "2026-12-27"
+      ],
+      "maxGuests": 20,
+      "itinerary": "Ngày 1: Khởi hành lên Tà Xùa - Check-in sống lưng Khủng Long Háng Đồng\nNgày 2: Săn mây đỉnh Gió - Thưởng thức cafe mây - Trở về",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "ha-giang-4n3d",
+      "name": "Hà Giang · Mã Pí Lèng · 4 ngày 3 đêm",
+      "place": "Hà Giang",
+      "region": "Hà Giang",
+      "duration": "4 ngày 3 đêm",
+      "price": 4290000,
+      "image": "photo-1519681393784-d120267933ba",
+      "departures": [
+        "2026-11-13",
+        "2026-11-27",
+        "2026-12-11",
+        "2026-12-25"
+      ],
+      "maxGuests": 20,
+      "itinerary": "Ngày 1: Hà Nội - Hà Giang - Cột mốc số 0 - Quản Bạ Núi Đôi\nNgày 2: Rừng thông Yên Minh - Nhà của Pao - Dinh họ Vương - Đồng Văn\nNgày 3: Đèo Mã Pí Lèng - Du thuyền sông Nho Quế - Hẻm Tu Sản - Mèo Vạc\nNgày 4: Mèo Vạc - TP Hà Giang - Trở về Hà Nội",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "phu-quoc-4n3d",
+      "name": "Phú Quốc · Đảo ngọc nghỉ dưỡng · 4 ngày 3 đêm",
+      "place": "Phú Quốc",
+      "region": "Kiên Giang",
+      "duration": "4 ngày 3 đêm",
+      "price": 6890000,
+      "image": "photo-1500375592092-40eb2168fd21",
+      "departures": [
+        "2026-11-10",
+        "2026-11-24",
+        "2026-12-08",
+        "2026-12-22"
+      ],
+      "maxGuests": 35,
+      "itinerary": "Ngày 1: Đáp sân bay Phú Quốc - Check-in resort - Dạo Chợ đêm Grand World\nNgày 2: Tour 4 đảo cáp treo Hòn Thơm - Lặn ngắm san hô - Sunset Sanato\nNgày 3: VinWonders & Safari Phú Quốc - Trình diễn nhạc nước\nNgày 4: Cơ sở ngọc trai - Vườn tiêu - Mua đặc sản - Tiễn sân bay",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "da-lat-3n2d",
+      "name": "Đà Lạt · Thành phố ngàn hoa · 3 ngày 2 đêm",
+      "place": "Đà Lạt",
+      "region": "Lâm Đồng",
+      "duration": "3 ngày 2 đêm",
+      "price": 2790000,
+      "image": "photo-1500530855697-b586d89ba3ee",
+      "departures": [
+        "2026-11-16",
+        "2026-11-28",
+        "2026-12-12",
+        "2026-12-26"
+      ],
+      "maxGuests": 30,
+      "itinerary": "Ngày 1: Đón khách tại Đà Lạt - Quảng trường Lâm Viên - Ga Đà Lạt - Chợ đêm\nNgày 2: Đồi chè Cầu Đất săn mây - Puppy Farm - Thác Datanla máng trượt\nNgày 3: Thiền viện Trúc Lâm - Hồ Tuyền Lâm - Tiễn đoàn",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "sa-pa-3n2d",
+      "name": "Sa Pa · Fansipan & bản làng · 3 ngày 2 đêm",
+      "place": "Sa Pa",
+      "region": "Lào Cai",
+      "duration": "3 ngày 2 đêm",
+      "price": 3190000,
+      "image": "photo-1501785888041-af3ef285b470",
+      "departures": [
+        "2026-11-14",
+        "2026-11-28",
+        "2026-12-05",
+        "2026-12-19"
+      ],
+      "maxGuests": 25,
+      "itinerary": "Ngày 1: Hà Nội - Sa Pa - Bản Cát Cát - Thác Tiên Sa\nNgày 2: Chinh phục đỉnh Fansipan Nóc nhà Đông Dương - Moana Sa Pa\nNgày 3: Nhà thờ đá Sa Pa - Chợ phiên - Trở về Hà Nội",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "con-dao-3n2d",
+      "name": "Côn Đảo · Hành trình tâm linh · 3 ngày 2 đêm",
+      "place": "Côn Đảo",
+      "region": "Bà Rịa - Vũng Tàu",
+      "duration": "3 ngày 2 đêm",
+      "price": 5490000,
+      "image": "photo-1519046904884-53103b34b206",
+      "departures": [
+        "2026-11-20",
+        "2026-12-04",
+        "2026-12-18",
+        "2026-12-27"
+      ],
+      "maxGuests": 20,
+      "itinerary": "Ngày 1: Bay đến Côn Đảo - Miếu Bà Phi Yến - Bãi Nhát - Đỉnh Tình Yêu\nNgày 2: Viếng Nghĩa trang Hàng Dương mộ Cô Sáu - Trại giam Phú Hải - Chuồng Cọp\nNgày 3: Bãi biển Đầm Trầu - Chùa Núi Một - Tiễn sân bay",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "hue-da-nang-4n3d",
+      "name": "Huế – Đà Nẵng · Di sản miền Trung · 4 ngày 3 đêm",
+      "place": "Huế",
+      "region": "Thừa Thiên Huế",
+      "duration": "4 ngày 3 đêm",
+      "price": 4650000,
+      "image": "photo-1523906834658-6e24ef2386f9",
+      "departures": [
+        "2026-11-18",
+        "2026-11-25",
+        "2026-12-09",
+        "2026-12-23"
+      ],
+      "maxGuests": 25,
+      "itinerary": "Ngày 1: Huế - Đại Nội Kinh thành Huế - Chùa Thiên Mụ - Ca Huế sông Hương\nNgày 2: Lăng Khải Định - Đèo Hải Vân - Đà Nẵng - Biển Mỹ Khê\nNgày 3: Bà Nà Hills - Cầu Vàng Bàn tay Phật - Phố cổ Hội An\nNgày 4: Bán đảo Sơn Trà - Chùa Linh Ứng - Chợ Cồn - Tiễn sân bay",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
     }
   ]
 }

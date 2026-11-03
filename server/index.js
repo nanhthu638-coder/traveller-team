@@ -48,8 +48,39 @@ let store = {
     vouchers: [],
     payments: [],
     sessions: [],
-    destinations: []
+    destinations: [],
+    tours: [],
 };
+
+// ===== Real-Time Server-Sent Events (SSE) Hub =====
+const realtimeClients = new Set();
+
+function broadcastRealtime(type, payload = {}) {
+	const eventData = JSON.stringify({
+		type,
+		payload,
+		timestamp: new Date().toISOString(),
+	});
+	const message = `data: ${eventData}\n\n`;
+	for (const client of realtimeClients) {
+		try {
+			client.res.write(message);
+		} catch {
+			realtimeClients.delete(client);
+		}
+	}
+}
+
+function getAllTours() {
+	if (!Array.isArray(store.tours) || !store.tours.length) {
+		store.tours = structuredClone(DEFAULT_TOURS);
+	}
+	return store.tours;
+}
+
+function getActiveTours() {
+	return getAllTours().filter((tour) => tour.status !== "inactive");
+}
 
 let writeQueue = Promise.resolve();
 let database;
@@ -140,6 +171,8 @@ async function persistStore() {
 			vouchers: snapshot.vouchers ?? [],
 			payments: snapshot.payments ?? [],
 			sessions: snapshot.sessions ?? [],
+			destinations: snapshot.destinations ?? [],
+			tours: snapshot.tours ?? [],
 		};
 		await writeFile(dataPath, `${JSON.stringify(json, null, 2)}\n`, "utf8");
 	});
@@ -154,14 +187,74 @@ function validEmail(email) {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 120;
 }
 
-// Gắn điểm trung bình + số lượt đánh giá thật vào tour (null / 0 nếu chưa có đánh giá)
+// SSE Endpoint kết nối Real-time cho cả Khách hàng & Admin
+app.get("/api/realtime/stream", (request, response) => {
+	response.setHeader("Content-Type", "text/event-stream");
+	response.setHeader("Cache-Control", "no-cache, no-transform");
+	response.setHeader("Connection", "keep-alive");
+	response.setHeader("X-Accel-Buffering", "no");
+	if (typeof response.flushHeaders === "function") {
+		response.flushHeaders();
+	}
+
+	const user = currentUser(request);
+	const client = {
+		id: randomUUID(),
+		res: response,
+		userId: user?.id || null,
+	};
+	realtimeClients.add(client);
+
+	const welcome = JSON.stringify({
+		type: "connected",
+		payload: { clientId: client.id, onlineCount: realtimeClients.size },
+		timestamp: new Date().toISOString(),
+	});
+	response.write(`data: ${welcome}\n\n`);
+
+	const heartbeat = setInterval(() => {
+		try {
+			response.write(": ping\n\n");
+		} catch {
+			clearInterval(heartbeat);
+			realtimeClients.delete(client);
+		}
+	}, 25000);
+
+	request.on("close", () => {
+		clearInterval(heartbeat);
+		realtimeClients.delete(client);
+	});
+});
+
+// Gắn điểm trung bình + số lượt đánh giá thật + tình trạng chỗ trống theo thời gian thực vào tour
 function withRating(tour, ratings = ratingsByTour(store.reviews)) {
 	const info = ratings.get(tour.id);
-	return { ...tour, rating: info?.rating ?? null, reviewCount: info?.reviewCount ?? 0 };
+	const today = todayInVietnam();
+	const slots = tourAvailability(tour, store.bookings || [], today);
+	const openSlot = slots.find((s) => s.remaining > 0) || slots[0] || null;
+	const maxGuests = Number(tour.maxGuests) || 25;
+	const totalBooked = (store.bookings || [])
+		.filter((b) => b.status !== "cancelled" && b.tour?.id === tour.id)
+		.reduce((sum, b) => sum + seatsOf(b.passengers), 0);
+
+	return {
+		...tour,
+		maxGuests,
+		status: tour.status || "active",
+		itinerary: tour.itinerary || "",
+		rating: info?.rating ?? null,
+		reviewCount: info?.reviewCount ?? 0,
+		upcomingDepartures: slots.map((s) => s.date),
+		nextDeparture: openSlot ? openSlot.date : (tour.departures?.[0] || ""),
+		remainingSeats: openSlot ? openSlot.remaining : maxGuests,
+		nextCapacity: openSlot ? openSlot.capacity : maxGuests,
+		totalBookedGuests: totalBooked,
+	};
 }
 
 app.get("/api/tours", (request, response) => {
-	const result = searchTours(request.query);
+	const result = searchTours(request.query, getActiveTours());
 	if (result.error) return response.status(400).json({ error: result.error });
 	const ratings = ratingsByTour(store.reviews);
 	return response.json({ total: result.tours.length, tours: result.tours.map((tour) => withRating(tour, ratings)) });
@@ -170,15 +263,16 @@ app.get("/api/tours", (request, response) => {
 app.get("/api/tours/:id", (request, response) => {
 	if (!currentUser(request)) return response.status(401).json({ error: "Vui lòng đăng nhập để xem chi tiết tour." });
 
-	const result = searchTours();
-	const tour = result.tours.find((item) => item.id === request.params.id);
-	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+	const tour = getActiveTours().find((item) => item.id === request.params.id)
+		|| getAllTours().find((item) => item.id === request.params.id);
+	if (!tour || tour.status === "inactive") return response.status(404).json({ error: "Tour này không tồn tại hoặc đang tạm ngưng phục vụ." });
 	return response.json({ tour: withRating(tour) });
 });
 
 // Kiểm tra chỗ trống: sức chứa / đã đặt / còn lại của từng ngày khởi hành còn hiệu lực (công khai, chỉ đọc)
 app.get("/api/tours/:id/availability", (request, response) => {
-	const tour = searchTours().tours.find((item) => item.id === request.params.id);
+	const tour = getActiveTours().find((item) => item.id === request.params.id)
+		|| getAllTours().find((item) => item.id === request.params.id);
 	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
 	response.setHeader("Cache-Control", "no-store");
 	return response.json({ tourId: tour.id, departures: tourAvailability(tour, store.bookings, todayInVietnam()) });
@@ -231,6 +325,14 @@ app.post("/api/bookings/:id/cancellation-request", async (request, response, nex
 			else booking.cancellationRequest = previous;
 			throw error;
 		}
+		broadcastRealtime("booking:cancellation-requested", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			customerName: booking.contact?.name || user.name,
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+		});
 		return response.status(201).json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
 		return next(error);
@@ -311,6 +413,12 @@ app.post("/api/bookings/:id/voucher", async (request, response, next) => {
 			if (payment) payment.amount = previousPaymentAmount;
 			throw error;
 		}
+		broadcastRealtime("booking:updated", {
+			bookingId: storedBooking.id,
+			code: storedBooking.code,
+			userId: storedBooking.userId,
+			total: storedBooking.total,
+		});
 		return response.json({
 			booking: findUserBooking(store.bookings, user.id, storedBooking.id),
 			payment,
@@ -353,6 +461,15 @@ app.post("/api/payments/:id/demo-confirm", async (request, response, next) => {
 				if (voucher) voucher.usageCount = previousUsageCount;
 				throw error;
 			}
+			broadcastRealtime("payment:confirmed", {
+				bookingId: booking.id,
+				code: booking.code,
+				userId: booking.userId,
+				customerName: booking.contact?.name || user.name,
+				tourId: booking.tour?.id,
+				tourName: booking.tour?.name,
+				amount: payment.amount,
+			});
 		}
 		return response.json({ payment, booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
@@ -366,8 +483,8 @@ app.post("/api/bookings", async (request, response, next) => {
 		const user = currentUser(request);
 		if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để đặt tour." });
 
-		const tour = searchTours().tours.find((item) => item.id === request.body?.tourId);
-		if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const tour = getActiveTours().find((item) => item.id === request.body?.tourId);
+		if (!tour) return response.status(404).json({ error: "Tour này không tồn tại hoặc đang ngừng nhận khách." });
 		const departureDate = cleanText(request.body?.departureDate, 10);
 		if (!tour.departures.includes(departureDate)) {
 			return response.status(400).json({ error: "Ngày khởi hành không hợp lệ cho tour này." });
@@ -406,6 +523,25 @@ app.post("/api/bookings", async (request, response, next) => {
 		});
 		store.bookings.push(booking);
 		await persistStore();
+		const updatedSlot = departureAvailability(tour, departureDate, store.bookings);
+		broadcastRealtime("booking:created", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			customerName: booking.contact?.name || user.name,
+			tourId: tour.id,
+			tourName: tour.name,
+			departureDate,
+			seats,
+			remainingSeats: updatedSlot.remaining,
+			total: booking.total,
+		});
+		broadcastRealtime("availability:updated", {
+			tourId: tour.id,
+			departureDate,
+			remaining: updatedSlot.remaining,
+			capacity: updatedSlot.capacity,
+		});
 		return response.status(201).json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
 		return next(error);
@@ -426,6 +562,7 @@ app.post("/api/dev/demo-bookings", async (request, response, next) => {
 		store.bookings.push(...demo);
 		if (!store.reviews.some((review) => review.userId.startsWith("demo-user-"))) store.reviews.push(...buildDemoReviews());
 		await persistStore();
+		broadcastRealtime("booking:created", { userId: user.id, customerName: user.name, demo: true });
 		return response.status(201).json({ created: demo.length });
 	} catch (error) {
 		return next(error);
@@ -678,6 +815,13 @@ app.post("/api/inquiries", async (request, response, next) => {
 			store.inquiries = store.inquiries.filter((item) => item.id !== inquiry.id);
 			throw error;
 		}
+		broadcastRealtime("inquiry:changed", {
+			action: "created",
+			inquiryId: inquiry.id,
+			name: inquiry.name,
+			topic: inquiry.topic,
+			userId: inquiry.userId || null,
+		});
 		return response.status(201).json({ inquiry: { id: inquiry.id, name: inquiry.name }, trackedInAccount: Boolean(user) });
 	} catch (error) {
 		return next(error);
@@ -713,6 +857,12 @@ app.patch("/api/admin/inquiries/:id/resolve", async (request, response, next) =>
 			else inquiry.resolvedBy = previous.resolvedBy;
 			throw error;
 		}
+		broadcastRealtime("inquiry:changed", {
+			action: "resolved",
+			inquiryId: inquiry.id,
+			topic: inquiry.topic,
+			userId: inquiry.userId || null,
+		});
 		return response.json({ inquiry });
 	} catch (error) {
 		return next(error);
@@ -754,7 +904,7 @@ app.get("/api/admin/tours", (request, response) => {
 	const minPrice = Number(request.query.minPrice);
 	const maxPrice = Number(request.query.maxPrice);
 
-	const allTours = store.tours && store.tours.length ? store.tours : DEFAULT_TOURS;
+	const allTours = getAllTours();
 	const formattedList = allTours.map((t) => formatAdminTour(t, store.bookings, store.reviews));
 
 	const normKeyword = normalizeText(keyword);
@@ -801,7 +951,7 @@ app.get("/api/admin/tours", (request, response) => {
 app.get("/api/admin/tours/:id", (request, response) => {
 	if (!adminUser(request, response)) return;
 
-	const allTours = store.tours && store.tours.length ? store.tours : DEFAULT_TOURS;
+	const allTours = getAllTours();
 	const tour = allTours.find((item) => item.id === request.params.id);
 	if (!tour) return response.status(404).json({ error: "Tour du lịch này không tồn tại." });
 
@@ -810,7 +960,7 @@ app.get("/api/admin/tours/:id", (request, response) => {
 		.map((b) => ({
 			id: b.id,
 			code: b.code || b.id,
-			customerName: b.contact?.fullName || b.customerName || "Khách hàng",
+			customerName: b.contact?.fullName || b.contact?.name || b.customerName || "Khách hàng",
 			phone: b.contact?.phone || "",
 			email: b.contact?.email || "",
 			departureDate: b.departureDate,
@@ -890,7 +1040,7 @@ app.post("/api/admin/tours", async (request, response, next) => {
 		if (!slugBase) slugBase = "tour";
 		let id = `${slugBase}-${Date.now().toString(36)}`;
 
-		const allTours = store.tours && store.tours.length ? store.tours : (store.tours = structuredClone(DEFAULT_TOURS));
+		const allTours = getAllTours();
 		while (allTours.some((t) => t.id === id)) {
 			id = `${slugBase}-${Math.random().toString(36).slice(2, 7)}`;
 		}
@@ -921,6 +1071,13 @@ app.post("/api/admin/tours", async (request, response, next) => {
 			throw err;
 		}
 
+		broadcastRealtime("tour:changed", {
+			action: "created",
+			tourId: newTour.id,
+			tourName: newTour.name,
+			status: newTour.status,
+		});
+
 		return response.status(201).json({
 			message: "Thêm tour du lịch mới thành công.",
 			tour: formatAdminTour(newTour, store.bookings, store.reviews),
@@ -935,7 +1092,7 @@ app.put("/api/admin/tours/:id", async (request, response, next) => {
 	try {
 		if (!adminUser(request, response)) return;
 
-		const allTours = store.tours && store.tours.length ? store.tours : (store.tours = structuredClone(DEFAULT_TOURS));
+		const allTours = getAllTours();
 		const tour = allTours.find((item) => item.id === request.params.id);
 		if (!tour) return response.status(404).json({ error: "Không tìm thấy Tour du lịch cần cập nhật." });
 
@@ -1010,6 +1167,13 @@ app.put("/api/admin/tours/:id", async (request, response, next) => {
 			throw err;
 		}
 
+		broadcastRealtime("tour:changed", {
+			action: "updated",
+			tourId: tour.id,
+			tourName: tour.name,
+			status: tour.status,
+		});
+
 		return response.json({
 			message: "Cập nhật thông tin Tour du lịch thành công.",
 			tour: formatAdminTour(tour, store.bookings, store.reviews),
@@ -1024,7 +1188,7 @@ app.patch("/api/admin/tours/:id/status", async (request, response, next) => {
 	try {
 		if (!adminUser(request, response)) return;
 
-		const allTours = store.tours && store.tours.length ? store.tours : (store.tours = structuredClone(DEFAULT_TOURS));
+		const allTours = getAllTours();
 		const tour = allTours.find((item) => item.id === request.params.id);
 		if (!tour) return response.status(404).json({ error: "Không tìm thấy Tour du lịch." });
 
@@ -1040,6 +1204,13 @@ app.patch("/api/admin/tours/:id/status", async (request, response, next) => {
 			throw err;
 		}
 
+		broadcastRealtime("tour:changed", {
+			action: "status",
+			tourId: tour.id,
+			tourName: tour.name,
+			status: tour.status,
+		});
+
 		return response.json({
 			message: `Đã chuyển trạng thái Tour sang "${tour.status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}".`,
 			tour: formatAdminTour(tour, store.bookings, store.reviews),
@@ -1054,7 +1225,7 @@ app.delete("/api/admin/tours/:id", async (request, response, next) => {
 	try {
 		if (!adminUser(request, response)) return;
 
-		const allTours = store.tours && store.tours.length ? store.tours : (store.tours = structuredClone(DEFAULT_TOURS));
+		const allTours = getAllTours();
 		const tour = allTours.find((item) => item.id === request.params.id);
 		if (!tour) return response.status(404).json({ error: "Không tìm thấy Tour du lịch cần xóa." });
 
@@ -1070,7 +1241,7 @@ app.delete("/api/admin/tours/:id", async (request, response, next) => {
 				bookings: relatedBookings.map((b) => ({
 					id: b.id,
 					code: b.code || b.id,
-					customerName: b.contact?.fullName || b.customerName || "Khách hàng",
+					customerName: b.contact?.fullName || b.contact?.name || b.customerName || "Khách hàng",
 					phone: b.contact?.phone || "",
 					departureDate: b.departureDate,
 					status: b.status,
@@ -1089,6 +1260,12 @@ app.delete("/api/admin/tours/:id", async (request, response, next) => {
 			allTours.splice(removedIndex, 0, removedTour);
 			throw err;
 		}
+
+		broadcastRealtime("tour:changed", {
+			action: "deleted",
+			tourId: tour.id,
+			tourName: tour.name,
+		});
 
 		return response.json({
 			success: true,
@@ -1201,6 +1378,27 @@ app.patch("/api/admin/bookings/:id/status", async (request, response, next) => {
 			Object.assign(booking, previous);
 			throw error;
 		}
+		broadcastRealtime("booking:status-updated", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			status: booking.status,
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+			rejectReason: booking.rejectReason || "",
+		});
+		if (nextStatus === "cancelled" && booking.tour?.id) {
+			const tourObj = getAllTours().find((t) => t.id === booking.tour.id);
+			if (tourObj) {
+				const slot = departureAvailability(tourObj, booking.departureDate, store.bookings);
+				broadcastRealtime("availability:updated", {
+					tourId: tourObj.id,
+					departureDate: booking.departureDate,
+					remaining: slot.remaining,
+					capacity: slot.capacity,
+				});
+			}
+		}
 		const { userId, ...publicAdminBooking } = booking;
 		return response.json({ booking: publicAdminBooking });
 	} catch (error) {
@@ -1245,6 +1443,27 @@ app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next
 			booking.updatedAt = previous.updatedAt;
 			booking.cancellationRequest = previous.cancellationRequest;
 			throw error;
+		}
+		broadcastRealtime("booking:cancellation-decided", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			decision,
+			status: booking.status,
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+		});
+		if (decision === "approved" && booking.tour?.id) {
+			const tourObj = getAllTours().find((t) => t.id === booking.tour.id);
+			if (tourObj) {
+				const slot = departureAvailability(tourObj, booking.departureDate, store.bookings);
+				broadcastRealtime("availability:updated", {
+					tourId: tourObj.id,
+					departureDate: booking.departureDate,
+					remaining: slot.remaining,
+					capacity: slot.capacity,
+				});
+			}
 		}
 		return response.json({ booking });
 	} catch (error) {
@@ -1358,19 +1577,17 @@ app.delete("/api/admin/customers/:id", async (request, response, next) => {
  */
 function getToursUsingDestination(destination) {
 	const normName = normalizeText(destination.name || "");
-	const normRegion = normalizeText(destination.region || "");
-	const allTours = searchTours().tours;
+	const allTours = getAllTours();
 
 	return allTours
 		.filter((tour) => {
 			if (tour.destinationId && tour.destinationId === destination.id) return true;
 			const tourPlace = normalizeText(tour.place || "");
-			const tourRegion = normalizeText(tour.region || "");
 			const tourName = normalizeText(tour.name || "");
 
 			if (tourPlace && (normName.includes(tourPlace) || tourPlace.includes(normName))) return true;
 			if (normName.length >= 3 && tourName.includes(normName)) return true;
-			const coreName = normName.replace(/^(vinh|pho co|dao ngoc|co do|thanh pho|quan dao|quan the|thi xa)s+/, "");
+			const coreName = normName.replace(/^(vinh|pho co|dao ngoc|co do|thanh pho|quan dao|quan the|thi xa)\s+/, "");
 			if (coreName.length >= 3 && (tourName.includes(coreName) || (tourPlace && tourPlace.includes(coreName)))) return true;
 			return false;
 		})
@@ -1508,6 +1725,13 @@ app.post("/api/admin/destinations", async (request, response, next) => {
 			throw error;
 		}
 
+		broadcastRealtime("destination:changed", {
+			action: "created",
+			destinationId: destination.id,
+			name: destination.name,
+			region: destination.region,
+		});
+
 		return response.status(201).json({
 			message: "Thêm địa điểm du lịch thành công.",
 			destination: { ...destination, tours: [], toursCount: 0 },
@@ -1566,6 +1790,13 @@ app.put("/api/admin/destinations/:id", async (request, response, next) => {
 			throw error;
 		}
 
+		broadcastRealtime("destination:changed", {
+			action: "updated",
+			destinationId: destination.id,
+			name: destination.name,
+			region: destination.region,
+		});
+
 		const tours = getToursUsingDestination(destination);
 		return response.json({
 			message: "Cập nhật thông tin địa điểm thành công.",
@@ -1604,6 +1835,12 @@ app.delete("/api/admin/destinations/:id", async (request, response, next) => {
 			store.destinations = previous;
 			throw error;
 		}
+
+		broadcastRealtime("destination:changed", {
+			action: "deleted",
+			destinationId: destination.id,
+			name: destination.name,
+		});
 
 		return response.json({
 			success: true,
@@ -1673,7 +1910,7 @@ function formatAdminReview(review, toursMap) {
 }
 
 function buildTourReviewSummaries() {
-	const allTours = searchTours().tours;
+	const allTours = getAllTours();
 	const allReviews = store.reviews || [];
 	return allTours.map((tour) => {
 		const tourRevs = allReviews.filter((r) => r.tourId === tour.id);
@@ -1704,7 +1941,7 @@ app.get("/api/admin/reviews", (request, response) => {
 	const hasImages = typeof request.query.hasImages === "string" ? request.query.hasImages : "all"; // all | with-images | no-images
 	const sort = typeof request.query.sort === "string" ? request.query.sort : "newest"; // newest | oldest | highest | lowest
 
-	const allTours = searchTours().tours;
+	const allTours = getAllTours();
 	const toursMap = new Map(allTours.map((t) => [t.id, t]));
 	const allReviews = (store.reviews || []).map((r) => formatAdminReview(r, toursMap));
 
@@ -1757,7 +1994,7 @@ app.get("/api/admin/reviews/:id", (request, response) => {
 	if (!review) {
 		return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
 	}
-	const allTours = searchTours().tours;
+	const allTours = getAllTours();
 	const toursMap = new Map(allTours.map((t) => [t.id, t]));
 	const tourSummary = buildTourReviewSummaries().find((s) => s.tourId === review.tourId) || null;
 	return response.json({
@@ -1790,7 +2027,13 @@ app.patch("/api/admin/reviews/:id/visibility", async (request, response, next) =
 			throw error;
 		}
 
-		const allTours = searchTours().tours;
+		broadcastRealtime("review:changed", {
+			action: nextHidden ? "hidden" : "visible",
+			reviewId: review.id,
+			tourId: review.tourId,
+		});
+
+		const allTours = getAllTours();
 		const toursMap = new Map(allTours.map((t) => [t.id, t]));
 		return response.json({
 			message: nextHidden
@@ -1818,6 +2061,12 @@ app.delete("/api/admin/reviews/:id", async (request, response, next) => {
 		await persistStore();
 		await removeImageFiles(removed.images);
 
+		broadcastRealtime("review:changed", {
+			action: "deleted",
+			reviewId: removed.id,
+			tourId: removed.tourId,
+		});
+
 		return response.json({
 			success: true,
 			message: "Đã xóa vĩnh viễn đánh giá vi phạm thành công.",
@@ -1844,7 +2093,7 @@ function decodeNewImages(list) {
 
 // Đọc đánh giá của một tour: công khai (khách chưa đăng nhập vẫn xem được), kèm quyền đánh giá của người đang đăng nhập
 app.get("/api/tours/:id/reviews", (request, response) => {
-	const tour = searchTours().tours.find((item) => item.id === request.params.id);
+	const tour = getAllTours().find((item) => item.id === request.params.id);
 	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
 
 	const user = currentUser(request);
@@ -1889,6 +2138,14 @@ app.post("/api/bookings/:id/review", async (request, response, next) => {
 		created = createReview({ user, booking, ...input, images: savedNames });
 		store.reviews.push(created);
 		await persistStore();
+		broadcastRealtime("review:changed", {
+			action: "created",
+			reviewId: created.id,
+			tourId: created.tourId,
+			tourName: booking.tour?.name,
+			authorName: user.name,
+			rating: created.rating,
+		});
 		return response.status(201).json({ review: publicReview(created, user.id) });
 	} catch (error) {
 		if (created) store.reviews = store.reviews.filter((item) => item.id !== created.id);
@@ -1933,6 +2190,13 @@ app.put("/api/reviews/:id", async (request, response, next) => {
 		Object.assign(review, { rating: input.rating, comment: input.comment, images: [...keep, ...newNames], updatedAt: new Date().toISOString() });
 		await persistStore();
 		await removeImageFiles(snapshot.images.filter((name) => !keep.includes(name)));
+		broadcastRealtime("review:changed", {
+			action: "updated",
+			reviewId: review.id,
+			tourId: review.tourId,
+			authorName: user.name,
+			rating: review.rating,
+		});
 		return response.json({ review: publicReview(review, user.id) });
 	} catch (error) {
 		if (snapshot && review) Object.assign(review, snapshot);
@@ -1953,6 +2217,11 @@ app.delete("/api/reviews/:id", async (request, response, next) => {
 		store.reviews = store.reviews.filter((item) => item.id !== removed.id);
 		await persistStore();
 		await removeImageFiles(removed.images);
+		broadcastRealtime("review:changed", {
+			action: "deleted",
+			reviewId: removed.id,
+			tourId: removed.tourId,
+		});
 		return response.json({ ok: true });
 	} catch (error) {
 		if (removed && !store.reviews.some((item) => item.id === removed.id)) store.reviews.push(removed);
@@ -1972,6 +2241,14 @@ app.post("/api/dev/bookings/:id/complete", async (request, response, next) => {
 
 		Object.assign(booking, { status: "completed", paymentStatus: "paid", updatedAt: new Date().toISOString() });
 		await persistStore();
+		broadcastRealtime("booking:status-updated", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			status: "completed",
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+		});
 		return response.json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
 		return next(error);
@@ -1992,6 +2269,24 @@ app.use((error, request, response, next) => {
 		error: status === 400 ? "Dữ liệu JSON gửi lên không hợp lệ." : "Máy chủ không thể xử lý yêu cầu lúc này.",
 	});
 });
+
+function ensureTourDeparturesFresh(toursList) {
+	const today = todayInVietnam();
+	const defaultsMap = new Map(DEFAULT_TOURS.map((t) => [t.id, t]));
+	for (const tour of toursList) {
+		const def = defaultsMap.get(tour.id);
+		if (def) {
+			const futureCount = (tour.departures || []).filter((d) => d >= today).length;
+			if (futureCount < 2) {
+				tour.departures = Array.from(new Set([...(tour.departures || []), ...def.departures])).sort();
+			}
+			if (!tour.itinerary && def.itinerary) tour.itinerary = def.itinerary;
+			if (!tour.maxGuests && def.maxGuests) tour.maxGuests = def.maxGuests;
+			if (!tour.status) tour.status = "active";
+		}
+	}
+	return toursList;
+}
 
 async function start() {
 	await mkdir(dataDirectory, { recursive: true });
@@ -2022,6 +2317,8 @@ async function start() {
 						vouchers: Array.isArray(savedData.vouchers) ? savedData.vouchers : [],
 						payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 						sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
+						destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
+						tours: Array.isArray(savedData.tours) && savedData.tours.length ? savedData.tours : structuredClone(DEFAULT_TOURS),
 					};
 					console.log("SQL Server is empty; importing existing app-data.json records.");
 				} catch (error) {
@@ -2034,6 +2331,11 @@ async function start() {
 				store.vouchers = structuredClone(DEMO_VOUCHERS);
 				shouldPersist = true;
 			}
+			if (!store.tours || !store.tours.length) {
+				store.tours = structuredClone(DEFAULT_TOURS);
+				shouldPersist = true;
+			}
+			ensureTourDeparturesFresh(store.tours);
 			if (shouldPersist) await persistStore();
 			return app.listen(port, () => {
 				console.log(`Traveller Team API listening on http://localhost:${port}`);
@@ -2057,6 +2359,7 @@ async function start() {
 			payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 			sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
 			destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
+			tours: Array.isArray(savedData.tours) && savedData.tours.length ? savedData.tours : structuredClone(DEFAULT_TOURS),
 		};
 		console.log("Using app-data.json as local fallback storage.");
 	} catch (error) {
@@ -2070,6 +2373,7 @@ async function start() {
 			payments: [],
 			sessions: [],
 			destinations: structuredClone(DEFAULT_DESTINATIONS),
+			tours: structuredClone(DEFAULT_TOURS),
 		};
 		console.log("No local data file found; created a fresh in-memory store.");
 	}
@@ -2080,6 +2384,10 @@ async function start() {
 	if (!store.destinations || !store.destinations.length) {
 		store.destinations = structuredClone(DEFAULT_DESTINATIONS);
 	}
+	if (!store.tours || !store.tours.length) {
+		store.tours = structuredClone(DEFAULT_TOURS);
+	}
+	ensureTourDeparturesFresh(store.tours);
 	if (!Array.isArray(store.reviews)) {
 		store.reviews = [];
 	}

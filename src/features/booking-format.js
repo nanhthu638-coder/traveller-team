@@ -2,7 +2,12 @@
 const priceFormat = new Intl.NumberFormat("vi-VN");
 
 export const formatPrice = (value) => `${priceFormat.format(Math.round(value))}đ`;
-export const imageUrl = (id, width = 900) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=80`;
+export const imageUrl = (id, width = 900) => {
+  const val = String(id || "").trim();
+  if (!val) return `https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=${width}&q=80`;
+  if (/^(https?:\/\/|\/|data:)/i.test(val)) return val;
+  return `https://images.unsplash.com/${val}?auto=format&fit=crop&w=${width}&q=80`;
+};
 
 export function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);

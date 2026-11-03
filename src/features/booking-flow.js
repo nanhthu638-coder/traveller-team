@@ -1,7 +1,8 @@
 // ===== Đặt tour: chọn số lượng khách → kiểm tra chỗ trống → nhập thông tin hành khách → tạo đơn =====
 // Dùng ở trang chi tiết tour (src/tour-detail.js). Server luôn kiểm tra lại mọi thứ (server/availability.js, server/passengers.js);
-// phần kiểm tra ở đây chỉ để báo lỗi sớm cho người dùng.
+// phần kiểm tra ở đây chỉ để báo lỗi sớm cho người dùng + đồng bộ số chỗ theo thời gian thực qua SSE.
 import { escapeHtml, formatDate, formatPrice, redirectToLogin } from "./booking-format.js";
+import { subscribeRealtime } from "./realtime.js";
 
 const CHILD_RATE = 0.7; // cùng công thức với server/bookings.js
 const TYPE_ORDER = ["adult", "child", "infant"];
@@ -38,13 +39,13 @@ export async function fetchAvailability(tourId) {
 
 /** HTML các <option> ngày khởi hành kèm số chỗ còn lại; ngày hết chỗ bị vô hiệu hóa. */
 export function departureOptions(tour, availability, selected = "") {
-  const dates = tour.departures.filter((date) => date >= todayInVietnam());
+  const dates = (tour.departures || []).filter((date) => date >= todayInVietnam());
   if (!dates.length) return { html: '<option value="">Hiện chưa có ngày khởi hành</option>', canBook: false, selected: "" };
   const isOpen = (date) => !availability?.get(date) || availability.get(date).remaining > 0;
   const chosen = isOpen(selected) && dates.includes(selected) ? selected : dates.find(isOpen) || "";
   const html = dates.map((date) => {
     const slot = availability?.get(date);
-    const label = slot ? (slot.remaining === 0 ? " · Hết chỗ" : ` · còn ${slot.remaining} chỗ`) : "";
+    const label = slot ? (slot.remaining === 0 ? " · Hết chỗ" : ` · còn ${slot.remaining}/${slot.capacity} chỗ`) : "";
     return `<option value="${date}"${isOpen(date) ? "" : " disabled"}${date === chosen ? " selected" : ""}>${formatDate(date)}${label}</option>`;
   }).join("");
   return { html, canBook: Boolean(chosen), selected: chosen };
@@ -81,7 +82,7 @@ export function initBooking({ page, tour, user, availability: initialAvailabilit
     let tone = "is-muted";
     let text = "";
     if (!dateSelect.value) {
-      text = tour.departures.some((date) => date >= todayInVietnam()) ? "Tất cả ngày khởi hành hiện đều đã hết chỗ." : "";
+      text = (tour.departures || []).some((date) => date >= todayInVietnam()) ? "Tất cả ngày khởi hành hiện đều đã hết chỗ." : "";
       tone = "is-warn";
     } else if (!slot) {
       text = "Hệ thống sẽ kiểm tra chỗ trống khi bạn bấm tiếp tục.";
@@ -106,6 +107,7 @@ export function initBooking({ page, tour, user, availability: initialAvailabilit
     const picker = departureOptions(tour, availability, dateSelect.value);
     dateSelect.innerHTML = picker.html;
     dateSelect.value = picker.selected;
+    dateSelect.disabled = !picker.canBook;
     updateAvailabilityNote();
     return true;
   }
@@ -114,10 +116,16 @@ export function initBooking({ page, tour, user, availability: initialAvailabilit
     showError("");
     updateAvailabilityNote();
   });
-  // Các ô số lượng khách đã được tour-detail.js cập nhật trước (đăng ký trước), ở đây chỉ cập nhật ghi chú chỗ trống
   page.querySelectorAll("[data-step]").forEach((button) => button.addEventListener("click", () => { showError(""); updateAvailabilityNote(); }));
   page.querySelectorAll("input[data-role]").forEach((input) => input.addEventListener("input", () => { showError(""); updateAvailabilityNote(); }));
   updateAvailabilityNote();
+
+  // Tự động làm mới chỗ trống theo thời gian thực khi có khách khác vừa đặt hoặc hủy tour này
+  subscribeRealtime(["availability:updated"], (event) => {
+    if (!event.payload?.tourId || event.payload.tourId === tour.id) {
+      refreshAvailability();
+    }
+  });
 
   // ----- Hộp thoại nhập thông tin hành khách -----
   const dialog = document.createElement("dialog");
@@ -298,4 +306,6 @@ export function initBooking({ page, tour, user, availability: initialAvailabilit
       updateAvailabilityNote(); // bật/tắt lại nút theo số chỗ mới nhất
     }
   });
+
+  return { refreshAvailability };
 }

@@ -1,5 +1,6 @@
 import { initHeaderAccount } from "./features/account-menu.js";
 import { initNavigation } from "./features/navigation.js";
+import { showRealtimeToast, subscribeRealtime } from "./features/realtime.js";
 import {
   AuthRequiredError,
   BOOKING_STATUS,
@@ -33,6 +34,7 @@ const elements = {
 const state = { q: "", status: "", payment: "", sort: "newest" };
 let requestId = 0; // bỏ qua phản hồi cũ khi người dùng gõ/lọc nhanh
 let hasLoaded = false;
+let knownBookingIds = new Set();
 let searchTimer;
 
 const hasActiveFilters = () => Boolean(state.q || state.status || state.payment);
@@ -48,7 +50,7 @@ function bookingCard(booking) {
   const detailUrl = `/booking-detail.html?id=${encodeURIComponent(booking.id)}`;
   const { tour, passengers } = booking;
   return `
-    <article class="bh-card">
+    <article class="bh-card" data-booking-id="${escapeHtml(booking.id)}">
       <a class="bh-card-image" href="${detailUrl}" tabindex="-1" aria-hidden="true">
         <img src="${imageUrl(tour.image, 700)}" alt="" loading="lazy" />
       </a>
@@ -68,6 +70,7 @@ function bookingCard(booking) {
           <div class="bh-total"><span>Tổng tiền</span><strong>${formatPrice(booking.total)}</strong></div>
           <div class="bh-card-actions">
             ${reviewAction(booking, detailUrl)}
+            ${booking.paymentStatus === "unpaid" && booking.status !== "cancelled" ? `<a class="secondary-cta" href="/checkout.html?bookingId=${encodeURIComponent(booking.id)}">Thanh toán QR</a>` : ""}
             <a class="submit-button" href="${detailUrl}" aria-label="Xem chi tiết đơn ${escapeHtml(booking.code)}">Xem chi tiết <span aria-hidden="true">↗</span></a>
           </div>
         </div>
@@ -113,6 +116,7 @@ function showState(kind, message = "") {
 function render(data) {
   hasLoaded = true;
   elements.controls.hidden = data.totalAll === 0;
+  data.bookings.forEach((b) => knownBookingIds.add(b.id));
 
   if (data.totalAll === 0) {
     elements.list.innerHTML = "";
@@ -156,7 +160,7 @@ async function loadBookings() {
   } catch (error) {
     if (currentRequest !== requestId) return;
     if (error instanceof AuthRequiredError) {
-      redirectToLogin("/booking-history.html"); // Chưa đăng nhập → trang đăng nhập, xong quay lại đây
+      redirectToLogin("/booking-history.html");
       return;
     }
     elements.list.innerHTML = "";
@@ -183,7 +187,7 @@ function clearFilters() {
   state.q = "";
   state.payment = "";
   elements.form.reset();
-  elements.sort.value = state.sort; // giữ cách sắp xếp hiện tại
+  elements.sort.value = state.sort;
   setStatus("");
   loadBookings();
 }
@@ -232,7 +236,6 @@ elements.state.addEventListener("click", (event) => {
   if (action === "clear") clearFilters();
   if (action === "demo") createDemoData();
 });
-// Ảnh tour lỗi thì giữ nền gradient thay vì hiện icon ảnh hỏng
 elements.list.addEventListener("error", (event) => {
   if (event.target.tagName === "IMG") event.target.closest(".bh-card-image")?.classList.add("is-broken");
 }, true);
@@ -240,3 +243,45 @@ elements.list.addEventListener("error", (event) => {
 initNavigation();
 initHeaderAccount();
 loadBookings();
+
+// Cập nhật trạng thái đơn đặt tour theo thời gian thực khi Admin duyệt / từ chối / hoàn thành
+subscribeRealtime(["booking:status-updated", "booking:cancellation-decided", "payment:confirmed", "review:changed", "booking:created"], (event) => {
+  loadBookings();
+
+  const p = event.payload || {};
+  if (p.bookingId && knownBookingIds.has(p.bookingId)) {
+    if (event.type === "booking:status-updated") {
+      if (p.status === "confirmed") {
+        showRealtimeToast({
+          title: `Đơn ${p.code || ""} đã được xác nhận!`,
+          message: `Tour "${p.tourName || ""}" của bạn đã được ban quản trị xác nhận.`,
+          tone: "success",
+          actionLabel: "Xem đơn",
+          actionHref: `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}`,
+        });
+      } else if (p.status === "completed") {
+        showRealtimeToast({
+          title: `Chuyến đi ${p.code || ""} đã hoàn thành!`,
+          message: `Cảm ơn bạn đã đồng hành! Hãy để lại đánh giá cho tour "${p.tourName || ""}".`,
+          tone: "success",
+          actionLabel: "Viết đánh giá ngay",
+          actionHref: `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}&review=1`,
+        });
+      } else if (p.status === "cancelled") {
+        showRealtimeToast({
+          title: `Đơn ${p.code || ""} đã hủy`,
+          message: p.rejectReason ? `Lý do: ${p.rejectReason}` : "Đơn đặt tour của bạn đã được chuyển sang trạng thái hủy.",
+          tone: "warn",
+          actionLabel: "Xem chi tiết",
+          actionHref: `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}`,
+        });
+      }
+    } else if (event.type === "booking:cancellation-decided") {
+      showRealtimeToast({
+        title: p.decision === "approved" ? `Đã duyệt yêu cầu hủy đơn ${p.code || ""}` : `Từ chối yêu cầu hủy đơn ${p.code || ""}`,
+        message: p.decision === "approved" ? "Đơn đặt tour của bạn đã được hủy theo yêu cầu." : "Ban quản trị đã từ chối yêu cầu hủy đơn của bạn.",
+        tone: p.decision === "approved" ? "info" : "warn",
+      });
+    }
+  }
+});

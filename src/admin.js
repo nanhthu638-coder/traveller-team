@@ -3,6 +3,8 @@
 // Chức năng: Quản lý đặt Tour → Đơn đặt Tour mới
 // ========================================================
 
+import { onRealtimeStatus, subscribeRealtime } from "./features/realtime.js";
+
 const statusLabels = {
   pending: "Chờ xác nhận",
   confirmed: "Đã xác nhận",
@@ -210,9 +212,12 @@ const modalDetailClose = document.getElementById("modal-detail-close");
 const modalBtnClose = document.getElementById("modal-btn-close");
 const modalBtnConfirm = document.getElementById("modal-btn-confirm");
 const modalBtnReject = document.getElementById("modal-btn-reject");
+const modalBtnComplete = document.getElementById("modal-btn-complete");
 const modalProcessedAlert = document.getElementById("modal-processed-alert");
 const modalProcessedText = document.getElementById("modal-processed-text");
 const modalFooterHint = document.getElementById("modal-footer-status-hint");
+const adminRealtimeBadge = document.getElementById("admin-realtime-badge");
+const adminRealtimeText = document.getElementById("admin-realtime-text");
 
 // Reject Modal
 const rejectModal = document.getElementById("reject-modal");
@@ -513,6 +518,8 @@ function renderBookingsTable(bookings) {
 
   bookingsTbody.innerHTML = bookings.map((booking) => {
     const isPending = booking.status === "pending";
+    const isConfirmed = booking.status === "confirmed";
+    const hasPendingCancelReq = booking.cancellationRequest?.status === "pending" && booking.status !== "cancelled";
     const statusLabelText = statusLabels[booking.status] || booking.status;
     const statusClass = statusClasses[booking.status] || "is-pending";
     const paymentText = paymentStatusLabels[booking.paymentStatus] || booking.paymentStatus;
@@ -524,9 +531,23 @@ function renderBookingsTable(bookings) {
     const tourName = escapeHtml(booking.tour?.name || "Tour du lịch");
     const tourPlace = escapeHtml(booking.tour?.place || "");
 
-    // Ngoại lệ 2: Đơn đã được xử lý: Không cho phép xác nhận lại
-    const actionsHtml = isPending
-      ? `
+    // Ngoại lệ 2 & Các hành động thực tế theo trạng thái đơn
+    let actionsHtml = "";
+    if (hasPendingCancelReq) {
+      actionsHtml = `
+        <div class="table-actions">
+          <button type="button" class="btn-action btn-view-detail" data-action="view" data-id="${escapeHtml(booking.id)}" title="Xem thông tin chi tiết đơn">
+            Xem chi tiết
+          </button>
+          <button type="button" class="btn-action btn-reject" data-action="approve-cancel" data-id="${escapeHtml(booking.id)}" title="Duyệt yêu cầu hủy tour của khách hàng">
+            Duyệt hủy
+          </button>
+          <button type="button" class="btn-action btn-confirm" data-action="reject-cancel" data-id="${escapeHtml(booking.id)}" title="Từ chối yêu cầu hủy tour và giữ nguyên đơn">
+            Giữ đơn
+          </button>
+        </div>`;
+    } else if (isPending) {
+      actionsHtml = `
         <div class="table-actions">
           <button type="button" class="btn-action btn-view-detail" data-action="view" data-id="${escapeHtml(booking.id)}" title="Xem thông tin chi tiết đơn">
             Xem chi tiết
@@ -537,8 +558,22 @@ function renderBookingsTable(bookings) {
           <button type="button" class="btn-action btn-reject" data-action="reject" data-id="${escapeHtml(booking.id)}" title="Từ chối đơn đặt tour">
             Từ chối
           </button>
-        </div>`
-      : `
+        </div>`;
+    } else if (isConfirmed) {
+      actionsHtml = `
+        <div class="table-actions">
+          <button type="button" class="btn-action btn-view-detail" data-action="view" data-id="${escapeHtml(booking.id)}" title="Xem thông tin chi tiết đơn">
+            Xem chi tiết
+          </button>
+          <button type="button" class="btn-action btn-complete" data-action="complete" data-id="${escapeHtml(booking.id)}" title="Đánh dấu chuyến đi đã hoàn thành">
+            ✓ Hoàn thành
+          </button>
+          <button type="button" class="btn-action btn-disabled" disabled title="Đơn đã xác nhận">
+            Từ chối
+          </button>
+        </div>`;
+    } else {
+      actionsHtml = `
         <div class="table-actions">
           <button type="button" class="btn-action btn-view-detail" data-action="view" data-id="${escapeHtml(booking.id)}" title="Xem thông tin chi tiết đơn">
             Xem chi tiết
@@ -550,6 +585,11 @@ function renderBookingsTable(bookings) {
             Từ chối
           </button>
         </div>`;
+    }
+
+    const cancelAlertPill = hasPendingCancelReq
+      ? `<div class="mt-1"><span class="payment-badge is-unpaid" title="Lý do: ${escapeHtml(booking.cancellationRequest?.reason || "")}">⚠️ Khách xin hủy</span></div>`
+      : "";
 
     return `
       <tr class="booking-row ${isPending ? "is-new-booking" : ""}" data-id="${escapeHtml(booking.id)}">
@@ -587,6 +627,7 @@ function renderBookingsTable(bookings) {
             <span class="badge-dot" aria-hidden="true"></span>
             ${escapeHtml(statusLabelText)}
           </span>
+          ${cancelAlertPill}
         </td>
 
         <!-- 6. Nút Xem chi tiết, Xác nhận hoặc Từ chối đơn đặt tour -->
@@ -626,16 +667,31 @@ async function openBookingDetail(bookingId) {
   // Luồng ngoại lệ 2: Đơn đã được xử lý: Không cho phép xác nhận lại
   if (!isPending) {
     modalProcessedAlert.hidden = false;
-    modalProcessedText.textContent = `Đơn đặt tour này đã được xử lý (${statusLabels[booking.status] || booking.status}). Không cho phép xác nhận hoặc từ chối lại.`;
+    if (booking.status === "confirmed") {
+      modalProcessedText.textContent = "Đơn đặt tour này đã được xác nhận. Sau khi đoàn kết thúc hành trình, bạn có thể nhấn Đánh dấu Hoàn thành để mở khóa quyền đánh giá cho khách hàng.";
+      if (modalBtnComplete) {
+        modalBtnComplete.hidden = false;
+        modalBtnComplete.disabled = false;
+      }
+      modalFooterHint.textContent = "Đơn đang trong trạng thái Đã xác nhận.";
+    } else {
+      modalProcessedText.textContent = `Đơn đặt tour này đã được xử lý (${statusLabels[booking.status] || booking.status}). Không cho phép xác nhận hoặc từ chối lại.`;
+      if (modalBtnComplete) {
+        modalBtnComplete.hidden = true;
+      }
+      modalFooterHint.textContent = "Đơn đã kết thúc xử lý.";
+    }
     modalBtnConfirm.disabled = true;
     modalBtnConfirm.classList.add("btn-disabled");
     modalBtnConfirm.hidden = true;
     modalBtnReject.disabled = true;
     modalBtnReject.classList.add("btn-disabled");
     modalBtnReject.hidden = true;
-    modalFooterHint.textContent = "Đơn đã kết thúc xử lý.";
   } else {
     modalProcessedAlert.hidden = true;
+    if (modalBtnComplete) {
+      modalBtnComplete.hidden = true;
+    }
     modalBtnConfirm.disabled = false;
     modalBtnConfirm.classList.remove("btn-disabled");
     modalBtnConfirm.hidden = false;
@@ -751,6 +807,64 @@ async function handleConfirmBooking(bookingId) {
   } catch (error) {
     // Luồng ngoại lệ 2: Đơn đã xử lý
     showToast(error.message || "Không thể xác nhận đơn đặt tour.", "error");
+    await loadBookings();
+  }
+}
+
+async function handleCompleteBooking(bookingId) {
+  const booking = currentBookings.find((b) => b.id === bookingId) || selectedBooking;
+  const code = booking?.code || bookingId;
+
+  if (booking && booking.status !== "confirmed") {
+    showToast("Chỉ có thể đánh dấu hoàn thành cho các đơn đã được xác nhận.", "error");
+    return;
+  }
+
+  const ok = window.confirm(`Đánh dấu đơn đặt tour #${code} là ĐÃ HOÀN THÀNH chuyến đi? Khách hàng sẽ được mở khóa chức năng đánh giá tour.`);
+  if (!ok) return;
+
+  try {
+    await requestJson(`/api/admin/bookings/${encodeURIComponent(bookingId)}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "completed" }),
+    });
+
+    showToast(`Đã đánh dấu hoàn thành chuyến đi cho đơn #${code}!`, "success");
+    if (bookingDetailModal.open) {
+      bookingDetailModal.close();
+    }
+    await loadBookings();
+  } catch (error) {
+    showToast(error.message || "Không thể cập nhật trạng thái hoàn thành.", "error");
+    await loadBookings();
+  }
+}
+
+async function handleCancellationDecision(bookingId, decision) {
+  const booking = currentBookings.find((b) => b.id === bookingId) || selectedBooking;
+  const code = booking?.code || bookingId;
+  const isApprove = decision === "approved";
+  const confirmMsg = isApprove
+    ? `Bạn có chắc chắn muốn DUYỆT yêu cầu hủy đơn #${code}? Đơn sẽ chuyển sang trạng thái Đã hủy và hoàn trả chỗ trống.`
+    : `Từ chối yêu cầu hủy đơn #${code} và giữ nguyên trạng thái đơn hiện tại?`;
+
+  if (!window.confirm(confirmMsg)) return;
+
+  try {
+    await requestJson(`/api/admin/bookings/${encodeURIComponent(bookingId)}/cancellation`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision }),
+    });
+
+    showToast(
+      isApprove ? `Đã duyệt yêu cầu hủy đơn #${code}.` : `Đã từ chối yêu cầu hủy đơn #${code}.`,
+      isApprove ? "info" : "success"
+    );
+    await loadBookings();
+  } catch (error) {
+    showToast(error.message || "Không thể xử lý yêu cầu hủy đơn.", "error");
     await loadBookings();
   }
 }
@@ -1589,6 +1703,7 @@ async function initialize() {
 
     // Bắt đầu tại tab "Đơn đặt Tour mới"
     switchTab("new-bookings");
+    setupAdminRealtime();
   } catch (error) {
     adminInitialState.hidden = true;
     adminForbiddenBox.hidden = false;
@@ -1596,6 +1711,122 @@ async function initialize() {
   } finally {
     adminMain.setAttribute("aria-busy", "false");
   }
+}
+
+let realtimeSubscribed = false;
+function setupAdminRealtime() {
+  if (realtimeSubscribed) return;
+  realtimeSubscribed = true;
+
+  onRealtimeStatus(({ connected }) => {
+    if (!adminRealtimeBadge || !adminRealtimeText) return;
+    adminRealtimeBadge.classList.toggle("is-connected", connected);
+    adminRealtimeBadge.classList.toggle("is-reconnecting", !connected);
+    adminRealtimeText.textContent = connected ? "Trực tuyến (Real-time)" : "Đang kết nối lại...";
+  });
+
+  subscribeRealtime(async (event) => {
+    const p = event.payload || {};
+
+    if (event.type === "booking:created") {
+      showToast(
+        `🔔 Có đơn đặt tour mới #${p.code || ""} (${p.customerName || "Khách hàng"} · ${p.tourName || "Tour"})!`,
+        "info"
+      );
+      if (currentTab === "new-bookings" || currentTab === "all-bookings") {
+        await loadBookings();
+      } else {
+        try {
+          const data = await requestJson("/api/admin/bookings?status=pending");
+          if (badgePendingCount && data.counts) {
+            badgePendingCount.textContent = data.counts.pending ?? 0;
+            badgePendingCount.classList.toggle("has-new", (data.counts.pending || 0) > 0);
+          }
+          if (badgeAllCount && data.counts) {
+            badgeAllCount.textContent = data.counts.all ?? 0;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return;
+    }
+
+    if (event.type === "payment:confirmed") {
+      showToast(`💳 Khách hàng vừa thanh toán QR thành công cho đơn #${p.code || ""}!`, "success");
+      if (currentTab === "new-bookings" || currentTab === "all-bookings") {
+        await loadBookings();
+      }
+      return;
+    }
+
+    if (event.type === "booking:cancellation-requested") {
+      showToast(`⚠️ Khách hàng vừa gửi yêu cầu hủy đơn #${p.code || ""}!`, "error");
+      if (currentTab === "new-bookings" || currentTab === "all-bookings") {
+        await loadBookings();
+      }
+      return;
+    }
+
+    if (
+      event.type === "booking:updated" ||
+      event.type === "booking:status-updated" ||
+      event.type === "booking:cancellation-decided"
+    ) {
+      if (currentTab === "new-bookings" || currentTab === "all-bookings") {
+        await loadBookings();
+      }
+      return;
+    }
+
+    if (event.type === "review:changed") {
+      if (p.action === "created" || p.action === "updated") {
+        showToast(
+          `⭐ Khách hàng ${p.review?.authorName || ""} vừa gửi đánh giá ${p.review?.rating || 5} sao!`,
+          "info"
+        );
+      }
+      if (currentTab === "reviews") {
+        await loadReviews();
+      } else {
+        try {
+          const revSummary = await requestJson("/api/admin/reviews");
+          if (badgeReviewsCount) {
+            badgeReviewsCount.textContent = revSummary.counts?.all ?? (revSummary.reviews || []).length;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return;
+    }
+
+    if (event.type === "inquiry:changed") {
+      if (p.action === "created") {
+        showToast(
+          `📩 Có biểu mẫu liên hệ mới từ ${p.inquiry?.name || "khách hàng"} (${p.inquiry?.topic || "Tư vấn"})!`,
+          "info"
+        );
+      }
+      if (currentTab === "inquiries") {
+        await loadInquiries();
+      }
+      return;
+    }
+
+    if (event.type === "tour:changed") {
+      if (currentTab === "tours") {
+        await loadTours();
+      }
+      return;
+    }
+
+    if (event.type === "destination:changed") {
+      if (currentTab === "destinations") {
+        await loadDestinations();
+      }
+    }
+  });
 }
 
 // Tab button click
@@ -1643,6 +1874,12 @@ bookingsTbody.addEventListener("click", (event) => {
     handleConfirmBooking(id);
   } else if (action === "reject") {
     openRejectDialog(id);
+  } else if (action === "complete") {
+    handleCompleteBooking(id);
+  } else if (action === "approve-cancel") {
+    handleCancellationDecision(id, "approved");
+  } else if (action === "reject-cancel") {
+    handleCancellationDecision(id, "rejected");
   }
 });
 
@@ -1655,6 +1892,11 @@ modalBtnConfirm.addEventListener("click", () => {
 modalBtnReject.addEventListener("click", () => {
   if (selectedBooking) openRejectDialog(selectedBooking.id);
 });
+if (modalBtnComplete) {
+  modalBtnComplete.addEventListener("click", () => {
+    if (selectedBooking) handleCompleteBooking(selectedBooking.id);
+  });
+}
 
 // Reject Modal Actions
 rejectModalClose.addEventListener("click", () => rejectModal.close());
