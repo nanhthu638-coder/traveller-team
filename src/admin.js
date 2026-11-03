@@ -2326,18 +2326,15 @@ function renderToursTable(tours) {
         <div>${bookingsDisplay}</div>
         <div style="margin-top: 3px;">${ratingDisplay}</div>
       </td>
-      <td class="text-center">
-        <div class="table-actions" style="justify-content: center; gap: 6px;">
-          <button type="button" class="admin-action-button btn-view-tour" data-tour-id="${tour.id}" title="Xem chi tiết Tour">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            Xem
+      <td>
+        <div class="table-actions">
+          <button type="button" class="btn-action btn-view-detail btn-view-tour" data-tour-id="${tour.id}" data-action="view-tour" title="Xem thông tin chi tiết Tour">
+            Xem chi tiết
           </button>
-          <button type="button" class="admin-action-button btn-edit-tour" data-tour-id="${tour.id}" title="Sửa thông tin Tour">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <button type="button" class="btn-action btn-edit btn-edit-tour" data-tour-id="${tour.id}" data-action="edit-tour" title="Chỉnh sửa thông tin Tour">
             Sửa
           </button>
-          <button type="button" class="admin-action-button text-danger btn-delete-tour" data-tour-id="${tour.id}" title="Xóa Tour">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <button type="button" class="btn-action btn-delete btn-delete-tour" data-tour-id="${tour.id}" data-action="delete-tour" title="${tour.activeBookings > 0 ? 'Tour đang có đơn đặt liên kết' : 'Xóa Tour du lịch này'}">
             Xóa
           </button>
         </div>
@@ -2758,19 +2755,19 @@ if (tourFormModalCancel) tourFormModalCancel.addEventListener("click", () => tou
 // Sự kiện bảng Tour (Xem, Sửa, Xóa, Toggle status)
 if (adminToursTbody) {
   adminToursTbody.addEventListener("click", (event) => {
-    const viewBtn = event.target.closest(".btn-view-tour");
+    const viewBtn = event.target.closest(".btn-view-tour, [data-action='view-tour']");
     if (viewBtn) {
-      openTourDetailModal(viewBtn.dataset.tourId);
+      openTourDetailModal(viewBtn.dataset.tourId || viewBtn.dataset.id);
       return;
     }
-    const editBtn = event.target.closest(".btn-edit-tour");
+    const editBtn = event.target.closest(".btn-edit-tour, [data-action='edit-tour']");
     if (editBtn) {
-      openEditTourModal(editBtn.dataset.tourId);
+      openEditTourModal(editBtn.dataset.tourId || editBtn.dataset.id);
       return;
     }
-    const deleteBtn = event.target.closest(".btn-delete-tour");
+    const deleteBtn = event.target.closest(".btn-delete-tour, [data-action='delete-tour']");
     if (deleteBtn) {
-      openDeleteTourModal(deleteBtn.dataset.tourId);
+      openDeleteTourModal(deleteBtn.dataset.tourId || deleteBtn.dataset.id);
       return;
     }
     const toggleBtn = event.target.closest(".btn-toggle-status");
