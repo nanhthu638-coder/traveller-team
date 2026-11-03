@@ -2171,6 +2171,7 @@ const tourDetailBookingsCount = document.getElementById("tour-detail-bookings-co
 const tourDetailItineraryContent = document.getElementById("tour-detail-itinerary-content");
 const tourDetailDeparturesChips = document.getElementById("tour-detail-departures-chips");
 const tourDetailBookingsWrapper = document.getElementById("tour-detail-bookings-wrapper");
+const tourDetailBookingsTable = document.getElementById("tour-detail-bookings-table");
 const tourDetailBookingsTotal = document.getElementById("tour-detail-bookings-total");
 const tourDetailBookingsTbody = document.getElementById("tour-detail-bookings-tbody");
 const tourDetailNoBookings = document.getElementById("tour-detail-no-bookings");
@@ -2185,6 +2186,8 @@ const tourDeleteModalCancel = document.getElementById("tour-delete-modal-cancel"
 const tourDeleteModalSubmit = document.getElementById("tour-delete-modal-submit");
 const tourDeleteBlockedBox = document.getElementById("tour-delete-blocked-box");
 const tourDeleteBlockedMsg = document.getElementById("tour-delete-blocked-msg");
+const tourDeleteBookingsList = document.getElementById("tour-delete-bookings-list");
+const tourDeleteForceCheck = document.getElementById("tour-delete-force-check");
 const tourDeleteConfirmBox = document.getElementById("tour-delete-confirm-box");
 const tourDeleteName = document.getElementById("tour-delete-name");
 
@@ -2404,8 +2407,10 @@ async function openEditTourModal(tourId) {
 }
 
 // Xử lý gửi biểu mẫu Thêm/Sửa Tour
+let isSubmittingTour = false;
 async function handleTourFormSubmit(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
+  if (isSubmittingTour) return;
   tourFormError.hidden = true;
 
   const id = tourInputId.value.trim();
@@ -2487,6 +2492,7 @@ async function handleTourFormSubmit(event) {
     tourFormErrorText.textContent = error.message || "Không thể lưu Tour du lịch. Vui lòng kiểm tra lại.";
     tourFormError.hidden = false;
   } finally {
+    isSubmittingTour = false;
     tourFormModalSubmit.disabled = false;
     tourFormSubmitText.textContent = isEdit ? "Lưu thay đổi" : "Lưu Tour du lịch";
   }
@@ -2578,30 +2584,44 @@ async function openTourDetailModal(tourId) {
   }
 }
 
-// Mở modal Xác nhận xóa Tour (Xử lý Ngoại lệ 3: Chặn xóa nếu có đơn đặt)
+// Mở modal Xác nhận xóa Tour (Xử lý Ngoại lệ 3: Chặn xóa nếu có đơn đặt hoặc hiển thị danh sách đơn để xử lý)
 async function openDeleteTourModal(tourId) {
   if (!tourDeleteModal) return;
   deletingTourId = tourId;
+  if (tourDeleteForceCheck) tourDeleteForceCheck.checked = false;
 
   try {
     const data = await requestJson(`/api/admin/tours/${encodeURIComponent(tourId)}`);
     const tour = data.tour;
     const bookings = data.bookings || [];
+    const activeBookings = bookings.filter((b) => b.status !== "cancelled");
 
     tourDeleteName.textContent = tour.name;
 
-    // Ngoại lệ 3: Tour đã có đơn đặt: Chặn xóa và hiển thị thông báo
-    if (bookings.length > 0) {
+    // Ngoại lệ 3: Tour đã có đơn đặt: Hiển thị danh sách và yêu cầu xác nhận
+    if (activeBookings.length > 0) {
       tourDeleteBlockedBox.hidden = false;
       tourDeleteConfirmBox.hidden = true;
-      const codes = bookings.map((b) => b.code || b.id).slice(0, 5).join(", ") + (bookings.length > 5 ? "..." : "");
-      tourDeleteBlockedMsg.textContent = `Tour "${tour.name}" hiện đang có ${bookings.length} đơn đặt tour liên kết (Mã: ${codes}). Vui lòng kiểm tra và xử lý hoặc hủy các đơn liên quan trước khi xóa tour này.`;
-      tourDeleteModalSubmit.hidden = true;
-      tourDeleteModalCancel.textContent = "Đóng";
+      const codes = activeBookings.map((b) => b.code || b.id).slice(0, 5).join(", ") + (activeBookings.length > 5 ? "..." : "");
+      tourDeleteBlockedMsg.textContent = `Tour "${tour.name}" hiện đang có ${activeBookings.length} đơn đặt tour liên kết chưa hủy (Mã: ${codes}). Vui lòng kiểm tra danh sách đơn trước khi xóa:`;
+      if (tourDeleteBookingsList) {
+        tourDeleteBookingsList.innerHTML = activeBookings.map((b) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #d1d5db;">
+            <span><strong>#${escapeHtml(b.code || b.id)}</strong> - ${escapeHtml(b.customerName || "Khách hàng")} (${escapeHtml(formatDate(b.departureDate))})</span>
+            <span class="admin-badge ${statusClasses[b.status] || "is-pending"}">${escapeHtml(statusLabels[b.status] || b.status)}</span>
+          </div>
+        `).join("");
+      }
+      tourDeleteModalSubmit.disabled = true;
+      tourDeleteModalSubmit.hidden = false;
+      tourDeleteModalSubmit.textContent = "Xác nhận xóa & Hủy đơn";
+      tourDeleteModalCancel.textContent = "Hủy bỏ";
     } else {
       tourDeleteBlockedBox.hidden = true;
       tourDeleteConfirmBox.hidden = false;
+      tourDeleteModalSubmit.disabled = false;
       tourDeleteModalSubmit.hidden = false;
+      tourDeleteModalSubmit.textContent = "Xác nhận xóa";
       tourDeleteModalCancel.textContent = "Hủy bỏ";
     }
 
@@ -2615,9 +2635,10 @@ async function openDeleteTourModal(tourId) {
 async function handleDeleteTourSubmit() {
   if (!deletingTourId) return;
 
+  const isForce = tourDeleteForceCheck ? tourDeleteForceCheck.checked : false;
   tourDeleteModalSubmit.disabled = true;
   try {
-    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(deletingTourId)}`, {
+    const data = await requestJson(`/api/admin/tours/${encodeURIComponent(deletingTourId)}?force=${isForce}`, {
       method: "DELETE",
     });
 
@@ -2634,8 +2655,7 @@ async function handleDeleteTourSubmit() {
       tourDeleteBlockedBox.hidden = false;
       tourDeleteConfirmBox.hidden = true;
       tourDeleteBlockedMsg.textContent = error.message;
-      tourDeleteModalSubmit.hidden = true;
-      tourDeleteModalCancel.textContent = "Đóng";
+      if (tourDeleteModalSubmit) tourDeleteModalSubmit.disabled = true;
     }
   } finally {
     tourDeleteModalSubmit.disabled = false;
@@ -2731,6 +2751,7 @@ if (tourInputItinerary && tourItineraryCounter) {
 
 // Sự kiện biểu mẫu Tour
 if (tourForm) tourForm.addEventListener("submit", handleTourFormSubmit);
+if (tourFormModalSubmit) tourFormModalSubmit.addEventListener("click", handleTourFormSubmit);
 if (tourFormModalClose) tourFormModalClose.addEventListener("click", () => tourFormModal.close());
 if (tourFormModalCancel) tourFormModalCancel.addEventListener("click", () => tourFormModal.close());
 
@@ -2783,6 +2804,13 @@ if (tourDetailBtnDelete) {
 if (tourDeleteModalClose) tourDeleteModalClose.addEventListener("click", () => tourDeleteModal.close());
 if (tourDeleteModalCancel) tourDeleteModalCancel.addEventListener("click", () => tourDeleteModal.close());
 if (tourDeleteModalSubmit) tourDeleteModalSubmit.addEventListener("click", handleDeleteTourSubmit);
+if (tourDeleteForceCheck) {
+  tourDeleteForceCheck.addEventListener("change", () => {
+    if (tourDeleteModalSubmit) {
+      tourDeleteModalSubmit.disabled = !tourDeleteForceCheck.checked;
+    }
+  });
+}
 
 // Đóng các modal tour khi click vào vùng backdrop bên ngoài
 [tourFormModal, tourDetailModal, tourDeleteModal].forEach((dialog) => {

@@ -1233,12 +1233,14 @@ app.delete("/api/admin/tours/:id", async (request, response, next) => {
 		const relatedBookings = (store.bookings || []).filter(
 			(booking) => booking.tour?.id === tour.id || booking.tourId === tour.id
 		);
+		const activeBookings = relatedBookings.filter((b) => b.status !== "cancelled");
+		const isForce = request.query.force === "true" || request.body?.force === true;
 
-		if (relatedBookings.length > 0) {
+		if (activeBookings.length > 0 && !isForce) {
 			return response.status(409).json({
-				error: `Không thể xóa tour "${tour.name}" vì đã có ${relatedBookings.length} đơn đặt tour liên kết. Vui lòng kiểm tra và xử lý các đơn liên quan trước khi xóa.`,
-				bookingsCount: relatedBookings.length,
-				bookings: relatedBookings.map((b) => ({
+				error: `Tour "${tour.name}" đang có ${activeBookings.length} đơn đặt tour chưa hoàn tất. Vui lòng kiểm tra và xử lý hoặc xác nhận hủy các đơn liên quan trước khi xóa tour này.`,
+				bookingsCount: activeBookings.length,
+				bookings: activeBookings.map((b) => ({
 					id: b.id,
 					code: b.code || b.id,
 					customerName: b.contact?.fullName || b.contact?.name || b.customerName || "Khách hàng",
@@ -1248,6 +1250,23 @@ app.delete("/api/admin/tours/:id", async (request, response, next) => {
 					total: b.total,
 				})),
 			});
+		}
+
+		// Nếu Admin đã xác nhận xử lý các đơn liên quan, đánh dấu các đơn đang hoạt động sang trạng thái Đã hủy
+		if (activeBookings.length > 0 && isForce) {
+			const now = new Date().toISOString();
+			for (const b of activeBookings) {
+				b.status = "cancelled";
+				b.rejectReason = "Tour du lịch đã bị quản trị viên xóa khỏi hệ thống";
+				b.updatedAt = now;
+				broadcastRealtime("booking:status-updated", {
+					bookingId: b.id,
+					code: b.code,
+					userId: b.userId,
+					status: "cancelled",
+					rejectReason: b.rejectReason,
+				});
+			}
 		}
 
 		// Xóa tour khỏi store.tours

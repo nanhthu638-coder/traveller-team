@@ -1114,7 +1114,7 @@
 
     <!-- DIALOG / MODAL: THÊM / SỬA TOUR DU LỊCH -->
     <dialog id="tour-form-modal" class="admin-modal" aria-labelledby="tour-form-modal-title">
-      <div class="admin-modal-card">
+      <form id="tour-form" class="admin-modal-card" novalidate>
         <header class="admin-modal-header">
           <div>
             <span class="admin-modal-eyebrow" id="tour-form-modal-eyebrow">Quản lý Tour</span>
@@ -1123,7 +1123,7 @@
           <button type="button" class="admin-modal-close" id="tour-form-modal-close" aria-label="Đóng biểu mẫu">✕</button>
         </header>
 
-        <form id="tour-form" class="admin-modal-body" novalidate>
+        <div class="admin-modal-body">
           <div id="tour-form-error" class="admin-alert-banner admin-alert-danger" hidden>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
             <span id="tour-form-error-text"></span>
@@ -1209,15 +1209,15 @@
               <small id="tour-itinerary-counter" class="text-muted">0/3000</small>
             </div>
           </label>
-        </form>
+        </div>
 
         <footer class="admin-modal-footer">
           <button type="button" class="admin-secondary-button" id="tour-form-modal-cancel">Hủy bỏ</button>
-          <button type="submit" form="tour-form" class="admin-primary-button" id="tour-form-modal-submit">
+          <button type="submit" class="admin-primary-button" id="tour-form-modal-submit">
             <span id="tour-form-submit-text">Lưu Tour</span>
           </button>
         </footer>
-      </div>
+      </form>
     </dialog>
 
     <!-- DIALOG / MODAL: XEM CHI TIẾT TOUR DU LỊCH -->
@@ -1337,19 +1337,23 @@
         </header>
 
         <div class="admin-modal-body">
-          <!-- Trường hợp có đơn đặt liên kết: Chặn xóa (Ngoại lệ 3) -->
+          <!-- Trường hợp có đơn đặt liên kết: Hiển thị cảnh báo & cho phép chọn xử lý -->
           <div id="tour-delete-blocked-box" hidden>
             <div class="admin-alert-banner admin-alert-danger" style="margin-bottom: 14px;">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               <div>
-                <strong>Không thể xóa Tour này!</strong>
+                <strong>Cảnh báo: Tour có đơn đặt liên kết!</strong>
                 <p id="tour-delete-blocked-msg" style="margin: 4px 0 0; font-size: 13px; line-height: 1.45;"></p>
               </div>
             </div>
-            <p style="font-size: 13px; color: #4b5563;">Vui lòng kiểm tra và xử lý hoặc hủy các đơn đặt tour liên quan trước khi thực hiện xóa Tour này.</p>
+            <div id="tour-delete-bookings-list" style="max-height: 140px; overflow-y: auto; margin-bottom: 12px; background: #f8faf9; border: 1px solid #e1ebe5; border-radius: 6px; padding: 8px 12px; font-size: 12.5px;"></div>
+            <label id="tour-delete-force-label" style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #b91c1c; font-weight: 600; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="tour-delete-force-check" style="margin-top: 3px;" />
+              <span>Tôi đã kiểm tra danh sách đơn trên và xác nhận xóa Tour này (các đơn sẽ được hủy tương ứng).</span>
+            </label>
           </div>
 
-          <!-- Trường hợp chưa có đơn đặt: Cho phép xác nhận xóa -->
+          <!-- Trường hợp chưa có đơn đặt: Cho phép xác nhận xóa trực tiếp -->
           <div id="tour-delete-confirm-box">
             <p style="margin: 0 0 10px; font-size: 14px;">
               Bạn có chắc chắn muốn xóa Tour <strong id="tour-delete-name" class="text-danger"></strong> khỏi danh sách Tour du lịch không?

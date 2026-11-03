@@ -42,6 +42,14 @@
       "salt": "aebc68a06a8c5dcb5d6f0a638e4deeb0",
       "hash": "a2ae900b063594286a7618ba961a26919adf907cec486c846c67e60fb546867f57d306afaf432ba77fd29cdaec630d8edb27de83a1e0b6ca3740c5d11f85be6d",
       "createdAt": "2026-11-02T17:59:58.494Z"
+    },
+    {
+      "id": "897768a9-b41d-49ee-b9d0-c3fee7ac18b6",
+      "name": "Huỳnh Quốc Anh",
+      "email": "a2906@a.aa",
+      "salt": "e09bfc4b5961de05d243092c87e7ed67",
+      "hash": "1e04053cfd65535997b21d180fe67a33a401894c48b7fab76bad12fef8426092168317c7e048f901740d33988f797dc74f2bd7499d1859b88e6c30a85cdd3e09",
+      "createdAt": "2026-11-03T15:45:55.720Z"
     }
   ],
   "inquiries": [],
@@ -279,6 +287,204 @@
       "note": "Xin phòng gia đình có ban công.",
       "createdAt": "2026-10-28T09:15:00.000Z",
       "updatedAt": "2026-10-28T14:30:00.000Z"
+    },
+    {
+      "id": "d25adadd-37e8-4465-82a1-0c266e31fff2",
+      "code": "TT-261031-170C",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "ha-long-3n2d",
+        "name": "Vịnh Hạ Long · 3 ngày 2 đêm",
+        "place": "Hạ Long",
+        "region": "Quảng Ninh",
+        "duration": "3 ngày 2 đêm",
+        "price": 3490000,
+        "image": "photo-1528127269322-539801943592"
+      },
+      "departureDate": "2026-11-15",
+      "passengers": {
+        "adult": 2,
+        "child": 1,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 9423000,
+      "total": 9423000,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0901234567"
+      },
+      "note": "Gia đình có 1 bé 8 tuổi, nhờ xếp phòng gần nhau.",
+      "createdAt": "2026-10-31T15:58:20.122Z",
+      "updatedAt": "2026-10-31T15:58:20.122Z"
+    },
+    {
+      "id": "bc85a3bc-8575-4ce3-94f8-1a9218634fce",
+      "code": "TT-261102-3D8C",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "da-lat-3n2d",
+        "name": "Đà Lạt · Thành phố ngàn hoa · 3 ngày 2 đêm",
+        "place": "Đà Lạt",
+        "region": "Lâm Đồng",
+        "duration": "3 ngày 2 đêm",
+        "price": 2790000,
+        "image": "photo-1500530855697-b586d89ba3ee"
+      },
+      "departureDate": "2026-11-28",
+      "passengers": {
+        "adult": 2,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 5580000,
+      "total": 5580000,
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0901234567"
+      },
+      "note": "",
+      "createdAt": "2026-11-02T15:58:20.122Z",
+      "updatedAt": "2026-11-02T15:58:20.122Z"
+    },
+    {
+      "id": "c892a1c2-4c2a-428d-ac33-27ad9011347b",
+      "code": "TT-260924-C585",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "hoi-an-2n1d",
+        "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+        "place": "Hội An",
+        "region": "Quảng Nam",
+        "duration": "2 ngày 1 đêm",
+        "price": 2150000,
+        "image": "photo-1531058020387-3be344556be6"
+      },
+      "departureDate": "2026-10-14",
+      "passengers": {
+        "adult": 2,
+        "child": 0,
+        "infant": 1
+      },
+      "passengerDetails": [],
+      "subtotal": 4300000,
+      "total": 4300000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0901234567"
+      },
+      "note": "",
+      "createdAt": "2026-09-24T15:58:20.122Z",
+      "updatedAt": "2026-09-24T15:58:20.122Z"
+    },
+    {
+      "id": "b2b313a5-c1a3-40e8-9d87-01684a95aa33",
+      "code": "TT-261004-1CCA",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "phu-quoc-4n3d",
+        "name": "Phú Quốc · Đảo ngọc nghỉ dưỡng · 4 ngày 3 đêm",
+        "place": "Phú Quốc",
+        "region": "Kiên Giang",
+        "duration": "4 ngày 3 đêm",
+        "price": 6890000,
+        "image": "photo-1500375592092-40eb2168fd21"
+      },
+      "departureDate": "2026-12-13",
+      "passengers": {
+        "adult": 3,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 20670000,
+      "total": 20670000,
+      "status": "cancelled",
+      "paymentStatus": "refunded",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": ""
+      },
+      "note": "Đổi kế hoạch công tác.",
+      "createdAt": "2026-10-04T15:58:20.122Z",
+      "updatedAt": "2026-10-04T15:58:20.122Z"
+    },
+    {
+      "id": "f874e65a-93a3-4547-9f9f-09dbe9f5a3c1",
+      "code": "TT-260820-6EDD",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "ta-xua-2n1d",
+        "name": "Tà Xùa săn mây · 2 ngày 1 đêm",
+        "place": "Bắc Yên",
+        "region": "Sơn La",
+        "duration": "2 ngày 1 đêm",
+        "price": 1890000,
+        "image": "photo-1470770841072-f978cf4d019e"
+      },
+      "departureDate": "2026-09-09",
+      "passengers": {
+        "adult": 1,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 1890000,
+      "total": 1890000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": ""
+      },
+      "note": "",
+      "createdAt": "2026-08-20T15:58:20.122Z",
+      "updatedAt": "2026-08-20T15:58:20.122Z"
+    },
+    {
+      "id": "db47c766-b239-4b94-904c-3e24610fca63",
+      "code": "TT-261026-411D",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "sa-pa-3n2d",
+        "name": "Sa Pa · Fansipan & bản làng · 3 ngày 2 đêm",
+        "place": "Sa Pa",
+        "region": "Lào Cai",
+        "duration": "3 ngày 2 đêm",
+        "price": 3190000,
+        "image": "photo-1501785888041-af3ef285b470"
+      },
+      "departureDate": "2026-11-21",
+      "passengers": {
+        "adult": 2,
+        "child": 2,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 10846000,
+      "total": 10846000,
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0987654321"
+      },
+      "note": "Cần ăn chay một bữa.",
+      "createdAt": "2026-10-26T15:58:20.122Z",
+      "updatedAt": "2026-10-26T15:58:20.122Z"
     }
   ],
   "reviews": [
@@ -476,6 +682,28 @@
       "status": "confirmed",
       "createdAt": "2026-10-30T22:49:39.829Z",
       "updatedAt": "2026-10-30T22:49:45.704Z"
+    },
+    {
+      "id": "ec9c5702-a84f-40c6-a751-23e75470de40",
+      "bookingId": "bc85a3bc-8575-4ce3-94f8-1a9218634fce",
+      "bookingCode": "TT-261102-3D8C",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "amount": 5580000,
+      "method": "demo",
+      "status": "pending",
+      "createdAt": "2026-11-03T15:58:22.466Z",
+      "updatedAt": "2026-11-03T15:58:22.466Z"
+    },
+    {
+      "id": "ec882b13-6312-4ae9-b45f-ad76cfbc8238",
+      "bookingId": "db47c766-b239-4b94-904c-3e24610fca63",
+      "bookingCode": "TT-261026-411D",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "amount": 10846000,
+      "method": "demo",
+      "status": "pending",
+      "createdAt": "2026-11-03T15:58:28.241Z",
+      "updatedAt": "2026-11-03T15:58:28.241Z"
     }
   ],
   "sessions": [
@@ -493,11 +721,6 @@
       "id": "64cc254e23fdc3d98912ac1c3baebf76d4399086c3c145173c5630ac3e210803",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-09T06:21:21.997Z"
-    },
-    {
-      "id": "8c1b0f918938f8408bc0aee4888e18a6166f51eee6968363f058b9d53b1e206d",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-09T06:40:17.236Z"
     },
     {
       "id": "125be5dad01d618fae187c59926af52e60554c1726e41f93d4175aa933c5aca2",
@@ -578,6 +801,11 @@
       "id": "383cde4f909a5915b7b3b1ba34571f54909e9b6a0f48075eb745ed53b9da66a9",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
       "expiresAt": "2026-11-10T14:55:38.505Z"
+    },
+    {
+      "id": "8e2e4af1afeb9643501a7072d12eb18a014ad133eeb1490fa2e77a363bb466dc",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-10T15:46:41.532Z"
     }
   ],
   "destinations": [
