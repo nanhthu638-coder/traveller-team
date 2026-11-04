@@ -199,8 +199,8 @@ function resetFilters() {
   document.getElementById("list-start").value = "";
   document.getElementById("list-date").value = "";
   document.getElementById("listing-sort").value = "default";
-  slider.value = slider.max;
-  appliedMaxPrice = Number(slider.max);
+  slider.value = slider.min;
+  appliedMaxPrice = null;
   updatePriceLabel();
   loadTours();
 }
