@@ -4,7 +4,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import express from "express";
-import { searchTours } from "./tours.js";
+import { searchTours, normalizeText, DEFAULT_TOURS } from "./tours.js";
+import { DEFAULT_DESTINATIONS } from "./destinations-data.js";
 import {
 	IMAGE_FILE_PATTERN,
 	IMAGE_URL_PREFIX,
@@ -12,11 +13,13 @@ import {
 	buildDemoReviews,
 	createReview,
 	decodeImage,
+	imageUrl,
 	listTourReviews,
 	newImageName,
 	publicReview,
 	ratingsByTour,
 	reviewEligibility,
+	summarize,
 	validateReviewInput,
 } from "./reviews.js";
 import { departureAvailability, seatsOf, tourAvailability } from "./availability.js";
@@ -58,7 +61,39 @@ let store = {
     payments: [],
     sessions: [],
     tourContents: [],
+    destinations: [],
+    tours: [],
 };
+
+// ===== Real-Time Server-Sent Events (SSE) Hub =====
+const realtimeClients = new Set();
+
+function broadcastRealtime(type, payload = {}) {
+	const eventData = JSON.stringify({
+		type,
+		payload,
+		timestamp: new Date().toISOString(),
+	});
+	const message = `data: ${eventData}\n\n`;
+	for (const client of realtimeClients) {
+		try {
+			client.res.write(message);
+		} catch {
+			realtimeClients.delete(client);
+		}
+	}
+}
+
+function getAllTours() {
+	if (!Array.isArray(store.tours) || !store.tours.length) {
+		store.tours = structuredClone(DEFAULT_TOURS);
+	}
+	return store.tours;
+}
+
+function getActiveTours() {
+	return getAllTours().filter((tour) => tour.status !== "inactive");
+}
 
 let writeQueue = Promise.resolve();
 let database;
@@ -74,7 +109,7 @@ function publicUser(user) {
 		id: user.id,
 		name: user.name,
 		email: user.email,
-		role: adminEmails().includes(user.email.toLowerCase()) ? "admin" : "customer",
+		role: user.role === "admin" || adminEmails().includes(user.email.toLowerCase()) ? "admin" : "customer",
 		phone: user.phone || "",
 		birthDate: user.birthDate || "",
 		gender: user.gender || "",
@@ -86,7 +121,7 @@ function publicUser(user) {
 }
 
 function adminEmails() {
-	return (process.env.ADMIN_EMAILS || "")
+	return (process.env.ADMIN_EMAILS || "admin@example.com")
 		.split(",")
 		.map((email) => email.trim().toLowerCase())
 		.filter(Boolean);
@@ -98,7 +133,8 @@ function adminUser(request, response) {
 		response.status(401).json({ error: "Vui lòng đăng nhập tài khoản quản trị." });
 		return null;
 	}
-	if (!adminEmails().includes(user.email.toLowerCase())) {
+	const isAdmin = user.role === "admin" || adminEmails().includes(user.email.toLowerCase());
+	if (!isAdmin) {
 		response.status(403).json({ error: "Tài khoản không có quyền quản trị." });
 		return null;
 	}
@@ -151,6 +187,8 @@ async function persistStore() {
 			payments: snapshot.payments ?? [],
 			sessions: snapshot.sessions ?? [],
 			tourContents: snapshot.tourContents ?? [],
+			destinations: snapshot.destinations ?? [],
+			tours: snapshot.tours ?? [],
 		};
 		await writeFile(dataPath, `${JSON.stringify(json, null, 2)}\n`, "utf8");
 	});
@@ -165,15 +203,76 @@ function validEmail(email) {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 120;
 }
 
-// Gắn điểm trung bình + số lượt đánh giá thật vào tour (null / 0 nếu chưa có đánh giá)
+// SSE Endpoint kết nối Real-time cho cả Khách hàng & Admin
+app.get("/api/realtime/stream", (request, response) => {
+	response.setHeader("Content-Type", "text/event-stream");
+	response.setHeader("Cache-Control", "no-cache, no-transform");
+	response.setHeader("Connection", "keep-alive");
+	response.setHeader("X-Accel-Buffering", "no");
+	if (typeof response.flushHeaders === "function") {
+		response.flushHeaders();
+	}
+
+	const user = currentUser(request);
+	const client = {
+		id: randomUUID(),
+		res: response,
+		userId: user?.id || null,
+	};
+	realtimeClients.add(client);
+
+	const welcome = JSON.stringify({
+		type: "connected",
+		payload: { clientId: client.id, onlineCount: realtimeClients.size },
+		timestamp: new Date().toISOString(),
+	});
+	response.write(`data: ${welcome}\n\n`);
+
+	const heartbeat = setInterval(() => {
+		try {
+			response.write(": ping\n\n");
+		} catch {
+			clearInterval(heartbeat);
+			realtimeClients.delete(client);
+		}
+	}, 25000);
+
+	request.on("close", () => {
+		clearInterval(heartbeat);
+		realtimeClients.delete(client);
+	});
+});
+
+// Gắn điểm trung bình + số lượt đánh giá thật + tình trạng chỗ trống theo thời gian thực vào tour
 function withRating(tour, ratings = ratingsByTour(store.reviews)) {
 	const info = ratings.get(tour.id);
-	const content = store.tourContents.find((item) => item.id === tour.id);
-	return { ...tour, image: content?.images?.[0]?.url || tour.image, rating: info?.rating ?? null, reviewCount: info?.reviewCount ?? 0 };
+	const content = findTourContent(tour.id);
+	const today = todayInVietnam();
+	const slots = tourAvailability(tour, store.bookings || [], today);
+	const openSlot = slots.find((slot) => slot.remaining > 0) || slots[0] || null;
+	const maxGuests = Number(tour.maxGuests) || 25;
+	const totalBooked = (store.bookings || [])
+		.filter((booking) => booking.status !== "cancelled" && booking.tour?.id === tour.id)
+		.reduce((sum, booking) => sum + seatsOf(booking.passengers), 0);
+
+	return {
+		...tour,
+		image: content?.images?.[0]?.url || tour.image,
+		maxGuests,
+		status: tour.status || "active",
+		itinerary: tour.itinerary || "",
+		rating: info?.rating ?? null,
+		reviewCount: info?.reviewCount ?? 0,
+		upcomingDepartures: slots.map((slot) => slot.date),
+		nextDeparture: openSlot ? openSlot.date : (tour.departures?.[0] || ""),
+		remainingSeats: openSlot ? openSlot.remaining : maxGuests,
+		nextCapacity: openSlot ? openSlot.capacity : maxGuests,
+		totalBookedGuests: totalBooked,
+	};
 }
 
 function findTour(tourId) {
-	return searchTours().tours.find((tour) => tour.id === tourId);
+	return getAllTours().find((tour) => tour.id === tourId);
 }
 
 function findTourContent(tourId) {
@@ -212,7 +311,7 @@ async function updateTourContent(tourId, nextValue) {
 }
 
 app.get("/api/tours", (request, response) => {
-	const result = searchTours(request.query);
+	const result = searchTours(request.query, getActiveTours());
 	if (result.error) return response.status(400).json({ error: result.error });
 	const ratings = ratingsByTour(store.reviews);
 	return response.json({ total: result.tours.length, tours: result.tours.map((tour) => withRating(tour, ratings)) });
@@ -221,9 +320,9 @@ app.get("/api/tours", (request, response) => {
 app.get("/api/tours/:id", (request, response) => {
 	if (!currentUser(request)) return response.status(401).json({ error: "Vui lòng đăng nhập để xem chi tiết tour." });
 
-	const result = searchTours();
-	const tour = result.tours.find((item) => item.id === request.params.id);
-	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+	const tour = getActiveTours().find((item) => item.id === request.params.id)
+		|| getAllTours().find((item) => item.id === request.params.id);
+	if (!tour || tour.status === "inactive") return response.status(404).json({ error: "Tour này không tồn tại hoặc đang tạm ngưng phục vụ." });
 	return response.json({ tour: withRating(tour) });
 });
 
@@ -246,7 +345,8 @@ app.get("/api/tour-images/:file", (request, response) => {
 });
 // Kiểm tra chỗ trống: sức chứa / đã đặt / còn lại của từng ngày khởi hành còn hiệu lực (công khai, chỉ đọc)
 app.get("/api/tours/:id/availability", (request, response) => {
-	const tour = searchTours().tours.find((item) => item.id === request.params.id);
+	const tour = getActiveTours().find((item) => item.id === request.params.id)
+		|| getAllTours().find((item) => item.id === request.params.id);
 	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
 	response.setHeader("Cache-Control", "no-store");
 	return response.json({ tourId: tour.id, departures: tourAvailability(tour, store.bookings, todayInVietnam()) });
@@ -299,6 +399,14 @@ app.post("/api/bookings/:id/cancellation-request", async (request, response, nex
 			else booking.cancellationRequest = previous;
 			throw error;
 		}
+		broadcastRealtime("booking:cancellation-requested", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			customerName: booking.contact?.name || user.name,
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+		});
 		return response.status(201).json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
 		return next(error);
@@ -381,6 +489,12 @@ app.post("/api/bookings/:id/voucher", async (request, response, next) => {
 			if (payment) payment.amount = previousPaymentAmount;
 			throw error;
 		}
+		broadcastRealtime("booking:updated", {
+			bookingId: storedBooking.id,
+			code: storedBooking.code,
+			userId: storedBooking.userId,
+			total: storedBooking.total,
+		});
 		return response.json({
 			booking: findUserBooking(store.bookings, user.id, storedBooking.id),
 			payment,
@@ -435,6 +549,15 @@ app.post("/api/payments/:id/mock-confirm", async (request, response, next) => {
 				if (voucher) voucher.usageCount = previousUsageCount;
 				throw error;
 			}
+			broadcastRealtime("payment:confirmed", {
+				bookingId: booking.id,
+				code: booking.code,
+				userId: booking.userId,
+				customerName: booking.contact?.name || user.name,
+				tourId: booking.tour?.id,
+				tourName: booking.tour?.name,
+				amount: payment.amount,
+			});
 		}
 		return response.json({ payment, booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
@@ -448,8 +571,8 @@ app.post("/api/bookings", async (request, response, next) => {
 		const user = currentUser(request);
 		if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để đặt tour." });
 
-		const tour = searchTours().tours.find((item) => item.id === request.body?.tourId);
-		if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
+		const tour = getActiveTours().find((item) => item.id === request.body?.tourId);
+		if (!tour) return response.status(404).json({ error: "Tour này không tồn tại hoặc đang ngừng nhận khách." });
 		const departureDate = cleanText(request.body?.departureDate, 10);
 		if (!tour.departures.includes(departureDate)) {
 			return response.status(400).json({ error: "Ngày khởi hành không hợp lệ cho tour này." });
@@ -488,6 +611,25 @@ app.post("/api/bookings", async (request, response, next) => {
 		});
 		store.bookings.push(booking);
 		await persistStore();
+		const updatedSlot = departureAvailability(tour, departureDate, store.bookings);
+		broadcastRealtime("booking:created", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			customerName: booking.contact?.name || user.name,
+			tourId: tour.id,
+			tourName: tour.name,
+			departureDate,
+			seats,
+			remainingSeats: updatedSlot.remaining,
+			total: booking.total,
+		});
+		broadcastRealtime("availability:updated", {
+			tourId: tour.id,
+			departureDate,
+			remaining: updatedSlot.remaining,
+			capacity: updatedSlot.capacity,
+		});
 		return response.status(201).json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
 		return next(error);
@@ -508,6 +650,7 @@ app.post("/api/dev/demo-bookings", async (request, response, next) => {
 		store.bookings.push(...demo);
 		if (!store.reviews.some((review) => review.userId.startsWith("demo-user-"))) store.reviews.push(...buildDemoReviews());
 		await persistStore();
+		broadcastRealtime("booking:created", { userId: user.id, customerName: user.name, demo: true });
 		return response.status(201).json({ created: demo.length });
 	} catch (error) {
 		return next(error);
@@ -854,6 +997,13 @@ app.post("/api/inquiries", async (request, response, next) => {
 			store.inquiries = store.inquiries.filter((item) => item.id !== inquiry.id);
 			throw error;
 		}
+		broadcastRealtime("inquiry:changed", {
+			action: "created",
+			inquiryId: inquiry.id,
+			name: inquiry.name,
+			topic: inquiry.topic,
+			userId: inquiry.userId || null,
+		});
 		return response.status(201).json({ inquiry: { id: inquiry.id, name: inquiry.name }, trackedInAccount: Boolean(user) });
 	} catch (error) {
 		return next(error);
@@ -889,16 +1039,90 @@ app.patch("/api/admin/inquiries/:id/resolve", async (request, response, next) =>
 			else inquiry.resolvedBy = previous.resolvedBy;
 			throw error;
 		}
+		broadcastRealtime("inquiry:changed", {
+			action: "resolved",
+			inquiryId: inquiry.id,
+			topic: inquiry.topic,
+			userId: inquiry.userId || null,
+		});
 		return response.json({ inquiry });
 	} catch (error) {
 		return next(error);
 	}
 });
 
+// Helper tính thông tin bổ sung của Tour cho Admin (đánh giá, số đơn đặt, chỗ)
+function formatAdminTour(tour, bookings = store.bookings || [], reviews = store.reviews || []) {
+	const tourBookings = bookings.filter((b) => b.tour?.id === tour.id || b.tourId === tour.id);
+	const tourReviews = reviews.filter((r) => r.tourId === tour.id);
+	const visibleReviews = tourReviews.filter((r) => !r.hidden);
+	const reviewSummary = summarize(visibleReviews);
+
+	return {
+		...tour,
+		status: tour.status || "active",
+		maxGuests: Number(tour.maxGuests) || 25,
+		itinerary: tour.itinerary || "",
+		bookedCount: tourBookings
+			.filter((b) => b.status !== "cancelled")
+			.reduce((sum, b) => sum + seatsOf(b.passengers), 0),
+		totalBookings: tourBookings.length,
+		activeBookings: tourBookings.filter((b) => b.status === "pending" || b.status === "confirmed").length,
+		averageRating: reviewSummary.averageRating,
+		reviewCount: reviewSummary.totalReviews,
+	};
+}
+
+// GET /api/admin/tours: Danh sách Tour du lịch cho Admin, tìm kiếm và lọc Tour
 app.get("/api/admin/tours", (request, response) => {
 	if (!adminUser(request, response)) return;
+	const keyword = typeof request.query.q === "string" ? cleanText(request.query.q, 100) : "";
+	const place = typeof request.query.place === "string" ? cleanText(request.query.place, 100) : "";
+	const region = typeof request.query.region === "string" ? cleanText(request.query.region, 100) : "";
+	const status = typeof request.query.status === "string" ? request.query.status : "all";
+	const sort = typeof request.query.sort === "string" ? request.query.sort : "default";
+	const minPrice = Number(request.query.minPrice);
+	const maxPrice = Number(request.query.maxPrice);
+	const allTours = getAllTours();
 	const ratings = ratingsByTour(store.reviews);
-	return response.json({ tours: searchTours().tours.map((tour) => withRating(tour, ratings)) });
+	const formattedList = allTours.map((tour) => formatAdminTour(withRating(tour, ratings), store.bookings, store.reviews));
+	const normKeyword = normalizeText(keyword);
+	const normPlace = normalizeText(place);
+	const normRegion = normalizeText(region);
+
+	const filtered = formattedList.filter((tour) => {
+		if (normKeyword) {
+			const haystack = normalizeText(`${tour.name} ${tour.place} ${tour.region} ${tour.id} ${tour.duration}`);
+			if (!haystack.includes(normKeyword)) return false;
+		}
+		if (normPlace && normalizeText(tour.place) !== normPlace) return false;
+		if (normRegion && normalizeText(tour.region) !== normRegion) return false;
+		if (status === "active" && tour.status !== "active") return false;
+		if (status === "inactive" && tour.status !== "inactive") return false;
+		if (Number.isFinite(minPrice) && minPrice > 0 && tour.price < minPrice) return false;
+		if (Number.isFinite(maxPrice) && maxPrice > 0 && tour.price > maxPrice) return false;
+		return true;
+	});
+
+	if (sort === "price-asc") filtered.sort((a, b) => a.price - b.price);
+	else if (sort === "price-desc") filtered.sort((a, b) => b.price - a.price);
+	else if (sort === "name-asc") filtered.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+	else if (sort === "name-desc") filtered.sort((a, b) => b.name.localeCompare(a.name, "vi"));
+	else if (sort === "newest") filtered.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+	const regions = Array.from(new Set(allTours.map((tour) => tour.region).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
+	const places = Array.from(new Set(allTours.map((tour) => tour.place).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
+	return response.json({
+		tours: filtered,
+		total: filtered.length,
+		counts: {
+			all: formattedList.length,
+			active: formattedList.filter((tour) => tour.status === "active").length,
+			inactive: formattedList.filter((tour) => tour.status === "inactive").length,
+		},
+		regions,
+		places,
+	});
 });
 
 app.get("/api/admin/stats/revenue", (request, response) => {
@@ -1041,46 +1265,492 @@ app.delete("/api/admin/tours/:id/images/:file", async (request, response, next) 
 	}
 });
 
+// GET /api/admin/tours/:id: Xem chi tiết Tour du lịch kèm danh sách đơn đặt liên kết
+app.get("/api/admin/tours/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+
+	const allTours = getAllTours();
+	const tour = allTours.find((item) => item.id === request.params.id);
+	if (!tour) return response.status(404).json({ error: "Tour du lịch này không tồn tại." });
+
+	const relatedBookings = (store.bookings || [])
+		.filter((b) => b.tour?.id === tour.id || b.tourId === tour.id)
+		.map((b) => ({
+			id: b.id,
+			code: b.code || b.id,
+			customerName: b.contact?.fullName || b.contact?.name || b.customerName || "Khách hàng",
+			phone: b.contact?.phone || "",
+			email: b.contact?.email || "",
+			departureDate: b.departureDate,
+			passengersCount: seatsOf(b.passengers),
+			total: b.total,
+			status: b.status,
+			createdAt: b.createdAt,
+		}))
+		.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+	const relatedReviews = (store.reviews || []).filter((r) => r.tourId === tour.id);
+
+	return response.json({
+		tour: formatAdminTour(tour, store.bookings, store.reviews),
+		bookings: relatedBookings,
+		reviewsCount: relatedReviews.length,
+	});
+});
+
+// POST /api/admin/tours: Thêm Tour du lịch mới
+app.post("/api/admin/tours", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+
+		const name = cleanText(request.body?.name, 150);
+		const place = cleanText(request.body?.place, 100);
+		const region = cleanText(request.body?.region, 100);
+		const duration = cleanText(request.body?.duration, 80);
+		const rawPrice = request.body?.price;
+		const rawMaxGuests = request.body?.maxGuests;
+		const status = request.body?.status === "inactive" ? "inactive" : "active";
+		const image = cleanText(request.body?.image, 500);
+		const itinerary = typeof request.body?.itinerary === "string" ? request.body.itinerary.trim().slice(0, 3000) : "";
+
+		let departures = [];
+		if (Array.isArray(request.body?.departures)) {
+			departures = request.body.departures.map((d) => cleanText(d, 10)).filter(Boolean);
+		} else if (typeof request.body?.departures === "string") {
+			departures = request.body.departures.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
+		}
+
+		// Ngoại lệ 1: Thiếu thông tin bắt buộc
+		if (!name || !place || !region || !duration || rawPrice === undefined || rawPrice === null || rawPrice === "" || !image || !departures.length || !itinerary) {
+			return response.status(400).json({
+				error: "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên Tour, địa điểm, khu vực, thời gian, giá Tour, hình ảnh, ngày khởi hành và lịch trình.",
+			});
+		}
+
+		// Ngoại lệ 2: Giá Tour hoặc thời gian không hợp lệ
+		const price = Number(rawPrice);
+		if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(price)) {
+			return response.status(400).json({
+				error: "Giá Tour không hợp lệ: Giá Tour phải là số nguyên dương lớn hơn 0.",
+			});
+		}
+
+		const maxGuests = rawMaxGuests !== undefined && rawMaxGuests !== null && rawMaxGuests !== "" ? Number(rawMaxGuests) : 25;
+		if (!Number.isFinite(maxGuests) || maxGuests < 1 || maxGuests > 200 || !Number.isInteger(maxGuests)) {
+			return response.status(400).json({
+				error: "Số lượng khách tối đa không hợp lệ (phải từ 1 đến 200 khách).",
+			});
+		}
+
+		const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+		for (const dep of departures) {
+			if (!datePattern.test(dep) || Number.isNaN(Date.parse(dep))) {
+				return response.status(400).json({
+					error: `Ngày khởi hành "${dep}" không hợp lệ. Vui lòng nhập đúng định dạng YYYY-MM-DD.`,
+				});
+			}
+		}
+		departures = Array.from(new Set(departures)).sort();
+
+		let slugBase = normalizeText(place || name)
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-|-$/g, "");
+		if (!slugBase) slugBase = "tour";
+		let id = `${slugBase}-${Date.now().toString(36)}`;
+
+		const allTours = getAllTours();
+		while (allTours.some((t) => t.id === id)) {
+			id = `${slugBase}-${Math.random().toString(36).slice(2, 7)}`;
+		}
+
+		const now = new Date().toISOString();
+		const newTour = {
+			id,
+			name,
+			place,
+			region,
+			duration,
+			price,
+			maxGuests,
+			status,
+			image,
+			departures,
+			itinerary,
+			createdAt: now,
+			updatedAt: now,
+		};
+
+		allTours.unshift(newTour);
+
+		try {
+			await persistStore();
+		} catch (err) {
+			store.tours = store.tours.filter((t) => t.id !== id);
+			throw err;
+		}
+
+		broadcastRealtime("tour:changed", {
+			action: "created",
+			tourId: newTour.id,
+			tourName: newTour.name,
+			status: newTour.status,
+		});
+
+		return response.status(201).json({
+			message: "Thêm tour du lịch mới thành công.",
+			tour: formatAdminTour(newTour, store.bookings, store.reviews),
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// PUT /api/admin/tours/:id: Sửa thông tin Tour du lịch
+app.put("/api/admin/tours/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+
+		const allTours = getAllTours();
+		const tour = allTours.find((item) => item.id === request.params.id);
+		if (!tour) return response.status(404).json({ error: "Không tìm thấy Tour du lịch cần cập nhật." });
+
+		const name = cleanText(request.body?.name, 150);
+		const place = cleanText(request.body?.place, 100);
+		const region = cleanText(request.body?.region, 100);
+		const duration = cleanText(request.body?.duration, 80);
+		const rawPrice = request.body?.price;
+		const rawMaxGuests = request.body?.maxGuests;
+		const status = request.body?.status === "inactive" ? "inactive" : "active";
+		const image = cleanText(request.body?.image, 500);
+		const itinerary = typeof request.body?.itinerary === "string" ? request.body.itinerary.trim().slice(0, 3000) : "";
+
+		let departures = [];
+		if (Array.isArray(request.body?.departures)) {
+			departures = request.body.departures.map((d) => cleanText(d, 10)).filter(Boolean);
+		} else if (typeof request.body?.departures === "string") {
+			departures = request.body.departures.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean);
+		}
+
+		// Ngoại lệ 1: Thiếu thông tin bắt buộc
+		if (!name || !place || !region || !duration || rawPrice === undefined || rawPrice === null || rawPrice === "" || !image || !departures.length || !itinerary) {
+			return response.status(400).json({
+				error: "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên Tour, địa điểm, khu vực, thời gian, giá Tour, hình ảnh, ngày khởi hành và lịch trình.",
+			});
+		}
+
+		// Ngoại lệ 2: Giá Tour hoặc thời gian không hợp lệ
+		const price = Number(rawPrice);
+		if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(price)) {
+			return response.status(400).json({
+				error: "Giá Tour không hợp lệ: Giá Tour phải là số nguyên dương lớn hơn 0.",
+			});
+		}
+
+		const maxGuests = rawMaxGuests !== undefined && rawMaxGuests !== null && rawMaxGuests !== "" ? Number(rawMaxGuests) : (tour.maxGuests || 25);
+		if (!Number.isFinite(maxGuests) || maxGuests < 1 || maxGuests > 200 || !Number.isInteger(maxGuests)) {
+			return response.status(400).json({
+				error: "Số lượng khách tối đa không hợp lệ (phải từ 1 đến 200 khách).",
+			});
+		}
+
+		const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+		for (const dep of departures) {
+			if (!datePattern.test(dep) || Number.isNaN(Date.parse(dep))) {
+				return response.status(400).json({
+					error: `Ngày khởi hành "${dep}" không hợp lệ. Vui lòng nhập đúng định dạng YYYY-MM-DD.`,
+				});
+			}
+		}
+		departures = Array.from(new Set(departures)).sort();
+
+		const previous = { ...tour };
+		Object.assign(tour, {
+			name,
+			place,
+			region,
+			duration,
+			price,
+			maxGuests,
+			status,
+			image,
+			departures,
+			itinerary,
+			updatedAt: new Date().toISOString(),
+		});
+
+		try {
+			await persistStore();
+		} catch (err) {
+			Object.assign(tour, previous);
+			throw err;
+		}
+
+		broadcastRealtime("tour:changed", {
+			action: "updated",
+			tourId: tour.id,
+			tourName: tour.name,
+			status: tour.status,
+		});
+
+		return response.json({
+			message: "Cập nhật thông tin Tour du lịch thành công.",
+			tour: formatAdminTour(tour, store.bookings, store.reviews),
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// PATCH /api/admin/tours/:id/status: Đổi trạng thái Tour (Đang hoạt động / Ngừng hoạt động)
+app.patch("/api/admin/tours/:id/status", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+
+		const allTours = getAllTours();
+		const tour = allTours.find((item) => item.id === request.params.id);
+		if (!tour) return response.status(404).json({ error: "Không tìm thấy Tour du lịch." });
+
+		const newStatus = request.body?.status === "inactive" ? "inactive" : (request.body?.status === "active" ? "active" : (tour.status === "active" ? "inactive" : "active"));
+		const previousStatus = tour.status;
+		tour.status = newStatus;
+		tour.updatedAt = new Date().toISOString();
+
+		try {
+			await persistStore();
+		} catch (err) {
+			tour.status = previousStatus;
+			throw err;
+		}
+
+		broadcastRealtime("tour:changed", {
+			action: "status",
+			tourId: tour.id,
+			tourName: tour.name,
+			status: tour.status,
+		});
+
+		return response.json({
+			message: `Đã chuyển trạng thái Tour sang "${tour.status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}".`,
+			tour: formatAdminTour(tour, store.bookings, store.reviews),
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// DELETE /api/admin/tours/:id: Xóa Tour du lịch (Ngoại lệ: Chặn xóa nếu Tour đã có đơn đặt)
+app.delete("/api/admin/tours/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+
+		const allTours = getAllTours();
+		const tour = allTours.find((item) => item.id === request.params.id);
+		if (!tour) return response.status(404).json({ error: "Không tìm thấy Tour du lịch cần xóa." });
+
+		// Ngoại lệ 3: Tour đã có đơn đặt - Cần kiểm tra và xử lý các đơn liên quan trước khi xóa
+		const relatedBookings = (store.bookings || []).filter(
+			(booking) => booking.tour?.id === tour.id || booking.tourId === tour.id
+		);
+		const activeBookings = relatedBookings.filter((b) => b.status !== "cancelled");
+		const isForce = request.query.force === "true" || request.body?.force === true;
+
+		if (activeBookings.length > 0 && !isForce) {
+			return response.status(409).json({
+				error: `Tour "${tour.name}" đang có ${activeBookings.length} đơn đặt tour chưa hoàn tất. Vui lòng kiểm tra và xử lý hoặc xác nhận hủy các đơn liên quan trước khi xóa tour này.`,
+				bookingsCount: activeBookings.length,
+				bookings: activeBookings.map((b) => ({
+					id: b.id,
+					code: b.code || b.id,
+					customerName: b.contact?.fullName || b.contact?.name || b.customerName || "Khách hàng",
+					phone: b.contact?.phone || "",
+					departureDate: b.departureDate,
+					status: b.status,
+					total: b.total,
+				})),
+			});
+		}
+
+		// Nếu Admin đã xác nhận xử lý các đơn liên quan, đánh dấu các đơn đang hoạt động sang trạng thái Đã hủy
+		if (activeBookings.length > 0 && isForce) {
+			const now = new Date().toISOString();
+			for (const b of activeBookings) {
+				b.status = "cancelled";
+				b.rejectReason = "Tour du lịch đã bị quản trị viên xóa khỏi hệ thống";
+				b.updatedAt = now;
+				broadcastRealtime("booking:status-updated", {
+					bookingId: b.id,
+					code: b.code,
+					userId: b.userId,
+					status: "cancelled",
+					rejectReason: b.rejectReason,
+				});
+			}
+		}
+
+		// Xóa tour khỏi store.tours
+		const removedIndex = allTours.findIndex((t) => t.id === tour.id);
+		const [removedTour] = allTours.splice(removedIndex, 1);
+
+		try {
+			await persistStore();
+		} catch (err) {
+			allTours.splice(removedIndex, 0, removedTour);
+			throw err;
+		}
+
+		broadcastRealtime("tour:changed", {
+			action: "deleted",
+			tourId: tour.id,
+			tourName: tour.name,
+		});
+
+		return response.json({
+			success: true,
+			message: `Đã xóa vĩnh viễn tour "${tour.name}" khỏi hệ thống thành công.`,
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
 app.get("/api/admin/bookings", (request, response) => {
 	if (!adminUser(request, response)) return;
 	const query = cleanText(request.query.q, 100).toLocaleLowerCase("vi");
-	const status = cleanText(request.query.status, 20);
+	const status = cleanText(request.query.status, 30);
 	const tourId = cleanText(request.query.tourId, 100);
-	const bookings = store.bookings
-		.filter((booking) => (!tourId || booking.tour?.id === tourId)
-			&& (!status || (status === "cancellation_requested"
-				? booking.cancellationRequest?.status === "pending"
-				: booking.status === status))
-			&& (!query || [booking.code, booking.tour?.name, booking.contact?.name, booking.contact?.email]
-				.some((value) => String(value || "").toLocaleLowerCase("vi").includes(query))))
+	const startDate = cleanText(request.query.startDate, 10);
+	const endDate = cleanText(request.query.endDate, 10);
+	const dateType = cleanText(request.query.dateType, 20) || "createdAt";
+
+	const allBookings = store.bookings;
+	const counts = {
+		all: allBookings.length,
+		pending: allBookings.filter((b) => b.status === "pending").length,
+		confirmed: allBookings.filter((b) => b.status === "confirmed").length,
+		completed: allBookings.filter((b) => b.status === "completed").length,
+		cancelled: allBookings.filter((b) => b.status === "cancelled").length,
+	};
+
+	const bookings = allBookings
+		.filter((booking) => {
+			if (tourId && booking.tour?.id !== tourId) return false;
+			if (status && status !== "all") {
+				if (status === "cancellation_requested") {
+					if (booking.cancellationRequest?.status !== "pending") return false;
+				} else if (booking.status !== status) {
+					return false;
+				}
+			}
+			const compareDate = (dateType === "departureDate" ? booking.departureDate : booking.createdAt?.slice(0, 10)) || "";
+			if (startDate && compareDate < startDate) return false;
+			if (endDate && compareDate > endDate) return false;
+
+			if (query) {
+				const match = [
+					booking.code,
+					booking.tour?.name,
+					booking.tour?.place,
+					booking.contact?.name,
+					booking.contact?.email,
+					booking.contact?.phone,
+				].some((val) => String(val || "").toLocaleLowerCase("vi").includes(query));
+				if (!match) return false;
+			}
+			return true;
+		})
 		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
 		.map(({ userId, ...booking }) => booking);
-	return response.json({ bookings });
+
+	return response.json({ bookings, counts });
+});
+
+app.get("/api/admin/bookings/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const booking = store.bookings.find((item) => item.id === request.params.id);
+	if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
+	const { userId, ...publicAdminBooking } = booking;
+	return response.json({ booking: publicAdminBooking });
 });
 
 app.patch("/api/admin/bookings/:id/status", async (request, response, next) => {
 	try {
-		if (!adminUser(request, response)) return;
+		const admin = adminUser(request, response);
+		if (!admin) return;
 		const booking = store.bookings.find((item) => item.id === request.params.id);
 		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
 		const nextStatus = request.body?.status;
-		const validTransition = (booking.status === "pending" && nextStatus === "confirmed")
-			|| (booking.status === "pending" && nextStatus === "cancelled")
+		const reason = cleanText(request.body?.reason, 500);
+
+		// Luồng ngoại lệ: Đơn đã được xử lý: Không cho phép xác nhận lại.
+		if (booking.status !== "pending" && (nextStatus === "confirmed" || nextStatus === "cancelled")) {
+			return response.status(409).json({
+				error: "Đơn đặt tour đã được xử lý trước đó, không thể xác nhận hoặc từ chối lại.",
+			});
+		}
+
+		const validTransition = (booking.status === "pending" && (nextStatus === "confirmed" || nextStatus === "cancelled"))
 			|| (booking.status === "confirmed" && nextStatus === "completed");
-		if (!validTransition) return response.status(409).json({ error: "Chỉ có thể duyệt hoặc hủy đơn đang chờ, hoặc đánh dấu đơn đã xác nhận là hoàn tất." });
-		const previous = { status: booking.status, updatedAt: booking.updatedAt };
+		if (!validTransition) {
+			return response.status(409).json({
+				error: "Chỉ có thể xác nhận hoặc từ chối đơn đang chờ duyệt, hoặc đánh dấu đơn đã xác nhận là hoàn tất.",
+			});
+		}
+
+		const previous = {
+			status: booking.status,
+			updatedAt: booking.updatedAt,
+			processedBy: booking.processedBy,
+			rejectReason: booking.rejectReason,
+		};
 		booking.status = nextStatus;
 		booking.updatedAt = new Date().toISOString();
+		booking.processedBy = admin.id;
+		if (nextStatus === "cancelled" && reason) {
+			booking.rejectReason = reason;
+		}
+
 		try {
 			await persistStore();
 		} catch (error) {
 			Object.assign(booking, previous);
 			throw error;
 		}
-		return response.json({ booking });
+		broadcastRealtime("booking:status-updated", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			status: booking.status,
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+			rejectReason: booking.rejectReason || "",
+		});
+		if (nextStatus === "cancelled" && booking.tour?.id) {
+			const tourObj = getAllTours().find((t) => t.id === booking.tour.id);
+			if (tourObj) {
+				const slot = departureAvailability(tourObj, booking.departureDate, store.bookings);
+				broadcastRealtime("availability:updated", {
+					tourId: tourObj.id,
+					departureDate: booking.departureDate,
+					remaining: slot.remaining,
+					capacity: slot.capacity,
+				});
+			}
+		}
+		const { userId, ...publicAdminBooking } = booking;
+		return response.json({ booking: publicAdminBooking });
 	} catch (error) {
 		return next(error);
 	}
+});
+
+app.post("/api/admin/bookings/:id/confirm", async (request, response, next) => {
+	request.body = { ...request.body, status: "confirmed" };
+	return app._router.handle({ ...request, method: "PATCH", url: `/api/admin/bookings/${request.params.id}/status` }, response, next);
+});
+
+app.post("/api/admin/bookings/:id/reject", async (request, response, next) => {
+	request.body = { ...request.body, status: "cancelled" };
+	return app._router.handle({ ...request, method: "PATCH", url: `/api/admin/bookings/${request.params.id}/status` }, response, next);
 });
 
 app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next) => {
@@ -1110,6 +1780,27 @@ app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next
 			booking.updatedAt = previous.updatedAt;
 			booking.cancellationRequest = previous.cancellationRequest;
 			throw error;
+		}
+		broadcastRealtime("booking:cancellation-decided", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			decision,
+			status: booking.status,
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+		});
+		if (decision === "approved" && booking.tour?.id) {
+			const tourObj = getAllTours().find((t) => t.id === booking.tour.id);
+			if (tourObj) {
+				const slot = departureAvailability(tourObj, booking.departureDate, store.bookings);
+				broadcastRealtime("availability:updated", {
+					tourId: tourObj.id,
+					departureDate: booking.departureDate,
+					remaining: slot.remaining,
+					capacity: slot.capacity,
+				});
+			}
 		}
 		return response.json({ booking });
 	} catch (error) {
@@ -1215,6 +1906,288 @@ app.delete("/api/admin/customers/:id", async (request, response, next) => {
 	}
 });
 
+// ===== Quản lý Danh mục Địa điểm (Thêm, Sửa, Xóa) =====
+
+/**
+ * Tìm các Tour đang sử dụng một địa điểm du lịch.
+ * Khớp theo ID địa điểm, địa danh (place), tỉnh thành (region) hoặc tên địa điểm xuất hiện trong tour.
+ */
+function getToursUsingDestination(destination) {
+	const normName = normalizeText(destination.name || "");
+	const allTours = getAllTours();
+
+	return allTours
+		.filter((tour) => {
+			if (tour.destinationId && tour.destinationId === destination.id) return true;
+			const tourPlace = normalizeText(tour.place || "");
+			const tourName = normalizeText(tour.name || "");
+
+			if (tourPlace && (normName.includes(tourPlace) || tourPlace.includes(normName))) return true;
+			if (normName.length >= 3 && tourName.includes(normName)) return true;
+			const coreName = normName.replace(/^(vinh|pho co|dao ngoc|co do|thanh pho|quan dao|quan the|thi xa)\s+/, "");
+			if (coreName.length >= 3 && (tourName.includes(coreName) || (tourPlace && tourPlace.includes(coreName)))) return true;
+			return false;
+		})
+		.map((tour) => ({
+			id: tour.id,
+			name: tour.name,
+			place: tour.place,
+			region: tour.region,
+			duration: tour.duration,
+			price: tour.price,
+		}));
+}
+
+// API công khai danh sách địa điểm (cho tìm kiếm hoặc hiển thị)
+app.get("/api/destinations", (request, response) => {
+	const list = (store.destinations || []).map((d) => ({
+		id: d.id,
+		name: d.name,
+		region: d.region,
+		description: d.description,
+		image: d.image,
+	}));
+	return response.json({ destinations: list, total: list.length });
+});
+
+// GET /api/admin/destinations: Danh sách địa điểm du lịch, tìm kiếm, lọc khu vực & trạng thái liên kết
+app.get("/api/admin/destinations", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const keyword = typeof request.query.q === "string" ? cleanText(request.query.q, 100) : "";
+	const region = typeof request.query.region === "string" ? cleanText(request.query.region, 100) : "";
+	const usage = typeof request.query.usage === "string" ? request.query.usage : "all"; // "all" | "in-use" | "unused"
+
+	const normKeyword = normalizeText(keyword);
+	const normRegion = normalizeText(region);
+
+	const allWithTours = (store.destinations || []).map((d) => {
+		const tours = getToursUsingDestination(d);
+		return {
+			...d,
+			tours,
+			toursCount: tours.length,
+		};
+	});
+
+	const regions = Array.from(new Set((store.destinations || []).map((d) => d.region).filter(Boolean))).sort((a, b) => a.localeCompare(b, "vi"));
+
+	const filtered = allWithTours.filter((d) => {
+		if (normKeyword) {
+			const haystack = normalizeText(`${d.name} ${d.region} ${d.description}`);
+			if (!haystack.includes(normKeyword)) return false;
+		}
+		if (normRegion && normalizeText(d.region) !== normRegion) return false;
+		if (usage === "in-use" && d.toursCount === 0) return false;
+		if (usage === "unused" && d.toursCount > 0) return false;
+		return true;
+	});
+
+	return response.json({
+		destinations: filtered,
+		total: filtered.length,
+		regions,
+		counts: {
+			all: allWithTours.length,
+			inUse: allWithTours.filter((d) => d.toursCount > 0).length,
+			unused: allWithTours.filter((d) => d.toursCount === 0).length,
+		},
+	});
+});
+
+// GET /api/admin/destinations/:id: Chi tiết một địa điểm kèm danh sách các tour liên quan
+app.get("/api/admin/destinations/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const destination = (store.destinations || []).find((d) => d.id === request.params.id);
+	if (!destination) {
+		return response.status(404).json({ error: "Không tìm thấy địa điểm du lịch." });
+	}
+	const tours = getToursUsingDestination(destination);
+	return response.json({
+		destination: {
+			...destination,
+			tours,
+			toursCount: tours.length,
+		},
+	});
+});
+
+// POST /api/admin/destinations: Thêm địa điểm du lịch mới
+app.post("/api/admin/destinations", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const name = cleanText(request.body?.name, 120);
+		const region = cleanText(request.body?.region, 100);
+		const description = cleanText(request.body?.description, 1000);
+		const image = cleanText(request.body?.image, 500);
+
+		// Ngoại lệ 1: Thiếu thông tin bắt buộc
+		if (!name || !region || !description || !image) {
+			return response.status(400).json({
+				error: "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên địa điểm, khu vực/tỉnh thành, mô tả và hình ảnh.",
+			});
+		}
+		if (name.length < 2) {
+			return response.status(400).json({ error: "Tên địa điểm phải có ít nhất 2 ký tự." });
+		}
+		if (description.length < 10) {
+			return response.status(400).json({ error: "Mô tả địa điểm phải có ít nhất 10 ký tự." });
+		}
+
+		// Kiểm tra trùng lặp tên địa điểm trong cùng khu vực
+		const duplicate = (store.destinations || []).some(
+			(d) => normalizeText(d.name) === normalizeText(name) && normalizeText(d.region) === normalizeText(region)
+		);
+		if (duplicate) {
+			return response.status(409).json({ error: "Địa điểm này đã tồn tại trong cùng khu vực/tỉnh thành." });
+		}
+
+		const now = new Date().toISOString();
+		const destination = {
+			id: randomUUID(),
+			name,
+			region,
+			description,
+			image,
+			createdAt: now,
+			updatedAt: now,
+		};
+
+		if (!Array.isArray(store.destinations)) store.destinations = [];
+		store.destinations.unshift(destination);
+
+		try {
+			await persistStore();
+		} catch (error) {
+			store.destinations = store.destinations.filter((d) => d.id !== destination.id);
+			throw error;
+		}
+
+		broadcastRealtime("destination:changed", {
+			action: "created",
+			destinationId: destination.id,
+			name: destination.name,
+			region: destination.region,
+		});
+
+		return response.status(201).json({
+			message: "Thêm địa điểm du lịch thành công.",
+			destination: { ...destination, tours: [], toursCount: 0 },
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// PUT /api/admin/destinations/:id: Cập nhật thông tin địa điểm du lịch
+app.put("/api/admin/destinations/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const destination = (store.destinations || []).find((d) => d.id === request.params.id);
+		if (!destination) {
+			return response.status(404).json({ error: "Không tìm thấy địa điểm du lịch." });
+		}
+
+		const name = cleanText(request.body?.name, 120);
+		const region = cleanText(request.body?.region, 100);
+		const description = cleanText(request.body?.description, 1000);
+		const image = cleanText(request.body?.image, 500);
+
+		// Ngoại lệ 1: Thiếu thông tin bắt buộc
+		if (!name || !region || !description || !image) {
+			return response.status(400).json({
+				error: "Thiếu thông tin bắt buộc: Vui lòng nhập đầy đủ tên địa điểm, khu vực/tỉnh thành, mô tả và hình ảnh.",
+			});
+		}
+		if (name.length < 2) {
+			return response.status(400).json({ error: "Tên địa điểm phải có ít nhất 2 ký tự." });
+		}
+		if (description.length < 10) {
+			return response.status(400).json({ error: "Mô tả địa điểm phải có ít nhất 10 ký tự." });
+		}
+
+		// Kiểm tra trùng lặp với địa điểm khác
+		const duplicate = (store.destinations || []).some(
+			(d) => d.id !== destination.id && normalizeText(d.name) === normalizeText(name) && normalizeText(d.region) === normalizeText(region)
+		);
+		if (duplicate) {
+			return response.status(409).json({ error: "Tên địa điểm đã tồn tại trong cùng khu vực/tỉnh thành." });
+		}
+
+		const previous = { ...destination };
+		destination.name = name;
+		destination.region = region;
+		destination.description = description;
+		destination.image = image;
+		destination.updatedAt = new Date().toISOString();
+
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(destination, previous);
+			throw error;
+		}
+
+		broadcastRealtime("destination:changed", {
+			action: "updated",
+			destinationId: destination.id,
+			name: destination.name,
+			region: destination.region,
+		});
+
+		const tours = getToursUsingDestination(destination);
+		return response.json({
+			message: "Cập nhật thông tin địa điểm thành công.",
+			destination: { ...destination, tours, toursCount: tours.length },
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// DELETE /api/admin/destinations/:id: Xóa địa điểm (Kiểm tra ngoại lệ địa điểm đang được dùng trong tour)
+app.delete("/api/admin/destinations/:id", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const destination = (store.destinations || []).find((d) => d.id === request.params.id);
+		if (!destination) {
+			return response.status(404).json({ error: "Không tìm thấy địa điểm du lịch." });
+		}
+
+		// Ngoại lệ 2: Địa điểm đang được sử dụng trong Tour -> Không cho phép xóa
+		const linkedTours = getToursUsingDestination(destination);
+		if (linkedTours.length > 0) {
+			const tourNames = linkedTours.map((t) => `"${t.name}"`).join(", ");
+			return response.status(409).json({
+				error: `Không thể xóa địa điểm này vì đang được sử dụng trong ${linkedTours.length} tour du lịch (${tourNames}). Vui lòng xử lý hoặc chuyển liên kết tour trước khi xóa.`,
+				linkedTours,
+			});
+		}
+
+		const previous = store.destinations;
+		store.destinations = store.destinations.filter((d) => d.id !== destination.id);
+
+		try {
+			await persistStore();
+		} catch (error) {
+			store.destinations = previous;
+			throw error;
+		}
+
+		broadcastRealtime("destination:changed", {
+			action: "deleted",
+			destinationId: destination.id,
+			name: destination.name,
+		});
+
+		return response.json({
+			success: true,
+			message: "Đã xóa địa điểm du lịch thành công.",
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
 // ===== Đánh giá và chấm điểm tour =====
 async function saveImages(buffers) {
 	await mkdir(imagesDirectory, { recursive: true });
@@ -1228,8 +2201,221 @@ async function saveImages(buffers) {
 }
 
 async function removeImageFiles(names) {
-	await Promise.all(names.map((name) => unlink(resolve(imagesDirectory, name)).catch(() => {})));
+	await Promise.all(
+		(names || [])
+			.filter((name) => IMAGE_FILE_PATTERN.test(name))
+			.map((name) => unlink(resolve(imagesDirectory, name)).catch(() => {}))
+	);
 }
+
+// Từ khóa nghi vấn vi phạm quy chuẩn cộng đồng (spam, quảng cáo, liên kết rác)
+const VIOLATION_KEYWORDS = ["spam", "quang cao", "vay von", "sim so", "lua dao", "co bac", "ca do", "0999888777", "http://", "https://"];
+
+function checkViolationSuspect(comment = "") {
+	const norm = normalizeText(comment);
+	return VIOLATION_KEYWORDS.some((kw) => norm.includes(kw));
+}
+
+function formatAdminReview(review, toursMap) {
+	const tour = toursMap.get(review.tourId);
+	const booking = (store.bookings || []).find((b) => b.id === review.bookingId || b.code === review.bookingId);
+	const user = (store.users || []).find((u) => u.id === review.userId);
+	const rawImages = Array.isArray(review.images) ? review.images : [];
+	return {
+		id: review.id,
+		userId: review.userId,
+		bookingId: booking?.code || review.bookingId || "—",
+		tourId: review.tourId,
+		tourName: tour?.name || review.tourId,
+		tourPlace: tour?.place || "",
+		tourRegion: tour?.region || "",
+		authorName: review.authorName || user?.name || "Khách hàng",
+		authorEmail: user?.email || booking?.contact?.email || "",
+		authorPhone: user?.phone || booking?.contact?.phone || "",
+		rating: Number(review.rating) || 5,
+		comment: review.comment || "",
+		images: rawImages.map(imageUrl).filter(Boolean),
+		imagesCount: rawImages.length,
+		hidden: Boolean(review.hidden),
+		hiddenReason: review.hiddenReason || "",
+		hiddenAt: review.hiddenAt || null,
+		isViolationSuspect: checkViolationSuspect(review.comment),
+		createdAt: review.createdAt,
+		updatedAt: review.updatedAt,
+		edited: review.updatedAt !== review.createdAt,
+	};
+}
+
+function buildTourReviewSummaries() {
+	const allTours = getAllTours();
+	const allReviews = store.reviews || [];
+	return allTours.map((tour) => {
+		const tourRevs = allReviews.filter((r) => r.tourId === tour.id);
+		const visibleRevs = tourRevs.filter((r) => !r.hidden);
+		const stats = summarize(visibleRevs);
+		return {
+			tourId: tour.id,
+			tourName: tour.name,
+			place: tour.place,
+			region: tour.region,
+			image: tour.image,
+			averageRating: stats.average,
+			totalReviews: tourRevs.length,
+			visibleReviews: visibleRevs.length,
+			hiddenReviews: tourRevs.length - visibleRevs.length,
+			distribution: stats.distribution,
+		};
+	});
+}
+
+// GET /api/admin/reviews: Danh sách đánh giá của khách hàng + Điểm trung bình & tổng lượt đánh giá từng Tour
+app.get("/api/admin/reviews", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const keyword = typeof request.query.q === "string" ? cleanText(request.query.q, 100) : "";
+	const tourId = typeof request.query.tourId === "string" ? cleanText(request.query.tourId, 100) : "";
+	const ratingFilter = request.query.rating ? Number(request.query.rating) : null;
+	const visibility = typeof request.query.visibility === "string" ? request.query.visibility : "all"; // all | visible | hidden | violation
+	const hasImages = typeof request.query.hasImages === "string" ? request.query.hasImages : "all"; // all | with-images | no-images
+	const sort = typeof request.query.sort === "string" ? request.query.sort : "newest"; // newest | oldest | highest | lowest
+
+	const allTours = getAllTours();
+	const toursMap = new Map(allTours.map((t) => [t.id, t]));
+	const allReviews = (store.reviews || []).map((r) => formatAdminReview(r, toursMap));
+
+	const visibleAll = (store.reviews || []).filter((r) => !r.hidden);
+	const overallStats = summarize(visibleAll);
+
+	const counts = {
+		all: allReviews.length,
+		visible: visibleAll.length,
+		hidden: allReviews.length - visibleAll.length,
+		withImages: allReviews.filter((r) => r.imagesCount > 0).length,
+		violationSuspects: allReviews.filter((r) => r.isViolationSuspect || r.rating === 1).length,
+		averageRating: overallStats.average || 0,
+		distribution: overallStats.distribution,
+	};
+
+	const normKeyword = normalizeText(keyword);
+	const filtered = allReviews.filter((r) => {
+		if (normKeyword) {
+			const haystack = normalizeText(`${r.authorName} ${r.tourName} ${r.comment} ${r.bookingId} ${r.authorEmail}`);
+			if (!haystack.includes(normKeyword)) return false;
+		}
+		if (tourId && r.tourId !== tourId) return false;
+		if (ratingFilter && r.rating !== ratingFilter) return false;
+		if (visibility === "visible" && r.hidden) return false;
+		if (visibility === "hidden" && !r.hidden) return false;
+		if (visibility === "violation" && !r.isViolationSuspect && r.rating > 2) return false;
+		if (hasImages === "with-images" && r.imagesCount === 0) return false;
+		if (hasImages === "no-images" && r.imagesCount > 0) return false;
+		return true;
+	});
+
+	if (sort === "newest") filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+	else if (sort === "oldest") filtered.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+	else if (sort === "highest") filtered.sort((a, b) => b.rating - a.rating || b.createdAt.localeCompare(a.createdAt));
+	else if (sort === "lowest") filtered.sort((a, b) => a.rating - b.rating || b.createdAt.localeCompare(a.createdAt));
+
+	return response.json({
+		reviews: filtered,
+		total: filtered.length,
+		tourSummaries: buildTourReviewSummaries(),
+		counts,
+	});
+});
+
+// GET /api/admin/reviews/:id: Xem chi tiết một đánh giá
+app.get("/api/admin/reviews/:id", (request, response) => {
+	if (!adminUser(request, response)) return;
+	const review = (store.reviews || []).find((r) => r.id === request.params.id);
+	if (!review) {
+		return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
+	}
+	const allTours = getAllTours();
+	const toursMap = new Map(allTours.map((t) => [t.id, t]));
+	const tourSummary = buildTourReviewSummaries().find((s) => s.tourId === review.tourId) || null;
+	return response.json({
+		review: formatAdminReview(review, toursMap),
+		tourSummary,
+	});
+});
+
+// PATCH /api/admin/reviews/:id/visibility: Ẩn hoặc Hiện đánh giá (kiểm duyệt nội dung vi phạm)
+app.patch("/api/admin/reviews/:id/visibility", async (request, response, next) => {
+	try {
+		if (!adminUser(request, response)) return;
+		const review = (store.reviews || []).find((r) => r.id === request.params.id);
+		if (!review) {
+			return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
+		}
+
+		const nextHidden = typeof request.body?.hidden === "boolean" ? request.body.hidden : !review.hidden;
+		const reason = cleanText(request.body?.reason, 300);
+		const previous = { hidden: review.hidden, hiddenReason: review.hiddenReason, hiddenAt: review.hiddenAt };
+
+		review.hidden = nextHidden;
+		review.hiddenReason = nextHidden ? (reason || "Nội dung đánh giá vi phạm quy chuẩn cộng đồng") : "";
+		review.hiddenAt = nextHidden ? new Date().toISOString() : null;
+
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(review, previous);
+			throw error;
+		}
+
+		broadcastRealtime("review:changed", {
+			action: nextHidden ? "hidden" : "visible",
+			reviewId: review.id,
+			tourId: review.tourId,
+		});
+
+		const allTours = getAllTours();
+		const toursMap = new Map(allTours.map((t) => [t.id, t]));
+		return response.json({
+			message: nextHidden
+				? "Đã ẩn đánh giá khỏi trang chi tiết tour công khai."
+				: "Đã hiển thị lại đánh giá trên trang chi tiết tour công khai.",
+			review: formatAdminReview(review, toursMap),
+			tourSummaries: buildTourReviewSummaries(),
+		});
+	} catch (error) {
+		return next(error);
+	}
+});
+
+// DELETE /api/admin/reviews/:id: Xóa vĩnh viễn đánh giá vi phạm
+app.delete("/api/admin/reviews/:id", async (request, response, next) => {
+	let removed = null;
+	try {
+		if (!adminUser(request, response)) return;
+		removed = (store.reviews || []).find((r) => r.id === request.params.id);
+		if (!removed) {
+			return response.status(404).json({ error: "Không tìm thấy đánh giá này." });
+		}
+
+		store.reviews = store.reviews.filter((r) => r.id !== removed.id);
+		await persistStore();
+		await removeImageFiles(removed.images);
+
+		broadcastRealtime("review:changed", {
+			action: "deleted",
+			reviewId: removed.id,
+			tourId: removed.tourId,
+		});
+
+		return response.json({
+			success: true,
+			message: "Đã xóa vĩnh viễn đánh giá vi phạm thành công.",
+			tourSummaries: buildTourReviewSummaries(),
+		});
+	} catch (error) {
+		if (removed && !store.reviews.some((r) => r.id === removed.id)) {
+			store.reviews.push(removed);
+		}
+		return next(error);
+	}
+});
 
 function decodeNewImages(list) {
 	if (!Array.isArray(list) || list.length > MAX_IMAGES) return { error: `Tối đa ${MAX_IMAGES} ảnh cho mỗi đánh giá.` };
@@ -1244,7 +2430,7 @@ function decodeNewImages(list) {
 
 // Đọc đánh giá của một tour: công khai (khách chưa đăng nhập vẫn xem được), kèm quyền đánh giá của người đang đăng nhập
 app.get("/api/tours/:id/reviews", (request, response) => {
-	const tour = searchTours().tours.find((item) => item.id === request.params.id);
+	const tour = getAllTours().find((item) => item.id === request.params.id);
 	if (!tour) return response.status(404).json({ error: "Tour này không tồn tại." });
 
 	const user = currentUser(request);
@@ -1289,6 +2475,14 @@ app.post("/api/bookings/:id/review", async (request, response, next) => {
 		created = createReview({ user, booking, ...input, images: savedNames });
 		store.reviews.push(created);
 		await persistStore();
+		broadcastRealtime("review:changed", {
+			action: "created",
+			reviewId: created.id,
+			tourId: created.tourId,
+			tourName: booking.tour?.name,
+			authorName: user.name,
+			rating: created.rating,
+		});
 		return response.status(201).json({ review: publicReview(created, user.id) });
 	} catch (error) {
 		if (created) store.reviews = store.reviews.filter((item) => item.id !== created.id);
@@ -1333,6 +2527,13 @@ app.put("/api/reviews/:id", async (request, response, next) => {
 		Object.assign(review, { rating: input.rating, comment: input.comment, images: [...keep, ...newNames], updatedAt: new Date().toISOString() });
 		await persistStore();
 		await removeImageFiles(snapshot.images.filter((name) => !keep.includes(name)));
+		broadcastRealtime("review:changed", {
+			action: "updated",
+			reviewId: review.id,
+			tourId: review.tourId,
+			authorName: user.name,
+			rating: review.rating,
+		});
 		return response.json({ review: publicReview(review, user.id) });
 	} catch (error) {
 		if (snapshot && review) Object.assign(review, snapshot);
@@ -1353,6 +2554,11 @@ app.delete("/api/reviews/:id", async (request, response, next) => {
 		store.reviews = store.reviews.filter((item) => item.id !== removed.id);
 		await persistStore();
 		await removeImageFiles(removed.images);
+		broadcastRealtime("review:changed", {
+			action: "deleted",
+			reviewId: removed.id,
+			tourId: removed.tourId,
+		});
 		return response.json({ ok: true });
 	} catch (error) {
 		if (removed && !store.reviews.some((item) => item.id === removed.id)) store.reviews.push(removed);
@@ -1372,6 +2578,14 @@ app.post("/api/dev/bookings/:id/complete", async (request, response, next) => {
 
 		Object.assign(booking, { status: "completed", paymentStatus: "paid", updatedAt: new Date().toISOString() });
 		await persistStore();
+		broadcastRealtime("booking:status-updated", {
+			bookingId: booking.id,
+			code: booking.code,
+			userId: booking.userId,
+			status: "completed",
+			tourId: booking.tour?.id,
+			tourName: booking.tour?.name,
+		});
 		return response.json({ booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
 		return next(error);
@@ -1392,6 +2606,24 @@ app.use((error, request, response, next) => {
 		error: status === 400 ? "Dữ liệu JSON gửi lên không hợp lệ." : "Máy chủ không thể xử lý yêu cầu lúc này.",
 	});
 });
+
+function ensureTourDeparturesFresh(toursList) {
+	const today = todayInVietnam();
+	const defaultsMap = new Map(DEFAULT_TOURS.map((t) => [t.id, t]));
+	for (const tour of toursList) {
+		const def = defaultsMap.get(tour.id);
+		if (def) {
+			const futureCount = (tour.departures || []).filter((d) => d >= today).length;
+			if (futureCount < 2) {
+				tour.departures = Array.from(new Set([...(tour.departures || []), ...def.departures])).sort();
+			}
+			if (!tour.itinerary && def.itinerary) tour.itinerary = def.itinerary;
+			if (!tour.maxGuests && def.maxGuests) tour.maxGuests = def.maxGuests;
+			if (!tour.status) tour.status = "active";
+		}
+	}
+	return toursList;
+}
 
 async function start() {
 	await mkdir(dataDirectory, { recursive: true });
@@ -1424,6 +2656,8 @@ async function start() {
 						payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 						sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
 						tourContents: Array.isArray(savedData.tourContents) ? savedData.tourContents : [],
+						destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
+						tours: Array.isArray(savedData.tours) && savedData.tours.length ? savedData.tours : structuredClone(DEFAULT_TOURS),
 					};
 					console.log("SQL Server is empty; importing existing app-data.json records.");
 				} catch (error) {
@@ -1436,6 +2670,18 @@ async function start() {
 				store.vouchers = structuredClone(DEMO_VOUCHERS);
 				shouldPersist = true;
 			}
+			if (!store.destinations || !store.destinations.length) {
+				store.destinations = structuredClone(DEFAULT_DESTINATIONS);
+				shouldPersist = true;
+			}
+			if (!store.tours || !store.tours.length) {
+				store.tours = structuredClone(DEFAULT_TOURS);
+				shouldPersist = true;
+			}
+			if (!Array.isArray(store.tourContents)) {
+				store.tourContents = [];
+			}
+			ensureTourDeparturesFresh(store.tours);
 			if (shouldPersist) await persistStore();
 			return app.listen(port, () => {
 				console.log(`Traveller Team API listening on http://localhost:${port}`);
@@ -1459,6 +2705,8 @@ async function start() {
 			payments: Array.isArray(savedData.payments) ? savedData.payments : [],
 			sessions: Array.isArray(savedData.sessions) ? savedData.sessions : [],
 			tourContents: Array.isArray(savedData.tourContents) ? savedData.tourContents : [],
+			destinations: Array.isArray(savedData.destinations) && savedData.destinations.length ? savedData.destinations : structuredClone(DEFAULT_DESTINATIONS),
+			tours: Array.isArray(savedData.tours) && savedData.tours.length ? savedData.tours : structuredClone(DEFAULT_TOURS),
 		};
 		console.log("Using app-data.json as local fallback storage.");
 	} catch (error) {
@@ -1472,12 +2720,32 @@ async function start() {
 			payments: [],
 			sessions: [],
 			tourContents: [],
+			destinations: structuredClone(DEFAULT_DESTINATIONS),
+			tours: structuredClone(DEFAULT_TOURS),
 		};
 		console.log("No local data file found; created a fresh in-memory store.");
 	}
 
 	if (!store.vouchers.length) {
 		store.vouchers = structuredClone(DEMO_VOUCHERS);
+	}
+	if (!store.destinations || !store.destinations.length) {
+		store.destinations = structuredClone(DEFAULT_DESTINATIONS);
+	}
+	if (!store.tours || !store.tours.length) {
+		store.tours = structuredClone(DEFAULT_TOURS);
+	}
+	ensureTourDeparturesFresh(store.tours);
+	if (!Array.isArray(store.reviews)) {
+		store.reviews = [];
+	}
+	if (store.reviews.length < 3) {
+		const existingIds = new Set(store.reviews.map((r) => r.id));
+		for (const demoRev of buildDemoReviews()) {
+			if (!existingIds.has(demoRev.id)) {
+				store.reviews.push(demoRev);
+			}
+		}
 	}
 	await persistStore();
 

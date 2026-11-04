@@ -1,5 +1,6 @@
 import { initHeaderAccount, setAccountUser } from "./features/account-menu.js";
 import { initNavigation } from "./features/navigation.js";
+import { showRealtimeToast, subscribeRealtime } from "./features/realtime.js";
 
 const form = document.getElementById("profile-form");
 const status = document.getElementById("profile-status");
@@ -7,6 +8,7 @@ const avatar = document.getElementById("profile-avatar");
 const avatarFile = document.getElementById("profile-avatar-file");
 const removeAvatar = document.getElementById("profile-avatar-remove");
 let profileInquiries = [];
+let currentUserId = null;
 
 function showStatus(message, isError = false) {
   status.textContent = message;
@@ -32,11 +34,11 @@ function renderInquiries(inquiries) {
     heading.className = "profile-inquiry-heading";
     const topic = document.createElement("h3");
     topic.textContent = inquiry.topic;
-    const status = document.createElement("span");
+    const statusBadge = document.createElement("span");
     const resolved = inquiry.status === "resolved";
-    status.className = `profile-inquiry-status ${resolved ? "is-resolved" : "is-open"}`;
-    status.textContent = resolved ? "Đã xử lý" : "Đang chờ xử lý";
-    heading.append(topic, status);
+    statusBadge.className = `profile-inquiry-status ${resolved ? "is-resolved" : "is-open"}`;
+    statusBadge.textContent = resolved ? "Đã xử lý" : "Đang chờ xử lý";
+    heading.append(topic, statusBadge);
 
     const message = document.createElement("p");
     message.className = "profile-inquiry-message";
@@ -57,6 +59,7 @@ function renderInquiries(inquiries) {
 }
 
 function renderProfile(profile, stats, inquiries = profileInquiries) {
+  currentUserId = profile.id;
   for (const field of ["name", "email", "phone", "birthDate", "gender", "address"]) {
     form.elements[field].value = profile[field] || "";
   }
@@ -182,3 +185,17 @@ removeAvatar.addEventListener("click", async () => {
 initNavigation();
 initHeaderAccount();
 loadProfile();
+
+subscribeRealtime(["inquiry:changed", "booking:created", "booking:status-updated", "review:changed"], (event) => {
+  const p = event.payload || {};
+  if (event.type === "inquiry:changed" && p.action === "resolved" && (!p.userId || p.userId === currentUserId)) {
+    loadProfile();
+    showRealtimeToast({
+      title: "Thắc mắc của bạn vừa được xử lý!",
+      message: `Chủ đề "${p.topic || "Liên hệ"}" đã được ban quản trị phản hồi.`,
+      tone: "success",
+    });
+  } else if (!p.userId || p.userId === currentUserId) {
+    loadProfile();
+  }
+});

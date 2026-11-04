@@ -2,6 +2,7 @@ import { initHeaderAccount } from "./features/account-menu.js";
 import { initNavigation } from "./features/navigation.js";
 import { openReviewDialog } from "./features/review-dialog.js";
 import { bindReviewImages, reviewCardHtml } from "./features/review-ui.js";
+import { showRealtimeToast, subscribeRealtime } from "./features/realtime.js";
 import {
   AuthRequiredError,
   BOOKING_STATUS,
@@ -29,13 +30,14 @@ const BACK_LINK = '<a class="detail-back" href="/booking-history.html">← Quay 
 // Lời nhắn theo trạng thái đơn
 function statusNote(booking) {
   if (booking.status === "cancelled") {
+    const rejectNote = booking.rejectReason ? ` Lý do: ${escapeHtml(booking.rejectReason)}.` : "";
     return booking.paymentStatus === "refunded"
-      ? { tone: "danger", text: "Đơn này đã được hủy và số tiền đã được hoàn lại cho bạn." }
-      : { tone: "danger", text: "Đơn này đã được hủy. Nếu bạn đã thanh toán, vui lòng liên hệ Traveller Team để được hướng dẫn hoàn tiền." };
+      ? { tone: "danger", text: `Đơn này đã được hủy và số tiền đã được hoàn lại cho bạn.${rejectNote}` }
+      : { tone: "danger", text: `Đơn này đã được hủy.${rejectNote} Nếu bạn đã thanh toán, vui lòng liên hệ Traveller Team để được hướng dẫn hoàn tiền.` };
   }
   if (booking.status === "completed") return { tone: "done", text: "Chuyến đi đã hoàn thành. Cảm ơn bạn đã đồng hành cùng Traveller Team!" };
-  if (booking.status === "confirmed") return { tone: "info", text: "Đơn đã được xác nhận. Chúc bạn có một chuyến đi thật vui." };
-  return { tone: "warn", text: "Đơn đang chờ Traveller Team xử lý. Chúng tôi sẽ liên hệ xác nhận sớm nhất có thể." };
+  if (booking.status === "confirmed") return { tone: "info", text: "Đơn đã được xác nhận. Chúc bạn có một chuyến đi thật vui!" };
+  return { tone: "warn", text: "Đơn đang chờ Traveller Team xử lý. Hệ thống sẽ tự động cập nhật trạng thái tại đây theo thời gian thực ngay khi quản trị viên duyệt." };
 }
 
 function cancellationPanel(booking) {
@@ -57,13 +59,13 @@ function priceLines(booking) {
   if (adult) lines.push(`<li><span>Người lớn<small>${adult} × ${formatPrice(price)}</small></span><strong>${formatPrice(adult * price)}</strong></li>`);
   if (child) lines.push(`<li><span>Trẻ em (70% giá)<small>${child} × ${formatPrice(price * 0.7)}</small></span><strong>${formatPrice(child * price * 0.7)}</strong></li>`);
   if (infant) lines.push(`<li><span>Em bé<small>${infant} em bé</small></span><strong>Miễn phí</strong></li>`);
+  if (booking.discount) lines.push(`<li><span>Giảm giá voucher<small>${escapeHtml(booking.voucher?.code || "")}</small></span><strong>−${formatPrice(booking.discount)}</strong></li>`);
   return lines.join("");
 }
 
 const GENDER_LABEL = { male: "Nam", female: "Nữ", other: "Khác" };
 const TYPE_LABEL = { adult: "Người lớn", child: "Trẻ em", infant: "Em bé" };
 
-// Danh sách hành khách (đơn mẫu cũ không có thì bỏ qua). Số giấy tờ chỉ hiện 3 ký tự cuối.
 function passengerSection(booking) {
   const list = Array.isArray(booking.passengerDetails) ? booking.passengerDetails : [];
   if (!list.length) return "";
@@ -75,7 +77,6 @@ function passengerSection(booking) {
   return `<section class="detail-section"><h2>Danh sách hành khách</h2><ol class="bd-pax-list">${items}</ol></section>`;
 }
 
-// Hộp "Đánh giá tour": chỉ hiện với đơn chưa hủy
 function reviewPanel(booking, review) {
   if (booking.status === "cancelled") return "";
   let body;
@@ -102,14 +103,14 @@ function renderBooking(booking, review) {
   ].filter(([, amount]) => amount > 0).map(([label, amount]) => `${label}: ${amount}`).join(" · ");
 
   const successBanner = showCreatedBanner
-    ? `<div class="bd-success" role="status"><strong>Đặt tour thành công!</strong><span>Mã đặt tour của bạn là <b>${escapeHtml(booking.code)}</b>. Đơn đang chờ Traveller Team xác nhận, bạn có thể theo dõi trong Lịch sử đặt tour.</span></div>`
+    ? `<div class="bd-success" role="status"><strong>Đặt tour thành công!</strong><span>Mã đặt tour của bạn là <b>${escapeHtml(booking.code)}</b>. Đơn đang chờ Traveller Team xác nhận, bạn có thể thanh toán QR ngay bên dưới hoặc theo dõi trạng thái trực tuyến.</span></div>`
     : "";
 
   return `
     ${BACK_LINK}
     ${successBanner}
     <header class="bd-header">
-      <p class="eyebrow eyebrow-dark"><span></span> Chi tiết đơn đặt tour</p>
+      <p class="eyebrow eyebrow-dark"><span></span> Chi tiết đơn đặt tour · Theo dõi trực tuyến</p>
       <h1 class="font-display">${escapeHtml(tour.name)}</h1>
       <div class="bd-header-meta">
         <span class="bh-code">Mã đặt tour <strong>${escapeHtml(booking.code)}</strong></span>
@@ -151,12 +152,13 @@ function renderBooking(booking, review) {
 
       <aside class="bd-aside">
         <div class="booking-box">
+          <div class="booking-live-indicator"><span class="rt-live-dot"></span><span>Đồng bộ trạng thái trực tuyến</span></div>
           <h2 class="bd-aside-title">Thanh toán</h2>
           <div class="bh-badges">${statusBadge(BOOKING_STATUS, booking.status, "Đơn: ")}${statusBadge(PAYMENT_STATUS, booking.paymentStatus)}</div>
           <ul class="bd-price-lines">${priceLines(booking)}</ul>
           <div class="booking-total"><span>Tổng tiền</span><strong>${formatPrice(booking.total)}</strong></div>
           <p class="bd-note is-${note.tone}">${note.text}</p>
-          ${booking.paymentStatus === "unpaid" && booking.status !== "cancelled" ? `<a class="submit-button booking-submit" href="/checkout.html?bookingId=${encodeURIComponent(booking.id)}">Thanh toán trực tuyến <span aria-hidden="true">↗</span></a>` : ""}
+          ${booking.paymentStatus === "unpaid" && booking.status !== "cancelled" ? `<a class="submit-button booking-submit" href="/checkout.html?bookingId=${encodeURIComponent(booking.id)}">Thanh toán trực tuyến (QR) <span aria-hidden="true">↗</span></a>` : ""}
           <a class="submit-button booking-submit" href="/tour-detail.html?id=${encodeURIComponent(tour.id)}">Xem lại tour <span aria-hidden="true">↗</span></a>
           <a class="secondary-cta bd-secondary" href="/booking-history.html">Về lịch sử đặt tour</a>
         </div>
@@ -174,7 +176,7 @@ function renderMessage(title, message, actions) {
     </div>`;
 }
 
-async function loadBooking() {
+async function loadBooking({ silent = false } = {}) {
   if (!bookingId) {
     renderMessage("Không tìm thấy đơn đặt tour", "Đường dẫn chưa có mã đơn. Vui lòng chọn đơn từ lịch sử đặt tour.", '<a class="submit-button" href="/booking-history.html">Về lịch sử đặt tour</a>');
     container.setAttribute("aria-busy", "false");
@@ -182,14 +184,15 @@ async function loadBooking() {
   }
 
   container.setAttribute("aria-busy", "true");
-  container.innerHTML = '<div class="bd-loading" aria-hidden="true"><span></span><span></span><span class="is-short"></span></div>';
+  if (!silent && !currentBooking) {
+    container.innerHTML = '<div class="bd-loading" aria-hidden="true"><span></span><span></span><span class="is-short"></span></div>';
+  }
   try {
     const { booking, review } = await getJson(`/api/bookings/${encodeURIComponent(bookingId)}`);
     currentBooking = booking;
     currentReview = review;
     container.innerHTML = renderBooking(booking, review);
     document.title = `Đơn ${booking.code} | Traveller Team`;
-    // Bỏ cờ created/review khỏi URL để tải lại trang không lặp lại thông báo hay tự mở form
     if (showCreatedBanner || openReviewOnLoad) window.history.replaceState(null, "", `/booking-detail.html?id=${encodeURIComponent(bookingId)}`);
     showCreatedBanner = false;
     if (openReviewOnLoad && booking.status === "completed" && !review) {
@@ -213,7 +216,7 @@ async function loadBooking() {
 }
 
 function startReview(review = null) {
-  openReviewDialog({ tourName: currentBooking.tour.name, bookingId: currentBooking.id, review, onSaved: loadBooking });
+  openReviewDialog({ tourName: currentBooking.tour.name, bookingId: currentBooking.id, review, onSaved: () => loadBooking({ silent: true }) });
 }
 
 function showReviewError(message) {
@@ -230,7 +233,7 @@ async function callApi(url, method, failMessage) {
       const data = await response.json().catch(() => ({}));
       throw new Error(data.error || failMessage);
     }
-    await loadBooking();
+    await loadBooking({ silent: true });
   } catch (error) {
     showReviewError(error instanceof TypeError ? "Không thể kết nối máy chủ. Vui lòng thử lại." : error.message);
   }
@@ -250,7 +253,12 @@ async function requestCancellation() {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Không thể gửi yêu cầu hủy.");
-    await loadBooking();
+    await loadBooking({ silent: true });
+    showRealtimeToast({
+      title: "Đã gửi yêu cầu hủy đơn",
+      message: "Ban quản trị sẽ xem xét và phản hồi trực tuyến trong ít phút.",
+      tone: "info",
+    });
   } catch (failure) {
     error.textContent = failure instanceof TypeError ? "Không thể kết nối máy chủ. Vui lòng thử lại." : failure.message;
     error.hidden = false;
@@ -270,7 +278,6 @@ container.addEventListener("click", (event) => {
   if (action === "dev-complete") callApi(`/api/dev/bookings/${encodeURIComponent(currentBooking.id)}/complete`, "POST", "Không thể cập nhật trạng thái đơn.");
 });
 bindReviewImages(container);
-// Ảnh tour lỗi thì giữ nền gradient
 container.addEventListener("error", (event) => {
   if (event.target.tagName === "IMG") event.target.closest(".bd-hero")?.classList.add("is-broken");
 }, true);
@@ -278,3 +285,45 @@ container.addEventListener("error", (event) => {
 initNavigation();
 initHeaderAccount();
 loadBooking();
+
+// Lắng nghe cập nhật trạng thái đơn trực tuyến từ Admin
+subscribeRealtime(["booking:status-updated", "booking:cancellation-decided", "payment:confirmed", "review:changed"], (event) => {
+  const p = event.payload || {};
+  if (p.bookingId && p.bookingId !== bookingId) return;
+
+  loadBooking({ silent: true });
+
+  if (event.type === "booking:status-updated") {
+    if (p.status === "confirmed") {
+      showRealtimeToast({
+        title: "Đơn đặt tour vừa được xác nhận!",
+        message: "Ban quản trị Traveller Team đã xác nhận đơn của bạn.",
+        tone: "success",
+      });
+    } else if (p.status === "completed") {
+      showRealtimeToast({
+        title: "Chuyến đi đã hoàn thành!",
+        message: "Bạn đã có thể gửi đánh giá và chấm sao cho chuyến đi này ngay bên dưới.",
+        tone: "success",
+      });
+    } else if (p.status === "cancelled") {
+      showRealtimeToast({
+        title: "Đơn đặt tour đã bị từ chối / hủy",
+        message: p.rejectReason ? `Lý do: ${p.rejectReason}` : "Trạng thái đơn đã chuyển sang Đã hủy.",
+        tone: "warn",
+      });
+    }
+  } else if (event.type === "booking:cancellation-decided") {
+    showRealtimeToast({
+      title: p.decision === "approved" ? "Yêu cầu hủy đơn đã được duyệt" : "Yêu cầu hủy đơn bị từ chối",
+      message: p.decision === "approved" ? "Đơn đặt tour của bạn đã được hủy." : "Ban quản trị đã từ chối yêu cầu hủy đơn.",
+      tone: p.decision === "approved" ? "info" : "warn",
+    });
+  } else if (event.type === "payment:confirmed") {
+    showRealtimeToast({
+      title: "Thanh toán thành công!",
+      message: "Hệ thống đã ghi nhận giao dịch thanh toán của bạn.",
+      tone: "success",
+    });
+  }
+});

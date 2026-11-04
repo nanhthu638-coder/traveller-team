@@ -1,27 +1,28 @@
-// Phần "Đánh giá và nhận xét" ở trang chi tiết tour.
+// Phần "Đánh giá và nhận xét" ở trang chi tiết tour + cập nhật Real-time qua SSE.
 import { escapeHtml, getJson } from "./booking-format.js";
 import { openReviewDialog } from "./review-dialog.js";
 import { bindReviewImages, formatRating, reviewCardHtml, starsHtml } from "./review-ui.js";
+import { subscribeRealtime } from "./realtime.js";
 
 // Lời nhắn theo quyền đánh giá của người dùng (điều kiện: đã đặt VÀ hoàn thành tour)
 function eligibilityHtml(mine) {
   switch (mine?.reason) {
     case "ok":
-      return '<p>Bạn đã hoàn thành tour này. Hãy chia sẻ trải nghiệm để giúp những du khách khác!</p><button class="submit-button" type="button" data-review-action="write">Viết đánh giá</button>';
+      return '<p>Bạn đã hoàn thành tour này. Hãy chia sẻ trải nghiệm để giúp những du khách khác!</p><button class="submit-button" type="button" data-review-action="write">★ Viết đánh giá</button>';
     case "reviewed":
       return "<p>Cảm ơn bạn đã đánh giá tour này. Bạn có thể sửa hoặc xóa đánh giá của mình trong danh sách bên dưới.</p>";
     case "not-completed":
-      return '<p>Bạn đã đặt tour này. Bạn có thể gửi đánh giá sau khi hoàn thành chuyến đi.</p><a class="secondary-cta" href="/booking-history.html">Xem lịch sử đặt tour</a>';
+      return '<p>Bạn đã đặt tour này. Bạn có thể gửi đánh giá ngay sau khi chuyến đi hoàn thành.</p><a class="secondary-cta" href="/booking-history.html">Xem lịch sử đặt tour</a>';
     case "login": {
       const returnTo = `${window.location.pathname}${window.location.search}#reviews`;
       return `<p>Đăng nhập để viết đánh giá.</p><a class="submit-button" href="/index.html?auth=login&returnTo=${encodeURIComponent(returnTo)}">Đăng nhập</a>`;
     }
     default:
-      return "<p>Chỉ khách đã đặt và hoàn thành tour mới có thể gửi đánh giá, để mọi nhận xét đều xác thực.</p>";
+      return "<p>Chỉ khách đã đặt và hoàn thành tour mới có thể gửi đánh giá, để mọi nhận xét đều xác thực 100%.</p>";
   }
 }
 
-/** Cập nhật điểm ở đầu trang chi tiết tour (thay cho số 4.8 cũ) theo dữ liệu thật. */
+/** Cập nhật điểm ở đầu trang chi tiết tour theo dữ liệu thật. */
 function applySummary(root, summary) {
   const meta = root.querySelector("[data-rating-meta]");
   const tile = root.querySelector("[data-rating-tile]");
@@ -30,7 +31,7 @@ function applySummary(root, summary) {
       ? `<a href="#reviews">${starsHtml(summary.average)} ${formatRating(summary.average)} · ${summary.count} đánh giá</a>`
       : '<a href="#reviews">Chưa có đánh giá</a>';
   }
-  if (tile) tile.textContent = summary.count ? `${formatRating(summary.average)} / 5` : "Chưa có";
+  if (tile) tile.textContent = summary.count ? `${formatRating(summary.average)} / 5 (${summary.count})` : "Chưa có";
 }
 
 export function initTourReviews(container, tour, pageRoot = document) {
@@ -47,19 +48,19 @@ export function initTourReviews(container, tour, pageRoot = document) {
     }).join("");
 
     container.innerHTML = `
-      <h2>Đánh giá và nhận xét</h2>
+      <h2>Đánh giá và nhận xét thực tế</h2>
       <div class="reviews-summary">
         <div class="reviews-score">
           <strong>${summary.count ? formatRating(summary.average) : "—"}</strong>
           ${starsHtml(summary.average || 0)}
-          <span>${summary.count ? `${summary.count} lượt đánh giá` : "Chưa có lượt đánh giá"}</span>
+          <span>${summary.count ? `${summary.count} lượt đánh giá xác thực` : "Chưa có lượt đánh giá"}</span>
         </div>
         <ul class="reviews-bars" aria-label="Phân bố số sao">${bars}</ul>
         <div class="reviews-cta">${eligibilityHtml(mine)}</div>
       </div>
       <p class="review-inline-error" data-review-error role="alert" hidden></p>
       <div class="reviews-toolbar">
-        <h3>Nhận xét của khách${summary.count ? ` <small>(${summary.count})</small>` : ""}</h3>
+        <h3>Nhận xét của du khách${summary.count ? ` <small>(${summary.count})</small>` : ""}</h3>
         ${summary.count > 1 ? `<label>Sắp xếp
           <select data-review-sort>
             <option value="newest"${sort === "newest" ? " selected" : ""}>Mới nhất</option>
@@ -125,6 +126,13 @@ export function initTourReviews(container, tour, pageRoot = document) {
     }
   });
   bindReviewImages(container);
+
+  // Tự động đồng bộ theo thời gian thực khi có đánh giá mới/chỉnh sửa/kiểm duyệt hoặc khi đơn đặt tour hoàn thành
+  subscribeRealtime(["review:changed", "booking:status-updated"], (event) => {
+    if (!event.payload?.tourId || event.payload.tourId === tour.id) {
+      load();
+    }
+  });
 
   return load();
 }
