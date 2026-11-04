@@ -1,58 +1,119 @@
-# Traveller Team
+# ✈️ Traveller Team - Website Đặt Tour Du Lịch
 
-Môn học: Congnghephanmem_NângCao
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
+![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 
-Website du lịch tiếng Việt, dùng Tailwind CSS cho giao diện, Vite cho môi trường phát triển và Node.js/Express cho API.
+**Traveller Team** là một hệ thống website đặt tour du lịch trực tuyến, được phát triển qua 3 Sprint của môn học Công nghệ Phần mềm Nâng cao. Dự án cung cấp trải nghiệm tìm kiếm, đặt tour cho khách hàng và hệ thống quản trị toàn diện cho Admin.
 
-## Chạy dự án
+## 📖 Mục lục
+- [1. Giới thiệu tính năng](#1-giới-thiệu-tính-năng)
+- [2. Công nghệ sử dụng](#2-công-nghệ-sử-dụng)
+- [3. Yêu cầu hệ thống](#3-yêu-cầu-hệ-thống)
+- [4. Hướng dẫn cài đặt và chạy](#4-hướng-dẫn-cài-đặt-và-chạy)
+- [5. Tài khoản Demo](#5-tài-khoản-demo)
+- [6. Cấu trúc dự án](#6-cấu-trúc-dự-án)
+- [7. Release & Đóng gói](#7-release--đóng-gói)
 
-Yêu cầu Node.js 20.19 trở lên.
+---
 
-```sh
+## 1. Giới thiệu tính năng
+
+Dự án đã hoàn thành các tính năng qua 3 Sprint:
+
+### 🍁 Sprint 1: Khách hàng & Giao diện
+*   Xem danh sách tour, tìm kiếm, xem chi tiết tour.
+*   Đăng ký / Đăng nhập, gửi form liên hệ.
+
+### 🍁 Sprint 2: Giao dịch & Tương tác
+*   **Đặt tour & Thanh toán:** Đặt tour trực tuyến, áp dụng mã giảm giá (voucher). 
+*   **Thanh toán giả lập:** Trang checkout hỗ trợ thẻ Visa/Mastercard mẫu, thẻ ATM nội địa mẫu và mã seri được tạo cho từng giao dịch. API chỉ ghi nhận phương thức giả lập, **không gửi hoặc lưu số thẻ/tên chủ thẻ**. Khi xác nhận, máy chủ cập nhật trạng thái payment và booking.
+    *   *(Lưu ý: Luồng này chỉ phục vụ đồ án/demo, không xử lý tiền thật. Trạng thái tour không chuyển thành `completed` khi vừa thanh toán; trạng thái này chỉ dành cho tour đã hoàn thành).*
+*   **Khôi phục mật khẩu (OTP):** Trong môi trường demo, người dùng có thể yêu cầu OTP 6 chữ số ở màn hình đăng nhập. OTP hết hạn sau 5 phút, giới hạn 5 lần nhập và chỉ được hiển thị trực tiếp trong giao diện demo; không gửi OTP qua email.
+*   **Ghi nhớ đăng nhập:** Tùy chọn "Ghi nhớ tôi" bật sẽ giữ phiên 30 ngày; tắt dùng cookie phiên trình duyệt và phiên máy chủ hết hạn sau 12 giờ.
+
+### 🍁 Sprint 3: Quản trị viên
+*   Quản lý danh sách tour (Thêm/Sửa/Xóa), quản lý địa điểm, quản lý khách hàng.
+*   Xem thống kê doanh thu, xem lịch sử đặt tour.
+
+## 2. Công nghệ sử dụng
+*   **Frontend:** HTML, Tailwind CSS, JavaScript (Vite).
+*   **Backend:** Node.js, Express.js.
+*   **Database:** SQL Server (Hỗ trợ cơ chế fallback tự động sang file JSON).
+*   **Xác thực:** JWT (JSON Web Token), mã hóa mật khẩu với `crypto` (Salt & Hash).
+
+## 3. Yêu cầu hệ thống
+*   **Node.js:** Phiên bản `>= 18.0.0` (Khuyên dùng bản LTS).
+*   **NPM:** Phiên bản `>= 9.0.0`.
+*   **SQL Server:** (Tùy chọn) Nếu muốn chạy với CSDL thật. 
+*   **Trình duyệt:** Chrome, Edge, Safari hoặc Firefox phiên bản mới nhất.
+
+## 4. Hướng dẫn cài đặt và chạy
+
+**Bước 1: Clone mã nguồn từ GitHub**
+```bash
+git clone https://github.com/nanhthu638-coder/traveller-team.git
+cd traveller-team
+```
+**Bước 2: Cài đặt các thư viện phụ thuộc**
+```bash
 npm install
+```
+**Bước 3: Cấu hình biến môi trường (Environment Variables)**
+* Copy file .env.example thành .env.
+* Mở file .env và điền các thông số (nếu dùng SQL Server):
+```env
+PORT=3000
+DB_SERVER=localhost
+DB_USER=sa
+DB_PASSWORD=your_password
+DB_NAME=TravellerDB
+```
+**Bước 4: Khởi chạy Server và Frontend**
+```bash
 npm run dev
 ```
+**Bước 5: Truy cập ứng dụng**
+* Mở địa chỉ Vite hiển thị trong terminal (mặc định: http://localhost:5173).
+* API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp (proxy) tự động.
 
-Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localhost:5173`). API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp tự động.
-Nếu không cấu hình SQL Server (`SQLSERVER_USER`/`SQLSERVER_PASSWORD`), máy chủ tự động chạy ở chế độ fallback bằng `server/data/app-data.json` để dự án vẫn khởi động được trong môi trường demo/local. Khi có SQL Server, bảng `dbo.AppRecords` được tạo nếu chưa có; nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
+# ⚠️ Cơ chế Fallback Database:
+Nếu không cấu hình SQL Server (SQLSERVER_USER / SQLSERVER_PASSWORD), máy chủ tự động chạy ở chế độ fallback bằng server/data/app-data.json để dự án vẫn khởi động được trong môi trường demo/local.
+Khi có SQL Server, bảng dbo.AppRecords được tạo nếu chưa có. Nếu bảng đang trống, máy chủ nhập dữ liệu từ file JSON (nếu có). Nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
 
-## Thanh toán giả lập
-Trang checkout hỗ trợ thẻ Visa/Mastercard mẫu, thẻ ATM nội địa mẫu và mã seri được tạo cho từng giao dịch. API chỉ ghi nhận phương thức giả lập, không gửi hoặc lưu số thẻ/tên chủ thẻ. Khi xác nhận, máy chủ cập nhật trạng thái payment và booking, sau đó lưu vào SQL Server nếu đã cấu hình; nếu không, dữ liệu được lưu trong `server/data/app-data.json`. Luồng này chỉ phục vụ đồ án/demo, không xử lý tiền thật.
+## 5. Tài khoản Demo
+Dành cho việc nghiệm thu và chạy thử (Dữ liệu mẫu có sẵn trong file app-data.json):
 
-Trạng thái tour không chuyển thành `completed` khi vừa thanh toán; trạng thái này chỉ dành cho tour đã hoàn thành.
+Vai trò	Email đăng nhập	Mật khẩu	Ghi chú
+* Admin	:     admin@example.com	   (Điền mật khẩu của bạn vào đây)	Toàn quyền quản trị
+* Khách hàng:	user1@example.com	   (Điền mật khẩu của bạn vào đây)	 Tài khoản khách
 
-## Khôi phục mật khẩu
-
-Trong môi trường demo, người dùng có thể yêu cầu OTP 6 chữ số ở màn hình đăng nhập để đặt lại mật khẩu. OTP hết hạn sau 5 phút, giới hạn 5 lần nhập và chỉ được hiển thị trực tiếp trong giao diện demo; không gửi OTP qua email. API khôi phục mật khẩu bị tắt ở production cho tới khi cấu hình dịch vụ gửi email. Đăng nhập có tùy chọn “Ghi nhớ tôi”: bật sẽ giữ phiên 30 ngày; tắt dùng cookie phiên trình duyệt và phiên máy chủ hết hạn sau 12 giờ.
-
-# :maple_leaf: Sprint 1 :maple_leaf:
-- Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
-- Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
-- Trang quản trị: quản lý đơn tour, khách hàng và biểu mẫu liên hệ.
-- Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
-- Lưu tài khoản, booking, thanh toán giả lập, đánh giá và lời nhắn trong SQL Server.
-
-## Cấu trúc
-
-```text
-index.html
-tour-list.html
-tour-detail.html
-src/
-  features/auth.js
-  features/contact.js
-  features/featured-tours.js
-  features/tours.js
-  main.js
-  style.css
-  tour-list.js
-  tour-detail.js
-server/
-  database.js
-  index.js
-  tours.js
-vite.config.js
+## 6. Cấu trúc dự án
+```test
+traveller-team/
+├── docs/                  # Chứa tài liệu thiết kế, báo cáo
+├── public/                # Chứa các tài nguyên tĩnh (hình ảnh, icon)
+├── server/                # Mã nguồn Backend (Node.js/Express)
+│   ├── data/              # Chứa file dữ liệu JSON (app-data.json)
+│   ├── routes/            # Các API endpoints
+│   └── index.js           # File khởi chạy server
+├── src/                   # Mã nguồn Frontend (HTML, JS, CSS)
+├── .env.example           # File mẫu cấu hình môi trường
+├── package.json           # Danh sách thư viện và scripts
+└── README.md              # Hướng dẫn sử dụng (File này)
 ```
+## 7. Realease & Đóng Gói
+* Phiên bản hiện tại: v1.0.0 (Hoàn thiện sau Sprint 3).
+* Link Release: Xem chi tiết tại đây
+* Release Notes:
+* Hoàn thiện toàn bộ luồng đặt tour và thanh toán giả lập.
+* Tích hợp tính năng OTP khôi phục mật khẩu cho môi trường demo.
+* Thêm bảng điều khiển (Dashboard) cho Admin.
+* Sửa các lỗi giao diện từ Sprint 2.
+
+# Giới hạn: Cổng thanh toán hiện tại chỉ là giả lập (Mock API), chưa tích hợp VNPay/Momo thật. API khôi phục mật khẩu qua email thật đang bị tắt cho tới khi cấu hình dịch vụ gửi mail.
 ## 📌 Pull Requests đã thực hiện
 
 - [PR #8: Update README.md](https://github.com/nanthu638-coder/traveller-team/pull/8)
@@ -67,6 +128,7 @@ vite.config.js
 - Docs
   * Link access Nhom4_Lab4.1: https://docs.google.com/document/d/1KIsDL5-5ESIB9BfOeZTKzox-B9mEKBlDRTpk73BD6s8/edit?usp=sharing
   * Link access Nhom4_Lab4.2: https://docs.google.com/document/d/1B3PK5EkUFVLVzMVA0jzjIE2PT7JaABEu1hiBlVBzdS8/edit?usp=sharing
+  * Link access Nhom4_Lab6:   https://docs.google.com/document/d/1Nf03SPij8G0znanWDw3Ss4lWrvl-YZ8SenX6Jz3g7hM/edit?usp=sharing
  ---
  # :maple_leaf: Sprint 2 :maple_leaf:
  * Đặt Tour (Chọn số lượng khách, kiểm tra chỗ trống).
