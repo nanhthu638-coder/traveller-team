@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Đăng nhập trang quản trị Traveller Team" />
+  <title>Đăng nhập quản trị | Traveller Team</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-login-page">
+  <main class="admin-login-card">
+    <a class="admin-back-link" href="/index.html">← Về trang chủ</a>
+    <p class="eyebrow eyebrow-dark"><span></span> Traveller Team</p>
+    <h1 class="font-display">Đăng nhập Admin</h1>
+    <p>Đăng nhập tài khoản quản trị để xem và quản lý đơn đặt tour, thắc mắc khách hàng.</p>
+    <form id="admin-login-form" class="admin-login-form">
+      <label>Email quản trị
+        <input name="email" type="email" autocomplete="username" required placeholder="admin@example.com" />
+      </label>
+      <label>Mật khẩu
+        <input name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+      </label>
+      <p id="admin-login-error" class="admin-login-error" role="alert" hidden></p>
+      <button class="submit-button" type="submit">Đăng nhập quản trị</button>
+    </form>
+
+    <div class="admin-demo-box">
+      <strong>Tài khoản quản trị thử nghiệm:</strong>
+      <div class="demo-cred-row">
+        <span>Email: <code>admin@example.com</code></span>
+        <span>Mật khẩu: <code>admin@123</code></span>
+      </div>
+      <button type="button" id="btn-fill-demo" class="btn-fill-demo">Điền thông tin mẫu</button>
+    </div>
+  </main>
+  <script type="module" src="/src/admin-login.js"></script>
+</body>
+</html>
