@@ -131,14 +131,88 @@ traveller-team/
 │   └── tour-list.js
 │
 ├── .env.example               
-├── .gitignore
-├── Nhom4_T4.xlsx               
-├── README.md
+├── .gitignore     
 ├── booking-detail.html         
 ├── booking-history.html
 ├── checkout.html
 ├── contact.html
 ├── index.html
+├── package-lock.json
+├── package.json                
+├── tour-detail.html
+├── tour-list.html
+└── vite.config.js              
+```
+ ---
+# :maple_leaf: Sprint 3 :maple_leaf:
+ * Xem đơn đặt Tour mới.
+ * Quản lý đơn đặt Tour (Xem, Lọc, Cập nhật trạng thái,..).
+ * Xuất danh sách khách hàng của một Tour cụ thể.
+ * Quản lý Danh mục Địa điểm (Thêm, Sửa, Xóa).
+ * Quản lý Lịch trình chi tiết & Hình ảnh Tour.
+ * Xem biểu đồ thống kê doanh thu.
+ * Quản lí khách hàng (Thêm, Sửa, Xóa tài khoản khách hàng ).
+ * Quên mật khẩu.
+
+## Cấu trúc
+```text
+traveller-team/
+├── server/                     
+│   ├── data/                   
+│   │   └── app-data.json       
+│   ├── admin-revenue.js        
+│   ├── availability.js         
+│   ├── bookings.js             
+│   ├── database.js             
+│   ├── destinations-data.js    
+│   ├── index.js                
+│   ├── passengers.js           
+│   ├── reviews.js              
+│   ├── tour-content.js         
+│   ├── tours.js                
+│   └── vouchers.js             
+│
+├── src/                        
+│   ├── features/               
+│   │   ├── account-menu.js     
+│   │   ├── admin-revenue.js    
+│   │   ├── admin-tour-content.js
+│   │   ├── auth.js             
+│   │   ├── booking-flow.js     
+│   │   ├── booking-format.js   
+│   │   ├── contact.js          
+│   │   ├── featured-tours.js   
+│   │   ├── image-compress.js   
+│   │   ├── navigation.js       
+│   │   ├── realtime.js         
+│   │   ├── revenue-charts.js   
+│   │   ├── review-dialog.js    
+│   │   ├── review-ui.js        
+│   │   ├── support-widget.js   
+│   │   ├── tour-reviews.js     
+│   │   └── tours.js            
+│   ├── admin-login.js          
+│   ├── admin.js                
+│   ├── booking-detail.js       
+│   ├── booking-history.js      
+│   ├── checkout.js             
+│   ├── checkout.jsx            
+│   ├── contact-page.js        
+│   ├── main.js                
+│   ├── profile.js             
+│   ├── style.css              
+│   ├── tour-detail.js         
+│   └── tour-list.js           
+│
+├── .env.example              
+├── .gitignore                 
+├── admin-login.html           
+├── admin.html                 
+├── booking-detail.html       
+├── booking-history.html      
+├── checkout.html              
+├── contact.html                
+├── index.html                 
 ├── package-lock.json
 ├── package.json                
 ├── tour-detail.html
