@@ -1396,8 +1396,10 @@ body * {
 .admin-login-error { margin: 0; color: #a53626; font-size: 13px; font-weight: 700; }
 .admin-page { min-height: 100vh; }
 .admin-header { display: flex; min-height: 72px; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 7%; background: #1B2121; color: #BBD7C8; }
-.admin-brand { color: #BBD7C8; font-family: var(--font-display); font-size: 20px; font-weight: 700; }
-.admin-brand span { margin-left: 8px; color: #6DAB8C; font-family: var(--font-sans); font-size: 12px; }
+.admin-brand { display: inline-flex; align-items: center; gap: 10px; color: #BBD7C8; font-family: var(--font-display); font-size: 20px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.admin-brand > .brand-name { display: block; }
+.admin-brand > .brand-name > span { margin: 4px 0 0; color: #6DAB8C; font-family: var(--font-sans); font-size: 8px; }
+.admin-brand > .admin-brand-tag { margin: 0; color: #6DAB8C; font-family: var(--font-sans); font-size: 11px; }
 .admin-header nav { display: flex; align-items: center; gap: 18px; }
 .admin-header nav a, .admin-header nav button {
 	display: inline-flex;
@@ -3913,4 +3915,3 @@ dialog.admin-modal::backdrop,
 .admin-badge.is-completed .badge-dot {
   background: #2563eb;
 }
-
