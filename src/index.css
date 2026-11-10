@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-brand-teal: #124e66;
+  --color-brand-mint: #49a3a6;
+  --color-brand-accent: #ea580c;
+  --color-brand-text: #21373d;
+}
