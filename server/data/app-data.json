@@ -310,7 +310,7 @@
       "passengerDetails": [],
       "subtotal": 9423000,
       "total": 9423000,
-      "status": "confirmed",
+      "status": "completed",
       "paymentStatus": "paid",
       "contact": {
         "name": "Admin",
@@ -319,7 +319,8 @@
       },
       "note": "Gia đình có 1 bé 8 tuổi, nhờ xếp phòng gần nhau.",
       "createdAt": "2026-10-31T15:58:20.122Z",
-      "updatedAt": "2026-10-31T15:58:20.122Z"
+      "updatedAt": "2026-11-11T07:27:10.520Z",
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
     },
     {
       "id": "bc85a3bc-8575-4ce3-94f8-1a9218634fce",
@@ -343,7 +344,7 @@
       "passengerDetails": [],
       "subtotal": 5580000,
       "total": 5580000,
-      "status": "pending",
+      "status": "completed",
       "paymentStatus": "unpaid",
       "contact": {
         "name": "Admin",
@@ -352,7 +353,8 @@
       },
       "note": "",
       "createdAt": "2026-11-02T15:58:20.122Z",
-      "updatedAt": "2026-11-02T15:58:20.122Z"
+      "updatedAt": "2026-11-11T07:26:12.373Z",
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
     },
     {
       "id": "c892a1c2-4c2a-428d-ac33-27ad9011347b",
@@ -708,106 +710,12 @@
   ],
   "sessions": [
     {
-      "id": "af3e4bf14adfeeb819c76737776adf95dec6b29bac0cb361e4c3d25875fe9f78",
-      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
-      "expiresAt": "2026-11-06T22:47:09.539Z"
-    },
-    {
-      "id": "e2738c063b0cca2060005cd91c7ea1ccfda276b7d9b1d169742c20cfc2b7bcbc",
+      "id": "bffccbe28b61a2e620070efea7f99c27d70f411068d2ffbd60abeaa8b4973805",
       "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-06T23:34:26.952Z"
-    },
-    {
-      "id": "64cc254e23fdc3d98912ac1c3baebf76d4399086c3c145173c5630ac3e210803",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-09T06:21:21.997Z"
-    },
-    {
-      "id": "125be5dad01d618fae187c59926af52e60554c1726e41f93d4175aa933c5aca2",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-09T07:38:47.264Z"
-    },
-    {
-      "id": "1ca3fde5fcc8d392b764551db3babf6afb63b5345246bb37e9d3a440f9b50a11",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-09T17:21:04.055Z"
-    },
-    {
-      "id": "09e2d711fde090b1092e3efc1211fb7d01f35eca1b1245a2460619cb7a9668df",
-      "userId": "e86fa4cf-b049-4860-aaa8-618a9d662fb9",
-      "expiresAt": "2026-11-09T17:56:24.822Z"
-    },
-    {
-      "id": "6602720908dcea71b9b7fa0e5aa5b00476b49c69df66b04c2bab47345a51f103",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-09T17:56:24.885Z"
-    },
-    {
-      "id": "ed1f4fc89b9d489d9c2e4b6645712c3d81033c4c2f49260a9cf8adabf9d064c2",
-      "userId": "eea29c3e-2489-4b6d-9a58-c4852ed675fe",
-      "expiresAt": "2026-11-09T17:59:58.552Z"
-    },
-    {
-      "id": "f62d8da9d24798362ac0be28f149f50f711c3438ff6e54984bd3f9aacb860c2d",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-09T17:59:58.630Z"
-    },
-    {
-      "id": "3d4edaa7cc71ea522968e98297cf013c30d7ca44492226c8fa9874a3c663b07c",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:15:38.320Z"
-    },
-    {
-      "id": "43f359206da1ca187ce8618691ee3ed28e3e6fec4dd5980985d79afef3ddbd85",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:16:25.975Z"
-    },
-    {
-      "id": "e13ed68ae505ad3a372228a4acca30b709a755b3adde0ea036bf7cf908e760b3",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:18:00.829Z"
-    },
-    {
-      "id": "7e4a8aabdab695b475fd8cd044d4ef09ff998cfb8bbae62969d94d7e3042cf52",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:20:29.020Z"
-    },
-    {
-      "id": "ed077801c9c888ce336eb18091ab794f6269ab5382e89e446e2c1f91cf50eb94",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:21:25.022Z"
-    },
-    {
-      "id": "0536e53ed44baacfa0570d47bb6db3f339ba0706bc83b6f7fa372d247cca11de",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:22:46.210Z"
-    },
-    {
-      "id": "a362f83282d6a181dd7014b4abb839ed41ddc3c785b0a77ff3aa1e75e8aee34a",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:23:57.331Z"
-    },
-    {
-      "id": "f1f7cd09c4bf313076fd6aa92533ffaef1e908e2e15993e80894f035f2e8d2f9",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:25:52.298Z"
-    },
-    {
-      "id": "145c5f23fe5f682e2ccd83eb2474cad4b144b166ae96b97f1b6449747c3a2c2b",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:54:28.041Z"
-    },
-    {
-      "id": "383cde4f909a5915b7b3b1ba34571f54909e9b6a0f48075eb745ed53b9da66a9",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T14:55:38.505Z"
-    },
-    {
-      "id": "8e2e4af1afeb9643501a7072d12eb18a014ad133eeb1490fa2e77a363bb466dc",
-      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
-      "expiresAt": "2026-11-10T15:46:41.532Z"
+      "expiresAt": "2026-11-18T07:21:56.027Z"
     }
   ],
+  "tourContents": [],
   "destinations": [
     {
       "id": "ha-long",
@@ -910,6 +818,23 @@
     }
   ],
   "tours": [
+    {
+      "id": "dfghjbvbnnmhh-mwbsxxnl",
+      "name": "sdfghjklkjhg",
+      "place": "dfghjbvbnnmhh",
+      "region": "ssssssss",
+      "duration": "3bgaydf -vhgh",
+      "price": 23000000,
+      "maxGuests": 25,
+      "status": "active",
+      "image": "https://lh3.googleusercontent.com/grass-cs/AABkmLec4ZtlIxTaWxhAF_BmurximtGNd9P0W96bSAIG0AO6HhvQaln5nTClPVhV3lv0wiuckMDpzRM4vl3vdfD0wAPaKQEmbRSenTla1S73_cra6sDvlRtsbXzuWTz9i1qtiRGqbxF1=w289-h312-n-k-no",
+      "departures": [
+        "2027-11-12"
+      ],
+      "itinerary": "nfghybvv1\nghhhdfdh1111",
+      "createdAt": "2026-11-11T07:33:05.313Z",
+      "updatedAt": "2026-11-11T07:33:05.313Z"
+    },
     {
       "id": "ha-long-3n2d",
       "name": "Vịnh Hạ Long · 3 ngày 2 đêm",

@@ -43,6 +43,7 @@ const buildDirectory = resolve(projectRoot, "dist");
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 const REMEMBERED_SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 const SESSION_ONLY_DURATION_MS = 12 * 60 * 60 * 1000;
+const PAYMENT_WINDOW_MS = 60 * 1000;
 const RESET_OTP_DURATION_MS = 5 * 60 * 1000;
 const RESET_OTP_MAX_ATTEMPTS = 5;
 const RESET_OTP_RATE_WINDOW_MS = 15 * 60 * 1000;
@@ -423,22 +424,36 @@ app.get("/api/bookings/:id/payment", async (request, response, next) => {
 			return response.status(409).json({ error: "Đơn đã hủy/hoàn tiền không thể thanh toán." });
 		}
 
-		let payment = store.payments.find((item) => item.bookingId === booking.id && item.userId === user.id);
-		if (!payment) {
+		const previousPayments = structuredClone(store.payments);
+		let payment = store.payments
+			.filter((item) => item.bookingId === booking.id && item.userId === user.id)
+			.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))[0];
+		const now = Date.now();
+		let shouldPersist = false;
+		const paymentExpiresAt = Date.parse(payment?.expiresAt || "");
+		if (payment?.status === "pending" && (!Number.isFinite(paymentExpiresAt) || paymentExpiresAt <= now)) {
+			payment.status = "expired";
+			payment.updatedAt = new Date(now).toISOString();
+			shouldPersist = true;
+		}
+		if (!payment || payment.status === "cancelled" || payment.status === "expired") {
 			if (booking.paymentStatus === "paid") return response.status(409).json({ error: "Đơn này đã được thanh toán." });
 			payment = createPayment({ booking, user });
 			store.payments.push(payment);
-			await persistStore();
-		} else if (payment.status !== "confirmed" && (payment.amount !== booking.total || !payment.mockSerial)) {
-			const previousPayment = { amount: payment.amount, mockSerial: payment.mockSerial, method: payment.method };
+			shouldPersist = true;
+		} else if (payment.status !== "confirmed" && (payment.amount !== booking.total || !payment.mockSerial || !payment.expiresAt)) {
 			payment.amount = booking.total;
 			payment.mockSerial ||= `TRV-${randomBytes(4).toString("hex").toUpperCase()}`;
+			payment.expiresAt = new Date(now + PAYMENT_WINDOW_MS).toISOString();
 			if (payment.status !== "confirmed") payment.method = "mock";
-			payment.updatedAt = new Date().toISOString();
+			payment.updatedAt = new Date(now).toISOString();
+			shouldPersist = true;
+		}
+		if (shouldPersist) {
 			try {
 				await persistStore();
 			} catch (error) {
-				Object.assign(payment, previousPayment);
+				store.payments = previousPayments;
 				throw error;
 			}
 		}
@@ -468,10 +483,14 @@ app.post("/api/bookings/:id/voucher", async (request, response, next) => {
 		const subtotal = booking.subtotal ?? calculateTotal(booking.tour.price, booking.passengers);
 		const quote = quoteVoucher(store.vouchers, request.body?.code, subtotal, todayInVietnam());
 		if (quote.error) return response.status(400).json({ error: quote.error });
-		const payment = store.payments.find((item) => item.bookingId === booking.id && item.userId === user.id);
-		if (payment?.status === "confirmed") return response.status(409).json({ error: "Giao dịch đã thanh toán, không thể đổi voucher." });
+		const payment = store.payments
+			.filter((item) => item.bookingId === booking.id && item.userId === user.id)
+			.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))[0];
+		if (payment && payment.status !== "pending") {
+			return response.status(409).json({ error: "Giao dịch hiện tại không thể thay đổi voucher." });
+		}
 		const previousBooking = { subtotal: storedBooking.subtotal, discount: storedBooking.discount, voucher: storedBooking.voucher, total: storedBooking.total };
-		const previousPaymentAmount = payment?.amount;
+		const previousPayment = payment && { amount: payment.amount, mockSerial: payment.mockSerial, expiresAt: payment.expiresAt, updatedAt: payment.updatedAt };
 		Object.assign(storedBooking, {
 			subtotal,
 			discount: quote.discount,
@@ -480,13 +499,15 @@ app.post("/api/bookings/:id/voucher", async (request, response, next) => {
 		});
 		if (payment) {
 			payment.amount = storedBooking.total;
+			payment.mockSerial = `TRV-${randomBytes(4).toString("hex").toUpperCase()}`;
+			payment.expiresAt = new Date(Date.now() + PAYMENT_WINDOW_MS).toISOString();
 			payment.updatedAt = new Date().toISOString();
 		}
 		try {
 			await persistStore();
 		} catch (error) {
 			Object.assign(storedBooking, previousBooking);
-			if (payment) payment.amount = previousPaymentAmount;
+			if (payment) Object.assign(payment, previousPayment);
 			throw error;
 		}
 		broadcastRealtime("booking:updated", {
@@ -521,8 +542,15 @@ app.post("/api/payments/:id/mock-confirm", async (request, response, next) => {
 		if (!["visa", "atm", "serial"].includes(method)) {
 			return response.status(400).json({ error: "Phương thức thanh toán giả lập không hợp lệ." });
 		}
-		if (method === "serial" && cleanText(request.body?.serial, 100).toUpperCase() !== payment.mockSerial) {
-			return response.status(400).json({ error: "Mã seri không chính xác." });
+		if (payment.status !== "pending" && payment.status !== "confirmed") {
+			return response.status(409).json({ error: "Giao dịch không còn ở trạng thái chờ thanh toán." });
+		}
+		if (payment.status === "pending" && (!payment.expiresAt || Date.parse(payment.expiresAt) <= Date.now())) {
+			return response.status(410).json({ error: "Giao dịch đã hết hạn. Vui lòng tải lại trang để tạo mã mới." });
+		}
+		const verificationCode = cleanText(request.body?.verificationCode ?? (method === "serial" ? request.body?.serial : ""), 100).toUpperCase();
+		if (verificationCode !== payment.mockSerial) {
+			return response.status(400).json({ error: "Mã xác nhận giao dịch không chính xác." });
 		}
 		if (!Number.isSafeInteger(booking.total) || booking.total !== payment.amount) {
 			return response.status(409).json({ error: "Số tiền giao dịch không khớp với đơn đặt tour." });
@@ -558,6 +586,33 @@ app.post("/api/payments/:id/mock-confirm", async (request, response, next) => {
 				tourName: booking.tour?.name,
 				amount: payment.amount,
 			});
+		}
+		return response.json({ payment, booking: findUserBooking(store.bookings, user.id, booking.id) });
+	} catch (error) {
+		return next(error);
+	}
+});
+
+app.post("/api/payments/:id/cancel", async (request, response, next) => {
+	try {
+		const user = currentUser(request);
+		if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để hủy giao dịch." });
+		const payment = store.payments.find((item) => item.id === request.params.id && item.userId === user.id);
+		if (!payment) return response.status(404).json({ error: "Không tìm thấy giao dịch thanh toán." });
+		const booking = store.bookings.find((item) => item.id === payment.bookingId && item.userId === user.id);
+		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour." });
+		if (payment.status !== "pending") {
+			return response.status(409).json({ error: "Chỉ có thể hủy giao dịch đang chờ thanh toán." });
+		}
+
+		const previousPayment = { status: payment.status, updatedAt: payment.updatedAt };
+		payment.status = "cancelled";
+		payment.updatedAt = new Date().toISOString();
+		try {
+			await persistStore();
+		} catch (error) {
+			Object.assign(payment, previousPayment);
+			throw error;
 		}
 		return response.json({ payment, booking: findUserBooking(store.bookings, user.id, booking.id) });
 	} catch (error) {
@@ -852,6 +907,23 @@ app.get("/api/profile", (request, response) => {
 		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
 		.map(({ id, topic, message, status, createdAt, resolvedAt }) => ({ id, topic, message, status: status || "open", createdAt, resolvedAt: resolvedAt || null }));
 	return response.json({ profile: publicUser(user), stats, inquiries });
+});
+
+app.get("/api/inquiries/mine", (request, response) => {
+	const user = currentUser(request);
+	if (!user) return response.status(401).json({ error: "Vui lòng đăng nhập để xem thông báo." });
+	const inquiries = store.inquiries
+		.filter((inquiry) => inquiry.userId === user.id)
+		.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
+		.map(({ id, topic, message, status, createdAt, resolvedAt }) => ({
+			id,
+			topic,
+			message,
+			status: status || "open",
+			createdAt,
+			resolvedAt: resolvedAt || null,
+		}));
+	return response.json({ inquiries });
 });
 
 app.put("/api/profile", async (request, response, next) => {

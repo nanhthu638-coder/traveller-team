@@ -1,11 +1,27 @@
 // Menu tài khoản (avatar) dùng chung cho mọi trang: Lịch sử đặt tour + Đăng xuất.
 // Markup được chèn vào cuối `.site-nav` để các trang không phải chép lại HTML.
 
+import { subscribeRealtime } from "./realtime.js";
+
 const HISTORY_URL = "/booking-history.html";
 let root = null;
 let guestLinks = [];
+let accountUserId = null;
+let notificationLoadSequence = 0;
 
 const MENU_HTML = `
+  <div class="account-notifications">
+    <button class="notification-trigger" type="button" aria-label="Thông báo" aria-expanded="false" aria-controls="notification-panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+      <span class="notification-count" data-notification-count hidden></span>
+    </button>
+    <section class="notification-panel" id="notification-panel" aria-label="Thông báo biểu mẫu" hidden>
+      <h2>Biểu mẫu đã xử lý</h2>
+      <div class="notification-list" data-notification-list aria-live="polite">
+        <p class="notification-empty">Đang tải thông báo...</p>
+      </div>
+    </section>
+  </div>
   <button class="account-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="account-dropdown">
     <span class="account-avatar" data-account-avatar aria-hidden="true"><span data-account-initial></span><img alt="" hidden /></span>
     <span class="account-name" data-account-name></span>
@@ -45,6 +61,95 @@ function setOpen(open) {
   root.querySelector(".account-dropdown").hidden = !open;
 }
 
+function setNotificationsOpen(open) {
+  if (!root) return;
+  root.querySelector(".notification-trigger").setAttribute("aria-expanded", String(open));
+  root.querySelector(".notification-panel").hidden = !open;
+}
+
+function renderNotifications(inquiries) {
+  if (!root) return;
+  const resolved = inquiries.filter((inquiry) => inquiry.status === "resolved");
+  const count = root.querySelector("[data-notification-count]");
+  count.textContent = resolved.length > 99 ? "99+" : String(resolved.length);
+  count.hidden = resolved.length === 0;
+  root.querySelector(".notification-trigger").setAttribute(
+    "aria-label",
+    resolved.length ? `Thông báo, ${resolved.length} biểu mẫu đã xử lý` : "Thông báo",
+  );
+
+  const list = root.querySelector("[data-notification-list]");
+  list.replaceChildren();
+  if (!resolved.length) {
+    const empty = document.createElement("p");
+    empty.className = "notification-empty";
+    empty.textContent = "Chưa có biểu mẫu nào được xử lý.";
+    list.append(empty);
+    return;
+  }
+
+  for (const inquiry of resolved) {
+    const item = document.createElement("article");
+    item.className = "notification-item";
+    const heading = document.createElement("strong");
+    heading.textContent = inquiry.topic || "Biểu mẫu liên hệ";
+    const reference = document.createElement("p");
+    reference.className = "notification-reference";
+    reference.textContent = `Mã biểu mẫu: ${inquiry.id}`;
+    const message = document.createElement("p");
+    message.className = "notification-message";
+    message.textContent = inquiry.message;
+    const resolvedAt = document.createElement("time");
+    resolvedAt.className = "notification-date";
+    if (inquiry.resolvedAt) {
+      resolvedAt.dateTime = inquiry.resolvedAt;
+      resolvedAt.textContent = `Đã xử lý: ${new Date(inquiry.resolvedAt).toLocaleString("vi-VN")}`;
+    } else {
+      resolvedAt.textContent = "Đã xử lý";
+    }
+    item.append(heading, reference, message, resolvedAt);
+    list.append(item);
+  }
+
+  const profileLink = document.createElement("a");
+  profileLink.className = "notification-profile-link";
+  profileLink.href = "/profile.html";
+  profileLink.textContent = "Xem tất cả biểu mẫu";
+  list.append(profileLink);
+}
+
+async function loadInquiryNotifications() {
+  if (!accountUserId || !root) return;
+  const sequence = ++notificationLoadSequence;
+  const list = root.querySelector("[data-notification-list]");
+  list.replaceChildren();
+  const loading = document.createElement("p");
+  loading.className = "notification-empty";
+  loading.textContent = "Đang tải thông báo...";
+  list.append(loading);
+
+  try {
+    const response = await fetch("/api/inquiries/mine");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Không thể tải thông báo.");
+    if (!Array.isArray(data.inquiries)) throw new Error("Dữ liệu thông báo không hợp lệ.");
+    if (sequence !== notificationLoadSequence || !accountUserId) return;
+    renderNotifications(data.inquiries);
+  } catch (error) {
+    if (sequence !== notificationLoadSequence || !accountUserId) return;
+    list.replaceChildren();
+    const errorMessage = document.createElement("p");
+    errorMessage.className = "notification-error";
+    errorMessage.textContent = error instanceof TypeError ? "Không thể kết nối máy chủ để tải thông báo." : error.message;
+    const retry = document.createElement("button");
+    retry.className = "notification-retry";
+    retry.type = "button";
+    retry.textContent = "Thử lại";
+    retry.addEventListener("click", loadInquiryNotifications);
+    list.append(errorMessage, retry);
+  }
+}
+
 /** Chèn menu (và, nếu cần, nút Đăng nhập/Tạo tài khoản) vào header. Gọi một lần mỗi trang. */
 export function mountAccountMenu({ onLogout, withGuestLinks = false } = {}) {
   const nav = document.querySelector(".site-nav");
@@ -70,18 +175,34 @@ export function mountAccountMenu({ onLogout, withGuestLinks = false } = {}) {
 
   const trigger = root.querySelector(".account-trigger");
   const dropdown = root.querySelector(".account-dropdown");
+  const notificationTrigger = root.querySelector(".notification-trigger");
+  const notificationPanel = root.querySelector(".notification-panel");
   const onHistoryPage = /\/booking-(history|detail)\.html$/.test(window.location.pathname);
   if (onHistoryPage) root.querySelector(`a[href="${HISTORY_URL}"]`).setAttribute("aria-current", "page");
   if (window.location.pathname === "/profile.html") root.querySelector('a[href="/profile.html"]').setAttribute("aria-current", "page");
 
-  trigger.addEventListener("click", () => setOpen(dropdown.hidden));
+  trigger.addEventListener("click", () => {
+    setNotificationsOpen(false);
+    setOpen(dropdown.hidden);
+  });
+  notificationTrigger.addEventListener("click", () => {
+    setOpen(false);
+    const open = notificationPanel.hidden;
+    setNotificationsOpen(open);
+    if (open) loadInquiryNotifications();
+  });
   document.addEventListener("click", (event) => {
-    if (!root.contains(event.target)) setOpen(false);
+    if (!root.contains(event.target)) {
+      setOpen(false);
+      setNotificationsOpen(false);
+    }
   });
   root.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !dropdown.hidden) {
+    if (event.key === "Escape" && (!dropdown.hidden || !notificationPanel.hidden)) {
+      const closingNotifications = !notificationPanel.hidden;
       setOpen(false);
-      trigger.focus();
+      setNotificationsOpen(false);
+      (closingNotifications ? notificationTrigger : trigger).focus();
     }
     if (event.key === "ArrowDown" && dropdown.hidden) {
       event.preventDefault();
@@ -93,6 +214,12 @@ export function mountAccountMenu({ onLogout, withGuestLinks = false } = {}) {
     setOpen(false);
     onLogout?.();
   });
+  subscribeRealtime("inquiry:changed", (event) => {
+    const payload = event.payload || {};
+    if (payload.action === "resolved" && payload.userId && payload.userId === accountUserId) {
+      loadInquiryNotifications();
+    }
+  });
 }
 
 /** Hiển thị avatar + tên khi đã đăng nhập, ẩn khi chưa. */
@@ -103,8 +230,16 @@ export function setAccountUser(user) {
   if (!root) return;
   root.hidden = !user;
   if (!user) {
+    accountUserId = null;
+    notificationLoadSequence += 1;
+    renderNotifications([]);
     setOpen(false);
+    setNotificationsOpen(false);
     return;
+  }
+  if (accountUserId !== user.id) {
+    accountUserId = user.id;
+    loadInquiryNotifications();
   }
   root.querySelector("[data-account-initial]").textContent = initialOf(user.name);
   const avatar = root.querySelector("[data-account-avatar]");
