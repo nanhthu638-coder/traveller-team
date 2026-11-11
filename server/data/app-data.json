@@ -1,0 +1,1019 @@
+{
+  "users": [
+    {
+      "id": "d877a869-bbe0-4244-ac12-163a8a744925",
+      "name": "Nguyễn Trân",
+      "email": "bt12@gmail.com",
+      "salt": "08cabbd029a47c0048d4d2635f641174",
+      "hash": "8a2ca426bb2145488aa3e55861b69778d9340f10b9d03cc6fafcee83aec3686f8550e8f5bb0141f84878b53a4c0e61f2d2d15a967740117ac57f6259ea0fece7",
+      "createdAt": "2026-10-20T08:20:15.033Z"
+    },
+    {
+      "id": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "name": "Thư Nguyễn",
+      "email": "nanhthu638@gmail.com",
+      "salt": "90fcd0afd3259d5a57cd3d9f1e6a1481",
+      "hash": "d984fe389b97bb900c5c519faca420c4952778bff4d6e957745b2ec9e351e1d155ace4f3e9e583ef8df1d40ec2133347bf5b43cb91cd674a339ec7e06eba37e0",
+      "createdAt": "2026-10-21T03:06:16.019Z",
+      "avatarFile": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f-104cc033-ad55-44ed-bc25-dced73a68e75.jpg",
+      "avatarUpdatedAt": "2026-10-30T22:47:29.756Z"
+    },
+    {
+      "id": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "name": "Admin",
+      "email": "admin@example.com",
+      "salt": "fea5fcffc882bfcba31c67a49d359762",
+      "hash": "717149bb5cb44a936e03e7f002071ff388c6aa4406a24fbb85465aba309f80b243d21a3cfbea66c5803b574f278a5c1f4b61c1c07bc4a287444cb3f02acf2d7d",
+      "createdAt": "2026-10-30T22:40:07.960Z",
+      "role": "admin"
+    },
+    {
+      "id": "e86fa4cf-b049-4860-aaa8-618a9d662fb9",
+      "name": "Khách Hàng Thường",
+      "email": "testuser_1793642184673@example.com",
+      "salt": "ca11a91b2d2e9e2481009a99ac1b2ebb",
+      "hash": "a726184d3eff0518b16e1cfe3f51318de213fe3ba4deb277011a61248f8055e003ed5853f79ebbc0611cb7f076116844e68630d2ab39198c5e2340914bf3914e",
+      "createdAt": "2026-11-02T17:56:24.728Z"
+    },
+    {
+      "id": "eea29c3e-2489-4b6d-9a58-c4852ed675fe",
+      "name": "Khách Hàng Thường",
+      "email": "testuser_1793642398434@example.com",
+      "salt": "aebc68a06a8c5dcb5d6f0a638e4deeb0",
+      "hash": "a2ae900b063594286a7618ba961a26919adf907cec486c846c67e60fb546867f57d306afaf432ba77fd29cdaec630d8edb27de83a1e0b6ca3740c5d11f85be6d",
+      "createdAt": "2026-11-02T17:59:58.494Z"
+    },
+    {
+      "id": "897768a9-b41d-49ee-b9d0-c3fee7ac18b6",
+      "name": "Huỳnh Quốc Anh",
+      "email": "a2906@a.aa",
+      "salt": "e09bfc4b5961de05d243092c87e7ed67",
+      "hash": "1e04053cfd65535997b21d180fe67a33a401894c48b7fab76bad12fef8426092168317c7e048f901740d33988f797dc74f2bd7499d1859b88e6c30a85cdd3e09",
+      "createdAt": "2026-11-03T15:45:55.720Z"
+    }
+  ],
+  "inquiries": [],
+  "bookings": [
+    {
+      "id": "a5f26d69-5532-47e1-b73b-8697af4da395",
+      "code": "TT-261020-0FD9",
+      "userId": "d877a869-bbe0-4244-ac12-163a8a744925",
+      "tour": {
+        "id": "hoi-an-2n1d",
+        "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+        "place": "Hội An",
+        "region": "Quảng Nam",
+        "duration": "2 ngày 1 đêm",
+        "price": 2150000,
+        "image": "photo-1531058020387-3be344556be6"
+      },
+      "departureDate": "2026-10-22",
+      "passengers": {
+        "adult": 1,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Nguyễn Trân",
+          "gender": "male",
+          "dob": "1997-02-13"
+        }
+      ],
+      "total": 2150000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Nguyễn Trân",
+        "email": "bt12@gmail.com",
+        "phone": "0908123456"
+      },
+      "note": "",
+      "createdAt": "2026-10-20T08:20:55.351Z",
+      "updatedAt": "2026-10-20T08:21:07.134Z"
+    },
+    {
+      "id": "e7871e3b-60b1-4166-9cde-874af68f4e8e",
+      "code": "TT-261021-8FEE",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "tour": {
+        "id": "ha-long-3n2d",
+        "name": "Vịnh Hạ Long · 3 ngày 2 đêm",
+        "place": "Hạ Long",
+        "region": "Quảng Ninh",
+        "duration": "3 ngày 2 đêm",
+        "price": 3490000,
+        "image": "photo-1528127269322-539801943592"
+      },
+      "departureDate": "2026-11-01",
+      "passengers": {
+        "adult": 2,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Thư Nguyễn",
+          "gender": "male",
+          "dob": "2006-10-01"
+        },
+        {
+          "type": "adult",
+          "fullName": "vfvee",
+          "gender": "male",
+          "dob": "1998-11-12"
+        }
+      ],
+      "total": 6980000,
+      "status": "confirmed",
+      "paymentStatus": "unpaid",
+      "contact": {
+        "name": "Thư Nguyễn",
+        "email": "nanhthu638@gmail.com",
+        "phone": "0901234567"
+      },
+      "note": "",
+      "createdAt": "2026-10-21T03:07:59.298Z",
+      "updatedAt": "2026-11-02T06:40:46.467Z",
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
+    },
+    {
+      "id": "3e869595-2bc2-4214-9913-5d0dcabc6854",
+      "code": "TT-261030-0299",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "tour": {
+        "id": "hoi-an-2n1d",
+        "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+        "place": "Hội An",
+        "region": "Quảng Nam",
+        "duration": "2 ngày 1 đêm",
+        "price": 2150000,
+        "image": "photo-1531058020387-3be344556be6"
+      },
+      "departureDate": "2026-11-05",
+      "passengers": {
+        "adult": 1,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Thư Nguyễn",
+          "gender": "female",
+          "dob": "1998-11-16"
+        }
+      ],
+      "subtotal": 2150000,
+      "total": 2150000,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Thư Nguyễn",
+        "email": "nanhthu638@gmail.com",
+        "phone": "0987654321"
+      },
+      "note": "",
+      "createdAt": "2026-10-30T22:32:39.136Z",
+      "updatedAt": "2026-10-30T22:32:47.408Z"
+    },
+    {
+      "id": "fb2faf42-b4b5-4e0a-9fd7-51165c60519d",
+      "code": "TT-261030-A897",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "tour": {
+        "id": "phu-quoc-4n3d",
+        "name": "Phú Quốc · Đảo ngọc nghỉ dưỡng · 4 ngày 3 đêm",
+        "place": "Phú Quốc",
+        "region": "Kiên Giang",
+        "duration": "4 ngày 3 đêm",
+        "price": 6890000,
+        "image": "photo-1500375592092-40eb2168fd21"
+      },
+      "departureDate": "2026-11-10",
+      "passengers": {
+        "adult": 1,
+        "child": 0,
+        "infant": 1
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Thư Nguyễn",
+          "gender": "female",
+          "dob": "2005-11-23"
+        },
+        {
+          "type": "infant",
+          "fullName": "Vũ",
+          "gender": "male",
+          "dob": "2026-10-07"
+        }
+      ],
+      "subtotal": 6890000,
+      "total": 6390000,
+      "status": "confirmed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Thư Nguyễn",
+        "email": "nanhthu638@gmail.com",
+        "phone": "0912345678"
+      },
+      "note": "",
+      "createdAt": "2026-10-30T22:49:34.660Z",
+      "updatedAt": "2026-11-02T06:21:22.011Z",
+      "discount": 500000,
+      "voucher": {
+        "id": "voucher-welcome10",
+        "code": "CHAO10",
+        "type": "percent",
+        "value": 10
+      },
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
+    },
+    {
+      "id": "c772e011-85bc-42b9-a9a3-5d0dcabc9999",
+      "code": "TT-261028-C772",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "tour": {
+        "id": "da-lat-3n2d",
+        "name": "Đà Lạt · Thành phố ngàn hoa · 3 ngày 2 đêm",
+        "place": "Đà Lạt",
+        "region": "Lâm Đồng",
+        "duration": "3 ngày 2 đêm",
+        "price": 2890000,
+        "image": "photo-1509316975850-ff9c5deb0cd9"
+      },
+      "departureDate": "2026-11-20",
+      "passengers": {
+        "adult": 2,
+        "child": 1,
+        "infant": 0
+      },
+      "passengerDetails": [
+        {
+          "type": "adult",
+          "fullName": "Lê Văn Hoàng",
+          "gender": "male",
+          "dob": "1990-05-15",
+          "idNumber": "079090001234"
+        },
+        {
+          "type": "adult",
+          "fullName": "Trần Thị Mai",
+          "gender": "female",
+          "dob": "1992-08-20",
+          "idNumber": "079192005678"
+        },
+        {
+          "type": "child",
+          "fullName": "Lê Hoàng Nam",
+          "gender": "male",
+          "dob": "2018-03-10"
+        }
+      ],
+      "subtotal": 7803000,
+      "total": 7803000,
+      "status": "cancelled",
+      "paymentStatus": "refunded",
+      "contact": {
+        "name": "Lê Văn Hoàng",
+        "email": "hoangle90@gmail.com",
+        "phone": "0933445566"
+      },
+      "rejectReason": "Khách hàng báo bận lịch công tác đột xuất, đề nghị hủy đơn.",
+      "note": "Xin phòng gia đình có ban công.",
+      "createdAt": "2026-10-28T09:15:00.000Z",
+      "updatedAt": "2026-10-28T14:30:00.000Z"
+    },
+    {
+      "id": "d25adadd-37e8-4465-82a1-0c266e31fff2",
+      "code": "TT-261031-170C",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "ha-long-3n2d",
+        "name": "Vịnh Hạ Long · 3 ngày 2 đêm",
+        "place": "Hạ Long",
+        "region": "Quảng Ninh",
+        "duration": "3 ngày 2 đêm",
+        "price": 3490000,
+        "image": "photo-1528127269322-539801943592"
+      },
+      "departureDate": "2026-11-15",
+      "passengers": {
+        "adult": 2,
+        "child": 1,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 9423000,
+      "total": 9423000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0901234567"
+      },
+      "note": "Gia đình có 1 bé 8 tuổi, nhờ xếp phòng gần nhau.",
+      "createdAt": "2026-10-31T15:58:20.122Z",
+      "updatedAt": "2026-11-11T07:27:10.520Z",
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
+    },
+    {
+      "id": "bc85a3bc-8575-4ce3-94f8-1a9218634fce",
+      "code": "TT-261102-3D8C",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "da-lat-3n2d",
+        "name": "Đà Lạt · Thành phố ngàn hoa · 3 ngày 2 đêm",
+        "place": "Đà Lạt",
+        "region": "Lâm Đồng",
+        "duration": "3 ngày 2 đêm",
+        "price": 2790000,
+        "image": "photo-1500530855697-b586d89ba3ee"
+      },
+      "departureDate": "2026-11-28",
+      "passengers": {
+        "adult": 2,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 5580000,
+      "total": 5580000,
+      "status": "completed",
+      "paymentStatus": "unpaid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0901234567"
+      },
+      "note": "",
+      "createdAt": "2026-11-02T15:58:20.122Z",
+      "updatedAt": "2026-11-11T07:26:12.373Z",
+      "processedBy": "dcface6f-505e-4bb7-b24e-062add5999ea"
+    },
+    {
+      "id": "c892a1c2-4c2a-428d-ac33-27ad9011347b",
+      "code": "TT-260924-C585",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "hoi-an-2n1d",
+        "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+        "place": "Hội An",
+        "region": "Quảng Nam",
+        "duration": "2 ngày 1 đêm",
+        "price": 2150000,
+        "image": "photo-1531058020387-3be344556be6"
+      },
+      "departureDate": "2026-10-14",
+      "passengers": {
+        "adult": 2,
+        "child": 0,
+        "infant": 1
+      },
+      "passengerDetails": [],
+      "subtotal": 4300000,
+      "total": 4300000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0901234567"
+      },
+      "note": "",
+      "createdAt": "2026-09-24T15:58:20.122Z",
+      "updatedAt": "2026-09-24T15:58:20.122Z"
+    },
+    {
+      "id": "b2b313a5-c1a3-40e8-9d87-01684a95aa33",
+      "code": "TT-261004-1CCA",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "phu-quoc-4n3d",
+        "name": "Phú Quốc · Đảo ngọc nghỉ dưỡng · 4 ngày 3 đêm",
+        "place": "Phú Quốc",
+        "region": "Kiên Giang",
+        "duration": "4 ngày 3 đêm",
+        "price": 6890000,
+        "image": "photo-1500375592092-40eb2168fd21"
+      },
+      "departureDate": "2026-12-13",
+      "passengers": {
+        "adult": 3,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 20670000,
+      "total": 20670000,
+      "status": "cancelled",
+      "paymentStatus": "refunded",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": ""
+      },
+      "note": "Đổi kế hoạch công tác.",
+      "createdAt": "2026-10-04T15:58:20.122Z",
+      "updatedAt": "2026-10-04T15:58:20.122Z"
+    },
+    {
+      "id": "f874e65a-93a3-4547-9f9f-09dbe9f5a3c1",
+      "code": "TT-260820-6EDD",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "ta-xua-2n1d",
+        "name": "Tà Xùa săn mây · 2 ngày 1 đêm",
+        "place": "Bắc Yên",
+        "region": "Sơn La",
+        "duration": "2 ngày 1 đêm",
+        "price": 1890000,
+        "image": "photo-1470770841072-f978cf4d019e"
+      },
+      "departureDate": "2026-09-09",
+      "passengers": {
+        "adult": 1,
+        "child": 0,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 1890000,
+      "total": 1890000,
+      "status": "completed",
+      "paymentStatus": "paid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": ""
+      },
+      "note": "",
+      "createdAt": "2026-08-20T15:58:20.122Z",
+      "updatedAt": "2026-08-20T15:58:20.122Z"
+    },
+    {
+      "id": "db47c766-b239-4b94-904c-3e24610fca63",
+      "code": "TT-261026-411D",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "tour": {
+        "id": "sa-pa-3n2d",
+        "name": "Sa Pa · Fansipan & bản làng · 3 ngày 2 đêm",
+        "place": "Sa Pa",
+        "region": "Lào Cai",
+        "duration": "3 ngày 2 đêm",
+        "price": 3190000,
+        "image": "photo-1501785888041-af3ef285b470"
+      },
+      "departureDate": "2026-11-21",
+      "passengers": {
+        "adult": 2,
+        "child": 2,
+        "infant": 0
+      },
+      "passengerDetails": [],
+      "subtotal": 10846000,
+      "total": 10846000,
+      "status": "pending",
+      "paymentStatus": "unpaid",
+      "contact": {
+        "name": "Admin",
+        "email": "admin@example.com",
+        "phone": "0987654321"
+      },
+      "note": "Cần ăn chay một bữa.",
+      "createdAt": "2026-10-26T15:58:20.122Z",
+      "updatedAt": "2026-10-26T15:58:20.122Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "87debe58-5876-4f01-a670-3584b8686950",
+      "userId": "d877a869-bbe0-4244-ac12-163a8a744925",
+      "bookingId": "a5f26d69-5532-47e1-b73b-8697af4da395",
+      "tourId": "hoi-an-2n1d",
+      "authorName": "Nguyễn Trân",
+      "rating": 5,
+      "comment": "tuyệt vời !!!!",
+      "images": [],
+      "createdAt": "2026-10-20T08:21:36.648Z",
+      "updatedAt": "2026-10-20T08:21:36.648Z"
+    },
+    {
+      "id": "rev-demo-halong-1",
+      "userId": "demo-user-1",
+      "bookingId": "TT-2610-1000",
+      "tourId": "ha-long-3n2d",
+      "authorName": "Phạm Thanh Hà",
+      "rating": 5,
+      "comment": "Du thuyền rất đẹp, hướng dẫn viên nhiệt tình, bữa tối hải sản tươi ngon. Cả nhà mình đều hài lòng, chắc chắn sẽ quay lại.",
+      "images": [
+        "photo-1528127269322-539801943592",
+        "photo-1507525428034-b723cf961d3e"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-31T17:20:09.958Z",
+      "updatedAt": "2026-10-31T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-halong-2",
+      "userId": "demo-user-2",
+      "bookingId": "TT-2610-1001",
+      "tourId": "ha-long-3n2d",
+      "authorName": "Đỗ Quốc Bảo",
+      "rating": 4,
+      "comment": "Lịch trình hợp lý, cảnh vịnh đẹp như tranh. Chỉ tiếc là hôm đi chèo kayak hơi đông người.",
+      "images": [],
+      "hidden": false,
+      "createdAt": "2026-10-27T17:20:09.958Z",
+      "updatedAt": "2026-10-27T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-halong-3",
+      "userId": "demo-user-3",
+      "bookingId": "TT-2610-1002",
+      "tourId": "ha-long-3n2d",
+      "authorName": "Ngô Mai Linh",
+      "rating": 5,
+      "comment": "Phòng cabin sạch sẽ, nhân viên chu đáo. Giá trọn gói rất hợp lý so với chất lượng dịch vụ 5 sao.",
+      "images": [
+        "photo-1544644181-1484b3fdfc62"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-19T17:20:09.958Z",
+      "updatedAt": "2026-10-19T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-hoian-1",
+      "userId": "demo-user-4",
+      "bookingId": "TT-2610-1003",
+      "tourId": "hoi-an-2n1d",
+      "authorName": "Vũ Hoàng Nam",
+      "rating": 5,
+      "comment": "Phố cổ về đêm lung linh, thả đèn hoa đăng trên sông Hoài là trải nghiệm đáng nhớ nhất chuyến đi.",
+      "images": [
+        "photo-1531058020387-3be344556be6"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-29T17:20:09.958Z",
+      "updatedAt": "2026-10-29T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-hoian-2",
+      "userId": "demo-user-5",
+      "bookingId": "TT-2610-1004",
+      "tourId": "hoi-an-2n1d",
+      "authorName": "Lý Thu Trang",
+      "rating": 3,
+      "comment": "Tour ổn nhưng thời gian tự do buổi tối hơi ít, mình chưa kịp thử hết các món đặc sản Cao lầu và cơm gà.",
+      "images": [],
+      "hidden": false,
+      "createdAt": "2026-10-22T17:20:09.958Z",
+      "updatedAt": "2026-10-22T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-phuquoc-1",
+      "userId": "demo-user-6",
+      "bookingId": "TT-2610-1005",
+      "tourId": "phu-quoc-4n3d",
+      "authorName": "Trần Minh Tuấn",
+      "rating": 5,
+      "comment": "Resort sát biển bãi Sao tuyệt đẹp, đi cáp treo Hòn Thơm ngắm biển từ trên cao cực kỳ ấn tượng. Gia đình mình có kỳ nghỉ rất trọn vẹn.",
+      "images": [
+        "photo-1500375592092-40eb2168fd21",
+        "photo-1519046904884-53103b34b206"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-30T17:20:09.958Z",
+      "updatedAt": "2026-10-30T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-dalat-1",
+      "userId": "demo-user-7",
+      "bookingId": "TT-2610-1006",
+      "tourId": "da-lat-3n2d",
+      "authorName": "Trịnh Minh Châu",
+      "rating": 4,
+      "comment": "Đà Lạt mát mẻ, homestay gỗ thông xinh xắn. Xe đón đúng giờ, bác tài xế vui tính và nhiệt tình hỗ trợ đoàn.",
+      "images": [
+        "photo-1500530855697-b586d89ba3ee"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-25T17:20:09.958Z",
+      "updatedAt": "2026-10-25T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-sapa-1",
+      "userId": "demo-user-8",
+      "bookingId": "TT-2610-1007",
+      "tourId": "sa-pa-3n2d",
+      "authorName": "Bùi Gia Huy",
+      "rating": 5,
+      "comment": "Săn mây trên đỉnh Fansipan quá tuyệt vời, bản Cát Cát thơ mộng và người dân bản địa rất thân thiện. Nhớ mang áo ấm nhé!",
+      "images": [
+        "photo-1501785888041-af3ef285b470"
+      ],
+      "hidden": false,
+      "createdAt": "2026-10-23T17:20:09.958Z",
+      "updatedAt": "2026-10-23T17:20:09.958Z"
+    },
+    {
+      "id": "rev-demo-hagiang-violation",
+      "userId": "demo-user-9",
+      "bookingId": "TT-2610-1008",
+      "tourId": "ha-giang-4n3d",
+      "authorName": "Lê Hoàng Cường",
+      "rating": 1,
+      "comment": "Quảng cáo spam: Chuyên nhận làm sim số đẹp giá rẻ, vay vốn nhanh lãi suất thấp liên hệ ngay 0999888777 nhận hoa hồng cao!",
+      "images": [],
+      "hidden": false,
+      "createdAt": "2026-11-01T17:22:16.359Z",
+      "updatedAt": "2026-11-01T17:22:16.360Z"
+    }
+  ],
+  "vouchers": [
+    {
+      "id": "voucher-welcome10",
+      "code": "CHAO10",
+      "type": "percent",
+      "value": 10,
+      "maxDiscount": 500000,
+      "minimumOrder": 1000000,
+      "startsAt": "2026-01-01",
+      "expiresAt": "2027-12-31",
+      "active": true,
+      "usageLimit": 500,
+      "usageCount": 1
+    },
+    {
+      "id": "voucher-expired",
+      "code": "CU2024",
+      "type": "percent",
+      "value": 15,
+      "maxDiscount": 1000000,
+      "minimumOrder": 1000000,
+      "startsAt": "2024-01-01",
+      "expiresAt": "2024-12-31",
+      "active": true,
+      "usageLimit": 100,
+      "usageCount": 0
+    }
+  ],
+  "payments": [
+    {
+      "id": "c60164df-cfa9-4ad1-8245-a27d503df0e9",
+      "bookingId": "3e869595-2bc2-4214-9913-5d0dcabc6854",
+      "bookingCode": "TT-261030-0299",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "amount": 2150000,
+      "method": "demo",
+      "status": "confirmed",
+      "createdAt": "2026-10-30T22:32:41.082Z",
+      "updatedAt": "2026-10-30T22:32:42.860Z"
+    },
+    {
+      "id": "25d7e500-94e1-4ebf-a51c-8482206b40ed",
+      "bookingId": "fb2faf42-b4b5-4e0a-9fd7-51165c60519d",
+      "bookingCode": "TT-261030-A897",
+      "userId": "3c8caaa4-4764-48a3-b4b3-5c8b263c126f",
+      "amount": 6390000,
+      "method": "demo",
+      "status": "confirmed",
+      "createdAt": "2026-10-30T22:49:39.829Z",
+      "updatedAt": "2026-10-30T22:49:45.704Z"
+    },
+    {
+      "id": "ec9c5702-a84f-40c6-a751-23e75470de40",
+      "bookingId": "bc85a3bc-8575-4ce3-94f8-1a9218634fce",
+      "bookingCode": "TT-261102-3D8C",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "amount": 5580000,
+      "method": "demo",
+      "status": "pending",
+      "createdAt": "2026-11-03T15:58:22.466Z",
+      "updatedAt": "2026-11-03T15:58:22.466Z"
+    },
+    {
+      "id": "ec882b13-6312-4ae9-b45f-ad76cfbc8238",
+      "bookingId": "db47c766-b239-4b94-904c-3e24610fca63",
+      "bookingCode": "TT-261026-411D",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "amount": 10846000,
+      "method": "demo",
+      "status": "pending",
+      "createdAt": "2026-11-03T15:58:28.241Z",
+      "updatedAt": "2026-11-03T15:58:28.241Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "bffccbe28b61a2e620070efea7f99c27d70f411068d2ffbd60abeaa8b4973805",
+      "userId": "dcface6f-505e-4bb7-b24e-062add5999ea",
+      "expiresAt": "2026-11-18T07:21:56.027Z"
+    }
+  ],
+  "tourContents": [],
+  "destinations": [
+    {
+      "id": "ha-long",
+      "name": "Vịnh Hạ Long",
+      "region": "Quảng Ninh",
+      "description": "Kỳ quan thiên nhiên thế giới UNESCO với hàng ngàn đảo đá vôi kỳ vĩ nhô lên từ mặt nước biển xanh biếc tuyệt đẹp và hệ thống hang động tráng lệ.",
+      "image": "photo-1528127269322-539801943592",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "hoi-an",
+      "name": "Phố cổ Hội An",
+      "region": "Quảng Nam",
+      "description": "Đô thị cổ được bảo tồn trọn vẹn với những ngôi nhà cổ kính sơn vàng đặc trưng, giàn hoa giấy rực rỡ và ánh đèn lồng lung linh huyền ảo bên bờ sông Hoài.",
+      "image": "photo-1531058020387-3be344556be6",
+      "createdAt": "2026-10-02T08:00:00.000Z",
+      "updatedAt": "2026-10-02T08:00:00.000Z"
+    },
+    {
+      "id": "ta-xua",
+      "name": "Tà Xùa",
+      "region": "Sơn La",
+      "description": "Thiên đường săn mây bồng bềnh của núi rừng Tây Bắc với sống lưng khủng long hùng vĩ, biển mây cuồn cuộn và không khí trong lành nguyên sơ quanh năm.",
+      "image": "photo-1470770841072-f978cf4d019e",
+      "createdAt": "2026-10-03T08:00:00.000Z",
+      "updatedAt": "2026-10-03T08:00:00.000Z"
+    },
+    {
+      "id": "ha-giang",
+      "name": "Cao nguyên đá Hà Giang",
+      "region": "Hà Giang",
+      "description": "Vùng đất địa đầu Tổ quốc nổi danh với hẻm vực Tu Sản sâu nhất Đông Nam Á, đèo Mã Pí Lèng ngoạn mục, dòng sông Nho Quế xanh biếc và mùa hoa tam giác mạch.",
+      "image": "photo-1519681393784-d120267933ba",
+      "createdAt": "2026-10-04T08:00:00.000Z",
+      "updatedAt": "2026-10-04T08:00:00.000Z"
+    },
+    {
+      "id": "phu-quoc",
+      "name": "Đảo ngọc Phú Quốc",
+      "region": "Kiên Giang",
+      "description": "Hòn đảo du lịch nghỉ dưỡng hàng đầu với những bờ biển cát mịn trải dài, làn nước trong veo, hoàng hôn rực rỡ và các làng chài ven biển thanh bình.",
+      "image": "photo-1500375592092-40eb2168fd21",
+      "createdAt": "2026-10-05T08:00:00.000Z",
+      "updatedAt": "2026-10-05T08:00:00.000Z"
+    },
+    {
+      "id": "da-lat",
+      "name": "Thành phố Đà Lạt",
+      "region": "Lâm Đồng",
+      "description": "Thành phố sương mù mộng mơ xứ ngàn hoa với khí hậu se lạnh quanh năm, rừng thông reo bạt ngàn, hồ Xuân Hương thơ mộng và những quán cà phê lãng mạn.",
+      "image": "photo-1500530855697-b586d89ba3ee",
+      "createdAt": "2026-10-06T08:00:00.000Z",
+      "updatedAt": "2026-10-06T08:00:00.000Z"
+    },
+    {
+      "id": "sa-pa",
+      "name": "Thị xã Sa Pa",
+      "region": "Lào Cai",
+      "description": "Thị xã mù sương dưới chân dãy Hoàng Liên Sơn hùng vĩ, nơi hội tụ đỉnh Fansipan nóc nhà Đông Dương, những thửa ruộng bậc thang kỳ vĩ và bản sắc dân tộc độc đáo.",
+      "image": "photo-1501785888041-af3ef285b470",
+      "createdAt": "2026-10-07T08:00:00.000Z",
+      "updatedAt": "2026-10-07T08:00:00.000Z"
+    },
+    {
+      "id": "con-dao",
+      "name": "Quần đảo Côn Đảo",
+      "region": "Bà Rịa - Vũng Tàu",
+      "description": "Vùng đất thiêng liêng giàu giá trị lịch sử cách mạng, sở hữu những bãi biển nguyên sơ tuyệt đẹp, hệ sinh thái biển phong phú và không gian thanh tịnh bình yên.",
+      "image": "photo-1519046904884-53103b34b206",
+      "createdAt": "2026-10-08T08:00:00.000Z",
+      "updatedAt": "2026-10-08T08:00:00.000Z"
+    },
+    {
+      "id": "hue",
+      "name": "Cố đô Huế",
+      "region": "Thừa Thiên Huế",
+      "description": "Kinh đô xưa của triều đại nhà Nguyễn với quần thể di tích Đại Nội cổ kính, các lăng tẩm uy nghiêm tráng lệ và dòng sông Hương êm đềm trầm mặc.",
+      "image": "photo-1523906834658-6e24ef2386f9",
+      "createdAt": "2026-10-09T08:00:00.000Z",
+      "updatedAt": "2026-10-09T08:00:00.000Z"
+    },
+    {
+      "id": "nha-trang",
+      "name": "Vịnh biển Nha Trang",
+      "region": "Khánh Hòa",
+      "description": "Thành phố biển sôi động với vịnh biển thuộc top đẹp nhất hành tinh, bãi cát vàng thoai thoải, rạn san hô rực rỡ và nhiều hoạt động thể thao biển hấp dẫn.",
+      "image": "photo-1544644181-1484b3fdfc62",
+      "createdAt": "2026-10-10T08:00:00.000Z",
+      "updatedAt": "2026-10-10T08:00:00.000Z"
+    },
+    {
+      "id": "ninh-binh",
+      "name": "Quần thể Tràng An",
+      "region": "Ninh Bình",
+      "description": "Di sản thế giới kép về văn hóa và thiên nhiên với non nước hữu tình, các hang động ngập nước kỳ ảo và những ngôi đền chùa cổ kính trầm mặc soi bóng.",
+      "image": "photo-1568605117036-5fe5e7bab0b7",
+      "createdAt": "2026-10-11T08:00:00.000Z",
+      "updatedAt": "2026-10-11T08:00:00.000Z"
+    }
+  ],
+  "tours": [
+    {
+      "id": "dfghjbvbnnmhh-mwbsxxnl",
+      "name": "sdfghjklkjhg",
+      "place": "dfghjbvbnnmhh",
+      "region": "ssssssss",
+      "duration": "3bgaydf -vhgh",
+      "price": 23000000,
+      "maxGuests": 25,
+      "status": "active",
+      "image": "https://lh3.googleusercontent.com/grass-cs/AABkmLec4ZtlIxTaWxhAF_BmurximtGNd9P0W96bSAIG0AO6HhvQaln5nTClPVhV3lv0wiuckMDpzRM4vl3vdfD0wAPaKQEmbRSenTla1S73_cra6sDvlRtsbXzuWTz9i1qtiRGqbxF1=w289-h312-n-k-no",
+      "departures": [
+        "2027-11-12"
+      ],
+      "itinerary": "nfghybvv1\nghhhdfdh1111",
+      "createdAt": "2026-11-11T07:33:05.313Z",
+      "updatedAt": "2026-11-11T07:33:05.313Z"
+    },
+    {
+      "id": "ha-long-3n2d",
+      "name": "Vịnh Hạ Long · 3 ngày 2 đêm",
+      "place": "Hạ Long",
+      "region": "Quảng Ninh",
+      "duration": "3 ngày 2 đêm",
+      "price": 3490000,
+      "image": "photo-1528127269322-539801943592",
+      "departures": [
+        "2026-11-12",
+        "2026-11-20",
+        "2026-12-05",
+        "2026-12-18"
+      ],
+      "maxGuests": 30,
+      "itinerary": "Ngày 1: Hà Nội - Vịnh Hạ Long - Thăm hang Sửng Sốt\nNgày 2: Đảo Ti Tốp - Chèo thuyền Kayak vịnh Lan Hạ\nNgày 3: Làng chài Ba Hang - Mua sắm đặc sản - Trở về Hà Nội",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "hoi-an-2n1d",
+      "name": "Phố cổ Hội An · 2 ngày 1 đêm",
+      "place": "Hội An",
+      "region": "Quảng Nam",
+      "duration": "2 ngày 1 đêm",
+      "price": 2150000,
+      "image": "photo-1531058020387-3be344556be6",
+      "departures": [
+        "2026-11-14",
+        "2026-11-28",
+        "2026-12-12",
+        "2026-12-26"
+      ],
+      "maxGuests": 25,
+      "itinerary": "Ngày 1: Khám phá Phố cổ Hội An - Chùa Cầu - Thả đèn hoa đăng sông Hoài\nNgày 2: Rừng dừa Bảy Mẫu - Trải nghiệm chèo thuyền thúng - Kết thúc tour",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "ta-xua-2n1d",
+      "name": "Tà Xùa săn mây · 2 ngày 1 đêm",
+      "place": "Bắc Yên",
+      "region": "Sơn La",
+      "duration": "2 ngày 1 đêm",
+      "price": 1890000,
+      "image": "photo-1470770841072-f978cf4d019e",
+      "departures": [
+        "2026-11-15",
+        "2026-11-29",
+        "2026-12-13",
+        "2026-12-27"
+      ],
+      "maxGuests": 20,
+      "itinerary": "Ngày 1: Khởi hành lên Tà Xùa - Check-in sống lưng Khủng Long Háng Đồng\nNgày 2: Săn mây đỉnh Gió - Thưởng thức cafe mây - Trở về",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "ha-giang-4n3d",
+      "name": "Hà Giang · Mã Pí Lèng · 4 ngày 3 đêm",
+      "place": "Hà Giang",
+      "region": "Hà Giang",
+      "duration": "4 ngày 3 đêm",
+      "price": 4290000,
+      "image": "photo-1519681393784-d120267933ba",
+      "departures": [
+        "2026-11-13",
+        "2026-11-27",
+        "2026-12-11",
+        "2026-12-25"
+      ],
+      "maxGuests": 20,
+      "itinerary": "Ngày 1: Hà Nội - Hà Giang - Cột mốc số 0 - Quản Bạ Núi Đôi\nNgày 2: Rừng thông Yên Minh - Nhà của Pao - Dinh họ Vương - Đồng Văn\nNgày 3: Đèo Mã Pí Lèng - Du thuyền sông Nho Quế - Hẻm Tu Sản - Mèo Vạc\nNgày 4: Mèo Vạc - TP Hà Giang - Trở về Hà Nội",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "phu-quoc-4n3d",
+      "name": "Phú Quốc · Đảo ngọc nghỉ dưỡng · 4 ngày 3 đêm",
+      "place": "Phú Quốc",
+      "region": "Kiên Giang",
+      "duration": "4 ngày 3 đêm",
+      "price": 6890000,
+      "image": "photo-1500375592092-40eb2168fd21",
+      "departures": [
+        "2026-11-10",
+        "2026-11-24",
+        "2026-12-08",
+        "2026-12-22"
+      ],
+      "maxGuests": 35,
+      "itinerary": "Ngày 1: Đáp sân bay Phú Quốc - Check-in resort - Dạo Chợ đêm Grand World\nNgày 2: Tour 4 đảo cáp treo Hòn Thơm - Lặn ngắm san hô - Sunset Sanato\nNgày 3: VinWonders & Safari Phú Quốc - Trình diễn nhạc nước\nNgày 4: Cơ sở ngọc trai - Vườn tiêu - Mua đặc sản - Tiễn sân bay",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "da-lat-3n2d",
+      "name": "Đà Lạt · Thành phố ngàn hoa · 3 ngày 2 đêm",
+      "place": "Đà Lạt",
+      "region": "Lâm Đồng",
+      "duration": "3 ngày 2 đêm",
+      "price": 2790000,
+      "image": "photo-1500530855697-b586d89ba3ee",
+      "departures": [
+        "2026-11-16",
+        "2026-11-28",
+        "2026-12-12",
+        "2026-12-26"
+      ],
+      "maxGuests": 30,
+      "itinerary": "Ngày 1: Đón khách tại Đà Lạt - Quảng trường Lâm Viên - Ga Đà Lạt - Chợ đêm\nNgày 2: Đồi chè Cầu Đất săn mây - Puppy Farm - Thác Datanla máng trượt\nNgày 3: Thiền viện Trúc Lâm - Hồ Tuyền Lâm - Tiễn đoàn",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "sa-pa-3n2d",
+      "name": "Sa Pa · Fansipan & bản làng · 3 ngày 2 đêm",
+      "place": "Sa Pa",
+      "region": "Lào Cai",
+      "duration": "3 ngày 2 đêm",
+      "price": 3190000,
+      "image": "photo-1501785888041-af3ef285b470",
+      "departures": [
+        "2026-11-14",
+        "2026-11-28",
+        "2026-12-05",
+        "2026-12-19"
+      ],
+      "maxGuests": 25,
+      "itinerary": "Ngày 1: Hà Nội - Sa Pa - Bản Cát Cát - Thác Tiên Sa\nNgày 2: Chinh phục đỉnh Fansipan Nóc nhà Đông Dương - Moana Sa Pa\nNgày 3: Nhà thờ đá Sa Pa - Chợ phiên - Trở về Hà Nội",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "con-dao-3n2d",
+      "name": "Côn Đảo · Hành trình tâm linh · 3 ngày 2 đêm",
+      "place": "Côn Đảo",
+      "region": "Bà Rịa - Vũng Tàu",
+      "duration": "3 ngày 2 đêm",
+      "price": 5490000,
+      "image": "photo-1519046904884-53103b34b206",
+      "departures": [
+        "2026-11-20",
+        "2026-12-04",
+        "2026-12-18",
+        "2026-12-27"
+      ],
+      "maxGuests": 20,
+      "itinerary": "Ngày 1: Bay đến Côn Đảo - Miếu Bà Phi Yến - Bãi Nhát - Đỉnh Tình Yêu\nNgày 2: Viếng Nghĩa trang Hàng Dương mộ Cô Sáu - Trại giam Phú Hải - Chuồng Cọp\nNgày 3: Bãi biển Đầm Trầu - Chùa Núi Một - Tiễn sân bay",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    },
+    {
+      "id": "hue-da-nang-4n3d",
+      "name": "Huế – Đà Nẵng · Di sản miền Trung · 4 ngày 3 đêm",
+      "place": "Huế",
+      "region": "Thừa Thiên Huế",
+      "duration": "4 ngày 3 đêm",
+      "price": 4650000,
+      "image": "photo-1523906834658-6e24ef2386f9",
+      "departures": [
+        "2026-11-18",
+        "2026-11-25",
+        "2026-12-09",
+        "2026-12-23"
+      ],
+      "maxGuests": 25,
+      "itinerary": "Ngày 1: Huế - Đại Nội Kinh thành Huế - Chùa Thiên Mụ - Ca Huế sông Hương\nNgày 2: Lăng Khải Định - Đèo Hải Vân - Đà Nẵng - Biển Mỹ Khê\nNgày 3: Bà Nà Hills - Cầu Vàng Bàn tay Phật - Phố cổ Hội An\nNgày 4: Bán đảo Sơn Trà - Chùa Linh Ứng - Chợ Cồn - Tiễn sân bay",
+      "status": "active",
+      "createdAt": "2026-10-01T08:00:00.000Z",
+      "updatedAt": "2026-10-01T08:00:00.000Z"
+    }
+  ]
+}

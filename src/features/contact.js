@@ -5,7 +5,7 @@ export function initContact() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    status.classList.remove("is-error");
+    status.classList.remove("is-error", "is-success");
     status.textContent = "";
     submitButton.disabled = true;
 
@@ -23,6 +23,7 @@ export function initContact() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Không thể gửi lời nhắn.");
       status.textContent = `Cảm ơn ${data.inquiry.name}, lời nhắn đã được gửi. Mã tham chiếu: ${data.inquiry.id}.`;
+      status.classList.add("is-success");
       form.reset();
     } catch (error) {
       status.classList.add("is-error");
