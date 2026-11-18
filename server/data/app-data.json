@@ -808,6 +808,7 @@
       "expiresAt": "2026-11-10T15:46:41.532Z"
     }
   ],
+  "tourContents": [],
   "destinations": [
     {
       "id": "ha-long",
@@ -1090,6 +1091,5 @@
       "createdAt": "2026-10-01T08:00:00.000Z",
       "updatedAt": "2026-10-01T08:00:00.000Z"
     }
-  ],
-  "tourContents": []
+  ]
 }
