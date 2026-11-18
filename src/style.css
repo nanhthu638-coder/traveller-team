@@ -1495,15 +1495,6 @@ body * {
 .admin-customer-create .admin-primary-button { width: fit-content; }
 .admin-customer-edit { display: grid; gap: 12px; }
 .admin-customer-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.admin-print-area { display: none; }
-.admin-print-area h1 { margin: 0; font-size: 22px; }
-.admin-print-area h2 { margin: 6px 0; font-size: 18px; }
-.admin-print-area > p { margin: 5px 0 18px; }
-.admin-print-booking { break-inside: avoid; margin: 16px 0; border-top: 1px solid #777; padding-top: 10px; }
-.admin-print-booking h3 { margin: 0 0 7px; font-size: 14px; }
-.admin-print-booking p { margin: 4px 0; font-size: 11px; }
-.admin-print-passengers { width: 100%; margin-top: 8px; border-collapse: collapse; font-size: 10px; }
-.admin-print-passengers th, .admin-print-passengers td { border: 1px solid #777; padding: 4px; text-align: left; }
 .admin-panel, .admin-card, .admin-empty, .admin-customer-create {
 	animation: admin-frame-enter .45s ease both;
 	transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
@@ -1536,16 +1527,6 @@ body * {
   .admin-title, .admin-section-heading, .admin-card-heading { align-items: flex-start; flex-direction: column; }
   .admin-customer-create h3 { grid-column: auto; }
 }
-@media print {
-  body.admin-page { background: #fff !important; color: #000 !important; }
-  body.admin-page > * { display: none !important; }
-  body.admin-page #admin-main { display: block !important; max-width: none; margin: 0; padding: 0; }
-  body.admin-page #admin-main > *:not(#admin-print-area) { display: none !important; }
-  body.admin-page #admin-print-area { display: block !important; color: #000; font: 11px Arial, sans-serif; }
-  .admin-print-area h1, .admin-print-area h2, .admin-print-area h3 { color: #000; }
-  .admin-print-booking { break-inside: avoid; }
-}
-
 .pax-dialog { width: min(680px, calc(100vw - 24px)); max-height: calc(100vh - 32px); padding: 0; border: 0; border-radius: 14px; background: #fff; color: #1B2121; box-shadow: 0 24px 60px rgba(27,33,33,.3); overflow: hidden; }
 .pax-dialog[open] { display: block; }
 .pax-dialog::backdrop { background: rgba(27,33,33,.55); }

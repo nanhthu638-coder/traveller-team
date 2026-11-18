@@ -228,7 +228,6 @@ const rejectReasonInput = document.getElementById("reject-reason-input");
 const inquiryList = document.getElementById("admin-inquiries");
 const customerList = document.getElementById("admin-customers");
 const createCustomerForm = document.getElementById("admin-customer-create");
-const printArea = document.getElementById("admin-print-area");
 const exportPdfBtn = document.getElementById("admin-export-pdf");
 
 // State
@@ -1001,26 +1000,60 @@ async function printTourPassengers() {
     filterTourSelect.focus();
     return;
   }
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    showToast("Trình duyệt đã chặn cửa sổ xuất PDF. Vui lòng cho phép cửa sổ bật lên rồi thử lại.", "error");
+    return;
+  }
+
   exportPdfBtn.disabled = true;
+  printWindow.document.write("<!doctype html><html lang=\"vi\"><meta charset=\"utf-8\"><title>Đang chuẩn bị danh sách khách</title><body>Đang tải danh sách hành khách...</body></html>");
+  printWindow.document.close();
   try {
     const { bookings } = await requestJson(`/api/admin/bookings?tourId=${encodeURIComponent(tourId)}`);
     const tour = toursList.find((item) => item.id === tourId);
     const activeBookings = (bookings || []).filter((b) => b.status !== "cancelled");
 
-    printArea.innerHTML = `
-      <div class="print-doc">
-        <h1>DANH SÁCH KHÁCH HÀNG THEO TOUR</h1>
+    const documentHtml = `
+      <!doctype html>
+      <html lang="vi">
+        <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Danh sách hành khách - ${escapeHtml(tour?.name || "Tour du lịch")}</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { margin: 24px; color: #111; font: 12px Arial, sans-serif; }
+          h1 { margin: 0 0 8px; font-size: 20px; }
+          h2 { margin: 0 0 10px; font-size: 16px; }
+          p { margin: 5px 0; }
+          .actions { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+          .actions button { padding: 9px 14px; cursor: pointer; }
+          .booking { margin: 18px 0; border-top: 1px solid #777; padding-top: 10px; break-inside: avoid; }
+          .booking h3 { margin: 0 0 8px; font-size: 14px; }
+          table { width: 100%; margin-top: 8px; border-collapse: collapse; font-size: 11px; }
+          th, td { border: 1px solid #777; padding: 5px; text-align: left; }
+          @page { size: A4 landscape; margin: 12mm; }
+          @media print { body { margin: 0; } .actions { display: none; } }
+        </style>
+        </head>
+        <body>
+        <div class="actions">
+          <button type="button" onclick="window.print()">In / Lưu PDF</button>
+          <span>Nếu hộp thoại in chưa mở, chọn “In / Lưu PDF”.</span>
+        </div>
+        <h1>DANH SÁCH HÀNH KHÁCH THEO TOUR</h1>
         <h2>${escapeHtml(tour?.name || "Tour du lịch")}</h2>
         <p><strong>Ngày xuất:</strong> ${escapeHtml(new Date().toLocaleString("vi-VN"))} · <strong>Tổng số đơn hợp lệ:</strong> ${activeBookings.length}</p>
-        <hr />
         ${activeBookings.length > 0
           ? activeBookings.map((b) => `
-            <div class="print-item">
+          <section class="booking">
               <h3>Đơn #${escapeHtml(b.code)} - ${escapeHtml(statusLabels[b.status] || b.status)}</h3>
               <p>Khách đặt: <strong>${escapeHtml(b.contact?.name)}</strong> · SĐT: ${escapeHtml(b.contact?.phone || "—")} · Email: ${escapeHtml(b.contact?.email)}</p>
               <p>Khởi hành: ${escapeHtml(formatDate(b.departureDate))} · Số khách: ${guestCountSummary(b.passengers).total}</p>
               ${Array.isArray(b.passengerDetails) && b.passengerDetails.length > 0
-                ? `<table class="print-table">
+              ? `<table>
                     <thead><tr><th>STT</th><th>Họ tên</th><th>Loại khách</th><th>Giới tính</th><th>Ngày sinh</th><th>CCCD</th></tr></thead>
                     <tbody>${b.passengerDetails.map((p, idx) => `
                       <tr>
@@ -1034,14 +1067,17 @@ async function printTourPassengers() {
                     </tbody>
                    </table>`
                 : "<p><em>Chưa có chi tiết danh sách từng hành khách.</em></p>"}
-            </div>
+            </section>
           `).join("")
           : "<p>Tour này chưa có khách đặt.</p>"}
-      </div>`;
-
-    printArea.hidden = false;
-    window.print();
+          <script>window.addEventListener("load", () => { window.focus(); window.print(); }, { once: true });</script>
+        </body>
+      </html>`;
+    printWindow.document.open();
+    printWindow.document.write(documentHtml);
+    printWindow.document.close();
   } catch (error) {
+    printWindow.close();
     showToast(error.message || "Không thể xuất danh sách khách hàng.", "error");
   } finally {
     exportPdfBtn.disabled = false;
@@ -2919,10 +2955,6 @@ customerList.addEventListener("click", async (event) => {
 
 // Export PDF / Print
 exportPdfBtn.addEventListener("click", printTourPassengers);
-window.addEventListener("afterprint", () => {
-  printArea.hidden = true;
-  printArea.replaceChildren();
-});
 
 // Logout
 adminLogoutBtn.addEventListener("click", async () => {
