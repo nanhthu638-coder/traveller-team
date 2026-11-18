@@ -1855,13 +1855,17 @@ app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next
 		if (!["approved", "rejected"].includes(decision)) {
 			return response.status(400).json({ error: "Quyết định hủy đơn không hợp lệ." });
 		}
+		const adminReason = cleanText(request.body?.reason, 500);
+		if (decision === "approved" && !adminReason) {
+			return response.status(400).json({ error: "Vui lòng nhập lý do huỷ tour." });
+		}
 		const previous = { status: booking.status, updatedAt: booking.updatedAt, cancellationRequest: { ...cancellation } };
 		cancellation.status = decision;
 		cancellation.processedAt = new Date().toISOString();
 		cancellation.processedBy = admin.id;
 		if (decision === "approved") {
 			booking.status = "cancelled";
-			booking.rejectReason = cleanText(cancellation.reason, 500) || "Khách hàng yêu cầu huỷ tour";
+			booking.rejectReason = adminReason;
 		}
 		booking.updatedAt = new Date().toISOString();
 		try {

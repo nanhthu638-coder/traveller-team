@@ -841,6 +841,13 @@ async function handleCancellationDecision(bookingId, decision) {
   const booking = currentBookings.find((b) => b.id === bookingId) || selectedBooking;
   const code = booking?.code || bookingId;
   const isApprove = decision === "approved";
+  const reason = isApprove
+    ? window.prompt("Nhập lý do huỷ tour để gửi cho khách hàng:", "Đã được quản trị viên duyệt hủy tour.")
+    : "";
+  if (isApprove && !reason?.trim()) {
+    showToast("Vui lòng nhập lý do huỷ tour.", "error");
+    return;
+  }
   const confirmMsg = isApprove
     ? `Bạn có chắc chắn muốn DUYỆT yêu cầu hủy đơn #${code}? Đơn sẽ chuyển sang trạng thái Đã hủy và hoàn trả chỗ trống.`
     : `Từ chối yêu cầu hủy đơn #${code} và giữ nguyên trạng thái đơn hiện tại?`;
@@ -851,7 +858,7 @@ async function handleCancellationDecision(bookingId, decision) {
     await requestJson(`/api/admin/bookings/${encodeURIComponent(bookingId)}/cancellation`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ decision }),
+      body: JSON.stringify({ decision, reason: reason?.trim() || "" }),
     });
 
     showToast(
