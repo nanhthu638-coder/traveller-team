@@ -555,10 +555,23 @@ app.post("/api/payments/:id/mock-confirm", async (request, response, next) => {
 		if (!Number.isSafeInteger(booking.total) || booking.total !== payment.amount) {
 			return response.status(409).json({ error: "Số tiền giao dịch không khớp với đơn đặt tour." });
 		}
+		const subtotal = booking.subtotal ?? calculateTotal(booking.tour.price, booking.passengers);
+		if (!Number.isSafeInteger(subtotal) || subtotal < 0) {
+			return response.status(409).json({ error: "Thông tin tiền tạm tính của đơn không hợp lệ." });
+		}
 		if (payment.status !== "confirmed") {
-			const voucher = booking.voucher && store.vouchers.find((item) => item.id === booking.voucher.id);
-			if (voucher && (!voucher.active || voucher.usageCount >= voucher.usageLimit || todayInVietnam() > voucher.expiresAt)) {
-				return response.status(409).json({ error: "Voucher không còn hợp lệ. Vui lòng áp dụng mã khác." });
+			const voucher = booking.voucher
+				? store.vouchers.find((item) => item.id === booking.voucher.id && item.code === booking.voucher.code)
+				: null;
+			if (booking.voucher) {
+				const quote = quoteVoucher(store.vouchers, booking.voucher.code, subtotal, todayInVietnam());
+				if (quote.error
+					|| !voucher
+					|| !Number.isSafeInteger(booking.discount)
+					|| booking.discount !== quote.discount
+					|| booking.total !== quote.total) {
+					return response.status(409).json({ error: "Voucher không còn hợp lệ hoặc số tiền đơn đã thay đổi. Vui lòng áp dụng mã khác." });
+				}
 			}
 			const previousPayment = { status: payment.status, method: payment.method, updatedAt: payment.updatedAt };
 			const previousBooking = { paymentStatus: booking.paymentStatus, updatedAt: booking.updatedAt };
