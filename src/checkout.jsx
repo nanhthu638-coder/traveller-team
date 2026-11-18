@@ -58,10 +58,13 @@ function Checkout() {
   const [method, setMethod] = useState("visa");
   const [cardNumber, setCardNumber] = useState(cardSamples.visa.number);
   const [cardHolder, setCardHolder] = useState(cardSamples.visa.holder);
-  const [serial, setSerial] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(null);
 
   useEffect(() => {
     container?.setAttribute("aria-busy", String(!paymentData && !loadError));
@@ -82,7 +85,7 @@ function Checkout() {
         const data = await readResponse(response, "Không thể tải thông tin thanh toán.");
         setPaymentData(data);
         setVoucherCode(data.booking.voucher?.code || "");
-        setSerial(data.payment.mockSerial || "");
+        setVerificationCode("");
         if (data.booking.paymentStatus === "paid" || data.payment.status === "confirmed") setIsPaid(true);
       } catch (error) {
         if (error.name !== "AbortError") setLoadError(error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message);
@@ -98,6 +101,24 @@ function Checkout() {
     const redirect = window.setTimeout(() => window.location.assign("/booking-history.html"), 1600);
     return () => window.clearTimeout(redirect);
   }, [isPaid]);
+
+  useEffect(() => {
+    if (!isCancelled) return undefined;
+    const redirect = window.setTimeout(() => window.location.assign("/booking-history.html"), 1600);
+    return () => window.clearTimeout(redirect);
+  }, [isCancelled]);
+
+  useEffect(() => {
+    const expiresAt = paymentData?.payment?.expiresAt;
+    if (!expiresAt || isPaid || isCancelled) return undefined;
+    const updateCountdown = () => {
+      const expiry = Date.parse(expiresAt);
+      setSecondsLeft(Number.isFinite(expiry) ? Math.max(0, Math.ceil((expiry - Date.now()) / 1000)) : 0);
+    };
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(timer);
+  }, [paymentData?.payment?.expiresAt, isPaid, isCancelled]);
 
   function chooseMethod(nextMethod) {
     setMethod(nextMethod);
@@ -121,6 +142,7 @@ function Checkout() {
       const result = await readResponse(response, "Không thể áp dụng mã giảm giá.");
       setPaymentData((current) => ({ ...current, booking: result.booking, payment: result.payment || current.payment }));
       setVoucherCode(result.booking.voucher?.code || "");
+      setVerificationCode("");
       setVoucherMessage(result.discount ? `Đã áp dụng ${result.booking.voucher.code}, giảm ${formatPrice(result.discount)}.` : "Đã gỡ mã giảm giá.");
     } catch (error) {
       setVoucherIsError(true);
@@ -133,12 +155,15 @@ function Checkout() {
   async function confirmPayment(event) {
     event.preventDefault();
     setPaymentError("");
-    if (method === "serial") {
-      if (!serial.trim()) {
-        setPaymentError("Vui lòng nhập mã seri được cấp.");
-        return;
-      }
-    } else {
+    if (secondsLeft === 0) {
+      setPaymentError("Giao dịch đã hết hạn. Vui lòng tải lại trang để tạo mã mới.");
+      return;
+    }
+    if (!verificationCode.trim()) {
+      setPaymentError("Vui lòng nhập mã xác nhận giao dịch.");
+      return;
+    }
+    if (method !== "serial") {
       const digits = cardNumber.replace(/\D/g, "");
       if (digits.length < 12 || digits.length > 19 || !cardHolder.trim()) {
         setPaymentError("Vui lòng kiểm tra số thẻ và tên chủ thẻ.");
@@ -152,7 +177,7 @@ function Checkout() {
         fetch(`/api/payments/${encodeURIComponent(paymentData.payment.id)}/mock-confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ method, ...(method === "serial" ? { serial } : {}) }),
+          body: JSON.stringify({ method, verificationCode }),
         }),
         new Promise((resolve) => window.setTimeout(resolve, 1100)),
       ]);
@@ -163,6 +188,20 @@ function Checkout() {
       setPaymentError(error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message);
     } finally {
       setIsPaying(false);
+    }
+  }
+
+  async function cancelPayment() {
+    setPaymentError("");
+    setIsCancelling(true);
+    try {
+      const response = await fetch(`/api/payments/${encodeURIComponent(paymentData.payment.id)}/cancel`, { method: "POST" });
+      await readResponse(response, "Không thể hủy giao dịch.");
+      setIsCancelled(true);
+    } catch (error) {
+      setPaymentError(error instanceof TypeError ? "Không thể kết nối máy chủ." : error.message);
+    } finally {
+      setIsCancelling(false);
     }
   }
 
@@ -191,8 +230,13 @@ function Checkout() {
           Thanh toán thành công! Đang chuyển đến lịch sử đặt tour…
         </p>
       )}
+      {isCancelled && (
+        <p className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-lg font-bold text-slate-800 shadow-sm" role="status">
+          Giao dịch đã được huỷ. Đang chuyển đến lịch sử đặt tour…
+        </p>
+      )}
 
-      {!isPaid && (
+      {!isPaid && !isCancelled && (
         <div className="checkout-layout">
           <form className="profile-card checkout-payment gap-6 p-5 sm:p-7" onSubmit={confirmPayment}>
             <div className="grid gap-2">
@@ -201,26 +245,39 @@ function Checkout() {
             </div>
 
             <div className="grid gap-3">
-              <PaymentOption active={method === "visa"} title="Visa / Mastercard" description="Thẻ quốc tế · dùng thông tin mẫu" icon="V" onClick={() => chooseMethod("visa")} disabled={isPaying} />
-              <PaymentOption active={method === "atm"} title="Thẻ ATM nội địa" description="Thẻ nội địa · dùng thông tin mẫu" icon="▤" onClick={() => chooseMethod("atm")} disabled={isPaying} />
-              <PaymentOption active={method === "serial"} title="Mã seri mô phỏng" description="Nhập mã seri được tạo cho giao dịch này" icon="＃" onClick={() => chooseMethod("serial")} disabled={isPaying} />
+              <PaymentOption active={method === "visa"} title="Visa / Mastercard" description="Thẻ quốc tế · dùng thông tin mẫu" icon="V" onClick={() => chooseMethod("visa")} disabled={isPaying || isApplyingVoucher || isCancelling} />
+              <PaymentOption active={method === "atm"} title="Thẻ ATM nội địa" description="Thẻ nội địa · dùng thông tin mẫu" icon="▤" onClick={() => chooseMethod("atm")} disabled={isPaying || isApplyingVoucher || isCancelling} />
+              <PaymentOption active={method === "serial"} title="Mã seri mô phỏng" description="Nhập mã seri được tạo cho giao dịch này" icon="＃" onClick={() => chooseMethod("serial")} disabled={isPaying || isApplyingVoucher || isCancelling} />
             </div>
 
-            {method === "serial" ? (
-              <label className="grid gap-2 text-sm font-bold text-slate-800" htmlFor="mock-serial">
-                Mã seri
+            <div className="checkout-verification">
+              <div className="checkout-verification-code">
+                <span>Mã xác nhận được tạo cho giao dịch này</span>
+                <strong>{payment.mockSerial}</strong>
+              </div>
+              <p className="checkout-countdown" role="timer" aria-live="polite">
+                Thời gian nhập mã còn: <strong>{secondsLeft === null ? "01:00" : `${String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:${String(secondsLeft % 60).padStart(2, "0")}`}</strong>
+              </p>
+              {secondsLeft === 0 && (
+                <button className="secondary-cta justify-center" type="button" onClick={() => window.location.reload()}>
+                  Tạo giao dịch mới
+                </button>
+              )}
+              <label className="grid gap-2 text-sm font-bold text-slate-800" htmlFor="mock-verification-code">
+                Nhập mã xác nhận
                 <input
-                  id="mock-serial"
+                  id="mock-verification-code"
                   className="min-h-12 rounded-xl border border-slate-300 bg-white px-4 font-mono text-base tracking-wider outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10"
-                  value={serial}
-                  onChange={(event) => setSerial(event.target.value.toUpperCase())}
-                  disabled={isPaying}
+                  value={verificationCode}
+                  onChange={(event) => setVerificationCode(event.target.value.toUpperCase())}
+                  disabled={isPaying || isApplyingVoucher || isCancelling || secondsLeft === 0}
                   autoComplete="off"
                   required
                 />
-                <span className="font-normal leading-5 text-slate-500">Mã mẫu được tạo sẵn cho đơn hàng này. Có thể chỉnh sửa để kiểm tra xác thực.</span>
               </label>
-            ) : (
+            </div>
+
+            {method !== "serial" && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold text-slate-800 sm:col-span-2" htmlFor="mock-card-number">
                   Số thẻ
@@ -229,7 +286,7 @@ function Checkout() {
                     className="min-h-12 rounded-xl border border-slate-300 bg-white px-4 text-base tracking-wide outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10"
                     value={cardNumber}
                     onChange={(event) => setCardNumber(event.target.value)}
-                    disabled={isPaying}
+                    disabled={isPaying || isApplyingVoucher || isCancelling || secondsLeft === 0}
                     inputMode="numeric"
                     autoComplete="off"
                     maxLength={23}
@@ -243,7 +300,7 @@ function Checkout() {
                     className="min-h-12 rounded-xl border border-slate-300 bg-white px-4 text-base uppercase outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10"
                     value={cardHolder}
                     onChange={(event) => setCardHolder(event.target.value)}
-                    disabled={isPaying}
+                    disabled={isPaying || isApplyingVoucher || isCancelling || secondsLeft === 0}
                     autoComplete="off"
                     required
                   />
@@ -254,11 +311,11 @@ function Checkout() {
             <div className="checkout-voucher">
               <label htmlFor="checkout-voucher">Mã giảm giá</label>
               <div className="checkout-voucher-row">
-                <input id="checkout-voucher" type="text" value={voucherCode} onChange={(event) => setVoucherCode(event.target.value)} placeholder="Nhập mã giảm giá" list="checkout-voucher-options" autoComplete="off" />
+                <input id="checkout-voucher" type="text" value={voucherCode} onChange={(event) => setVoucherCode(event.target.value)} placeholder="Nhập mã giảm giá" list="checkout-voucher-options" autoComplete="off" disabled={isApplyingVoucher || isPaying || isCancelling || secondsLeft === 0} />
                 <datalist id="checkout-voucher-options">
                   {vouchers.map((voucher) => <option key={voucher.code} value={voucher.code}>{voucher.code} · giảm {formatPrice(voucher.discount)}</option>)}
                 </datalist>
-                <button className="secondary-cta" type="button" onClick={applyVoucher} disabled={isApplyingVoucher || isPaying}>
+                <button className="secondary-cta" type="button" onClick={applyVoucher} disabled={isApplyingVoucher || isPaying || isCancelling || secondsLeft === 0}>
                   {isApplyingVoucher ? "Đang áp dụng…" : "Áp dụng"}
                 </button>
               </div>
@@ -266,8 +323,11 @@ function Checkout() {
             </div>
 
             {paymentError && <p className="m-0 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800" role="alert">{paymentError}</p>}
-            <button className="checkout-mock-submit" type="submit" disabled={isPaying}>
+            <button className="checkout-mock-submit" type="submit" disabled={isPaying || isApplyingVoucher || isCancelling || secondsLeft === 0}>
               {isPaying ? <><span className="mock-payment-spinner" aria-hidden="true" /> Đang xử lý giao dịch...</> : <>Xác nhận thanh toán <span aria-hidden="true">→</span></>}
+            </button>
+            <button className="checkout-cancel-button" type="button" onClick={cancelPayment} disabled={isPaying || isApplyingVoucher || isCancelling}>
+              {isCancelling ? "Đang huỷ giao dịch…" : "Huỷ giao dịch"}
             </button>
             <p className="m-0 text-center text-xs leading-5 text-slate-500">Chế độ đồ án: thanh toán giả lập, không kết nối ngân hàng và không phát sinh giao dịch thật.</p>
           </form>

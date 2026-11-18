@@ -75,8 +75,8 @@ export function quoteVoucher(vouchers, code, subtotal, today) {
 	};
 }
 
-export function createPayment({ booking, user }) {
-	const timestamp = new Date().toISOString();
+export function createPayment({ booking, user, now = new Date() }) {
+	const timestamp = now.toISOString();
 	return {
 		id: randomUUID(),
 		bookingId: booking.id,
@@ -87,6 +87,7 @@ export function createPayment({ booking, user }) {
 		mockSerial: `TRV-${randomBytes(4).toString("hex").toUpperCase()}`,
 		status: "pending",
 		createdAt: timestamp,
+		expiresAt: new Date(now.getTime() + 60 * 1000).toISOString(),
 		updatedAt: timestamp,
 	};
 }

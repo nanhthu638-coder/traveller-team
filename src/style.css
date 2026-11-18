@@ -708,6 +708,34 @@ body { color: #1B2121; background: radial-gradient(ellipse at 12% 8%, rgba(187,2
 	.bh-toolbar { grid-template-columns: 1fr; }
 	.bh-card-body { padding: 16px; }
 	.bh-card-footer { align-items: stretch; flex-direction: column; }
+}
+
+.account-menu { display: inline-flex; align-items: center; gap: 10px; }
+.account-notifications { position: relative; }
+.notification-trigger { position: relative; display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid #6DAB8C; border-radius: 50%; background: rgba(109,171,140,.18); color: #BBD7C8; cursor: pointer; transition: background .18s ease; }
+.notification-trigger:hover, .notification-trigger[aria-expanded="true"] { background: rgba(109,171,140,.34); }
+.notification-trigger:focus-visible { outline: 2px solid #BBD7C8; outline-offset: 3px; }
+.notification-trigger svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.notification-count { position: absolute; top: -4px; right: -5px; display: grid; min-width: 19px; height: 19px; place-items: center; padding: 0 4px; border: 2px solid #f7f8f3; border-radius: 999px; background: #c94d3b; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; }
+.notification-panel { position: absolute; z-index: 70; top: calc(100% + 12px); right: 0; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 560px); padding: 16px; overflow: auto; border: 1px solid rgba(28,67,73,.2); border-radius: 12px; background: #fff; box-shadow: 0 18px 48px rgba(27,33,33,.28); color: #1B2121; }
+.notification-panel h2 { margin: 0 0 12px; color: #1C4349; font-size: 16px; }
+.notification-list { display: grid; gap: 10px; }
+.notification-empty, .notification-error { margin: 0; color: #596a65; font-size: 13px; line-height: 1.6; }
+.notification-error { color: #a84936; }
+.notification-item { display: grid; gap: 6px; padding: 12px; border: 1px solid #dce7df; border-radius: 9px; background: #f8fbf8; }
+.notification-item > strong { color: #1C4349; font-size: 13px; }
+.notification-reference, .notification-message, .notification-date { margin: 0; font-size: 12px; line-height: 1.5; }
+.notification-reference { color: #057569; font-weight: 700; overflow-wrap: anywhere; }
+.notification-message { color: #4d605b; white-space: pre-wrap; overflow-wrap: anywhere; }
+.notification-date { color: #71817c; }
+.notification-profile-link { justify-self: start; color: #057569; font-size: 12px; font-weight: 700; }
+.notification-profile-link:hover { text-decoration: underline; }
+.notification-retry { justify-self: start; padding: 7px 12px; border: 1px solid #6DAB8C; border-radius: 7px; background: #fff; color: #057569; cursor: pointer; font-size: 12px; font-weight: 700; }
+.notification-retry:hover { background: #e3efe8; }
+
+@media (max-width: 800px) {
+	.account-menu { align-self: stretch; justify-content: flex-start; }
+	.notification-panel { right: auto; left: 0; }
 	.bh-card-footer .submit-button { width: 100%; }
 	.bd-grid { grid-template-columns: 1fr; }
 	.bd-hero { height: 220px; }
@@ -1311,6 +1339,14 @@ body * {
 .checkout-voucher-row button:disabled { opacity: .65; }
 .checkout-voucher-status { min-height: 18px; margin: 0; color: #155b43; font-size: 12px; font-weight: 600; }
 .checkout-voucher-status.is-error, .checkout-error { color: #8f2f1f; }
+.checkout-verification { display: grid; gap: 12px; }
+.checkout-verification-code { display: grid; gap: 6px; padding: 14px; border: 1px dashed #6DAB8C; border-radius: 10px; background: #edf7f0; color: #1C4349; font-size: 12px; }
+.checkout-verification-code strong { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 20px; letter-spacing: .12em; }
+.checkout-countdown { margin: 0; color: #8f2f1f; font-size: 13px; }
+.checkout-countdown strong { font-variant-numeric: tabular-nums; }
+.checkout-cancel-button { min-height: 48px; border: 1px solid #d5aaa0; border-radius: 12px; background: #fff; color: #8f2f1f; cursor: pointer; font: inherit; font-weight: 700; }
+.checkout-cancel-button:hover, .checkout-cancel-button:focus-visible { background: #fff4ef; }
+.checkout-cancel-button:disabled { cursor: wait; opacity: .65; }
 .checkout-bank, .checkout-totals { display: grid; gap: 0; margin: 0; }
 .checkout-bank > div, .checkout-totals > div { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid #e3ebe6; }
 .checkout-bank dt, .checkout-totals dt { color: #4d605b; font-size: 12px; }
