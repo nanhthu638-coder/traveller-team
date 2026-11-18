@@ -14,44 +14,132 @@ npm run dev
 ```
 
 Mở địa chỉ Vite hiển thị trong terminal (mặc định `http://localhost:5173`). API Node.js chạy ở cổng 3000 và được Vite chuyển tiếp tự động.
+Nếu không cấu hình SQL Server (`SQLSERVER_USER`/`SQLSERVER_PASSWORD`), máy chủ tự động chạy ở chế độ fallback bằng `server/data/app-data.json` để dự án vẫn khởi động được trong môi trường demo/local. Khi có SQL Server, bảng `dbo.AppRecords` được tạo nếu chưa có; nếu bảng đang trống, máy chủ nhập dữ liệu cũ từ `server/data/app-data.json` (nếu có); nếu SQL đã có bản ghi, SQL được dùng làm nguồn chính và file JSON được giữ nguyên, không tự động gộp.
 
-## Tính năng
+## Thanh toán giả lập
+Trang checkout hỗ trợ thẻ Visa/Mastercard mẫu, thẻ ATM nội địa mẫu và mã seri được tạo cho từng giao dịch. API chỉ ghi nhận phương thức giả lập, không gửi hoặc lưu số thẻ/tên chủ thẻ. Khi xác nhận, máy chủ cập nhật trạng thái payment và booking, sau đó lưu vào SQL Server nếu đã cấu hình; nếu không, dữ liệu được lưu trong `server/data/app-data.json`. Luồng này chỉ phục vụ đồ án/demo, không xử lý tiền thật.
 
+Trạng thái tour không chuyển thành `completed` khi vừa thanh toán; trạng thái này chỉ dành cho tour đã hoàn thành.
+
+## Khôi phục mật khẩu
+
+Trong môi trường demo, người dùng có thể yêu cầu OTP 6 chữ số ở màn hình đăng nhập để đặt lại mật khẩu. OTP hết hạn sau 5 phút, giới hạn 5 lần nhập và chỉ được hiển thị trực tiếp trong giao diện demo; không gửi OTP qua email. API khôi phục mật khẩu bị tắt ở production cho tới khi cấu hình dịch vụ gửi email. Đăng nhập có tùy chọn “Ghi nhớ tôi”: bật sẽ giữ phiên 30 ngày; tắt dùng cookie phiên trình duyệt và phiên máy chủ hết hạn sau 12 giờ.
+
+# :maple_leaf: Sprint 1 :maple_leaf:
 - Đăng ký, đăng nhập và đăng xuất; mật khẩu được băm bằng scrypt ở máy chủ.
 - Gửi lời nhắn liên hệ hoặc thắc mắc đến API.
-- Xem trang chủ với danh sách hành trình; tìm tour theo từ khóa (tên, địa điểm, không phân biệt dấu) và lọc theo khoảng giá, ngày khởi hành (kết hợp được với nhau, có sắp xếp).
-- Lưu tài khoản và lời nhắn trong tệp JSON cục bộ tại `server/data/app-data.json`.
+- Trang quản trị: quản lý đơn tour, khách hàng và biểu mẫu liên hệ.
+- Xem tour nổi bật, tìm kiếm và lọc theo địa điểm, giá, ngày khởi hành; xem chi tiết và tính giá theo số khách.
+- Lưu tài khoản, booking, thanh toán giả lập, đánh giá và lời nhắn trong SQL Server.
 
 ## Cấu trúc
 
 ```text
 index.html
+tour-list.html
+tour-detail.html
 src/
   features/auth.js
   features/contact.js
+  features/featured-tours.js
   features/tours.js
   main.js
   style.css
-server/index.js
-server/tours.js
+  tour-list.js
+  tour-detail.js
+server/
+  database.js
+  index.js
+  tours.js
 vite.config.js
 ```
+## 📌 Pull Requests đã thực hiện
 
-## API tìm kiếm & lọc tour
+- [PR #8: Update README.md](https://github.com/nanthu638-coder/traveller-team/pull/8)
+- [PR #3: Change search](https://github.com/nanthu638-coder/traveller-team/pull/3)
+---
+## ❓Issue đã thực hiện 
+- [Is #10: Đánh giá và chấm điểm Tour](https://github.com/nanhthu638-coder/traveller-team/issues/10)
+- [Is #9: Xem lịch sử đặt Tour](https://github.com/nanhthu638-coder/traveller-team/issues/9)
+---
+- Excel
+  * Link access: https://docs.google.com/spreadsheets/d/1tG4tDlw2bT8fQgMii-VEUp_I7WRxZ7zSyKmIA1J_7iU/edit?usp=sharing
+- Docs
+  * Link access Nhom4_Lab4.1: https://docs.google.com/document/d/1KIsDL5-5ESIB9BfOeZTKzox-B9mEKBlDRTpk73BD6s8/edit?usp=sharing
+  * Link access Nhom4_Lab4.2: https://docs.google.com/document/d/1B3PK5EkUFVLVzMVA0jzjIE2PT7JaABEu1hiBlVBzdS8/edit?usp=sharing
+ ---
+ # :maple_leaf: Sprint 2 :maple_leaf:
+ * Đặt Tour (Chọn số lượng khách, kiểm tra chỗ trống).
+ * Nhập thông tin hành khách.
+ * Áp dụng mã giảm giá (Voucher).
+ * Thanh toán trực tuyến.
+ * Xem lịch sử đặt Tour.
+ * Quản lý đơn đặt Tour (Xem, Yêu cầu hủy)
+ * Quản lý hồ sơ cá nhân.
+ * Đánh giá và chấm điểm Tour.
 
-`GET /api/tours` — tất cả tham số đều tùy chọn:
-
-| Tham số | Ý nghĩa | Ví dụ |
-| --- | --- | --- |
-| `q` | Từ khóa theo tên, địa điểm, tỉnh (không phân biệt dấu) | `q=ha long` |
-| `minPrice`, `maxPrice` | Khoảng giá (VND) | `minPrice=2000000&maxPrice=4000000` |
-| `from`, `to` | Khoảng ngày khởi hành (`YYYY-MM-DD`) | `from=2026-11-01&to=2026-11-10` |
-| `sort` | `default`, `price-asc`, `price-desc`, `date-asc` | `sort=price-asc` |
-
-Trả về `{ total, tours }`; mỗi tour có `departures` (mọi ngày khởi hành) và `matchedDepartures` (các ngày khớp bộ lọc ngày). Tham số sai trả về mã 400 kèm `{ error }`. Dữ liệu tour mẫu nằm ở `server/tours.js`.
-
-Trang chi tiết tour: nút "Xem chi tiết" phát sự kiện `tour:view` (`event.detail = { id, name }`) trên `document`; trang chi tiết chỉ cần lắng nghe và gọi `event.preventDefault()`.
-
-Để chạy bản build bằng máy chủ Express: `npm run build` rồi `npm start`.
-
-Đây là bản nền tảng để chạy cục bộ. Trước khi triển khai công khai, cần bổ sung giới hạn lượt đăng nhập/gửi biểu mẫu, chính sách sao lưu dữ liệu và HTTPS.
+## Cấu trúc
+```text
+traveller-team/
+├── server/                     
+│   ├── data/                   
+│   │   └── app-data.json
+│   ├── src/                    
+│   │   └── features/           
+│   │       ├── account-menu.js
+│   │       ├── auth.js
+│   │       ├── booking-flow.js
+│   │       ├── booking-format.js
+│   │       ├── contact.js
+│   │       ├── featured-tours.js
+│   │       ├── navigation.js
+│   │       ├── review-dialog.js
+│   │       ├── review-ui.js
+│   │       ├── support-widget.js
+│   │       ├── tour-reviews.js
+│   │       └── tours.js
+│   ├── booking-detail.js
+│   ├── booking-history.js
+│   ├── checkout.js
+│   ├── contact-page.js
+│   ├── main.js
+│   ├── profile.js
+│   ├── style.css
+│   ├── tour-detail.js
+│   └── tour-list.js
+│   ├── availability.js
+│   ├── bookings.js
+│   ├── database.js
+│   ├── index.js
+│   ├── passengers.js
+│   ├── reviews.js
+│   ├── tours.js
+│   └── vouchers.js
+│
+├── traveller-team-Test/        
+│   ├── src/
+│   │   └── features/  
+│   │       ├── auth.js
+│   │       ├── contact.js
+│   │       ├── featured-tours.js
+│   │       └── tours.js
+│   ├── main.js
+│   ├── style.css
+│   ├── tour-detail.js
+│   └── tour-list.js
+│
+├── .env.example               
+├── .gitignore
+├── Nhom4_T4.xlsx               
+├── README.md
+├── booking-detail.html         
+├── booking-history.html
+├── checkout.html
+├── contact.html
+├── index.html
+├── package-lock.json
+├── package.json                
+├── tour-detail.html
+├── tour-list.html
+└── vite.config.js              
+```

@@ -1,11 +1,19 @@
-// Tìm kiếm + lọc tour trên trang chủ. Dữ liệu lấy từ API: GET /api/tours
+// Tìm kiếm + lọc tour trên trang chủ. Dữ liệu lấy từ API: GET /api/tours + cập nhật Real-time qua SSE
+import { ratingBadge } from "./review-ui.js";
+import { FALLBACK_TOUR_IMAGE, renderSeatBadge, resolveTourImageUrl, showRealtimeToast, subscribeRealtime } from "./realtime.js";
+
 const priceFormat = new Intl.NumberFormat("vi-VN");
 const formatPrice = (value) => `${priceFormat.format(value)}đ`;
-const formatDate = (iso) => iso.split("-").reverse().join("/"); // 2026-10-18 -> 18/10/2026
-const imageUrl = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=700&q=80`;
+const formatDate = (iso) => String(iso || "").split("-").reverse().join("/"); // 2026-10-18 -> 18/10/2026
 
 function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[char]);
 }
 
 // Kiểm tra nhanh ở client để báo lỗi ngay, server vẫn kiểm tra lại
@@ -18,22 +26,26 @@ function validate({ minPrice, maxPrice, from, to }) {
 }
 
 function renderCard(tour, hasDateFilter) {
-  const dates = hasDateFilter ? tour.matchedDepartures : tour.departures;
-  const shown = dates.slice(0, 3).map(formatDate).join(" · ");
+  const dates = hasDateFilter ? (tour.matchedDepartures || []) : (tour.upcomingDepartures?.length ? tour.upcomingDepartures : (tour.departures || []));
+  const shown = dates.slice(0, 3).map(formatDate).join(" · ") || "Liên hệ";
   const rest = dates.length - 3;
   return `
     <article class="tour-card">
       <div class="tour-card-image">
-        <img src="${imageUrl(tour.image)}" alt="${escapeHtml(tour.name)}" loading="lazy" />
+        <img src="${resolveTourImageUrl(tour.image, 700)}" alt="${escapeHtml(tour.name)}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_TOUR_IMAGE}';" />
         <span class="tour-card-duration">${escapeHtml(tour.duration)}</span>
+        <div class="tour-card-seat-wrap">${renderSeatBadge(tour)}</div>
       </div>
       <div class="tour-card-body">
-        <p class="tour-card-place">${escapeHtml(tour.place)}, ${escapeHtml(tour.region)}</p>
+        <div class="tour-card-top-meta">
+          <p class="tour-card-place">📍 ${escapeHtml(tour.place)}, ${escapeHtml(tour.region)}</p>
+          ${ratingBadge(tour)}
+        </div>
         <h3 class="font-display">${escapeHtml(tour.name)}</h3>
-        <p class="tour-card-dates">${hasDateFilter ? "Khởi hành phù hợp" : "Khởi hành"}: ${shown}${rest > 0 ? ` (+${rest})` : ""}</p>
+        <p class="tour-card-dates">🗓️ ${hasDateFilter ? "Khởi hành phù hợp" : "Khởi hành"}: <strong>${shown}</strong>${rest > 0 ? ` <small>(+${rest} đợt)</small>` : ""}</p>
         <div class="tour-card-footer">
-          <p><small>Giá từ</small><strong class="font-display">${formatPrice(tour.price)}</strong></p>
-          <a class="tour-card-link" href="#tour/${encodeURIComponent(tour.id)}" data-tour-id="${escapeHtml(tour.id)}" data-tour-name="${escapeHtml(tour.name)}">Xem chi tiết <span aria-hidden="true">↗</span></a>
+          <p><small>Giá trọn gói từ</small><strong class="font-display">${formatPrice(tour.price)}</strong></p>
+          <a class="tour-card-link" href="/tour-detail.html?id=${encodeURIComponent(tour.id)}">Xem chi tiết <span aria-hidden="true">↗</span></a>
         </div>
       </div>
     </article>`;
@@ -48,6 +60,7 @@ export function initTours() {
   const errorBox = document.getElementById("tour-filter-error");
   const notice = document.getElementById("tour-notice");
   const resetButton = document.getElementById("tour-reset");
+  if (!form || !list) return;
   const chips = Array.from(form.querySelectorAll(".chip"));
   let debounceTimer;
   let controller;
@@ -65,9 +78,8 @@ export function initTours() {
 
   function showResults(tours, filters) {
     list.innerHTML = tours.map((tour) => renderCard(tour, Boolean(filters.from || filters.to))).join("");
-    // Ảnh lỗi -> hiện nền màu thay thế
     list.querySelectorAll("img").forEach((img) => {
-      img.addEventListener("error", () => img.closest(".tour-card-image").classList.add("is-broken"), { once: true });
+      img.addEventListener("error", () => img.closest(".tour-card-image")?.classList.add("is-broken"), { once: true });
     });
     empty.hidden = tours.length > 0;
     count.innerHTML = `Tìm thấy <strong>${tours.length}</strong> hành trình${isFiltering(filters) ? " phù hợp" : ""}`;
@@ -75,7 +87,7 @@ export function initTours() {
 
   async function load() {
     const filters = readFilters();
-    notice.textContent = "";
+    if (notice) notice.textContent = "";
     resetButton.hidden = !isFiltering(filters);
     chips.forEach((chip) => chip.classList.toggle("is-active", chip.dataset.min === filters.minPrice && chip.dataset.max === filters.maxPrice));
 
@@ -93,7 +105,7 @@ export function initTours() {
       if (value && !(key === "sort" && value === "default")) params.set(key, value);
     });
 
-    controller?.abort(); // bỏ yêu cầu cũ nếu người dùng gõ tiếp
+    controller?.abort();
     controller = new AbortController();
     list.setAttribute("aria-busy", "true");
     try {
@@ -119,11 +131,10 @@ export function initTours() {
 
   function reset() {
     form.reset();
-    heroForm.reset();
+    heroForm?.reset();
     load();
   }
 
-  // Gõ từ khóa / nhập giá: chờ 250ms rồi mới gọi API
   form.addEventListener("input", (event) => {
     if (event.target.type === "search" || event.target.type === "number") loadSoon();
     else load();
@@ -143,28 +154,28 @@ export function initTours() {
   });
 
   resetButton.addEventListener("click", reset);
-  document.getElementById("tour-empty-reset").addEventListener("click", reset);
+  document.getElementById("tour-empty-reset")?.addEventListener("click", reset);
 
-  // Ô tìm nhanh ở hero: chép từ khóa xuống phần kết quả rồi cuộn tới đó
-  heroForm.addEventListener("submit", (event) => {
+  heroForm?.addEventListener("submit", (event) => {
     event.preventDefault();
     form.elements.q.value = heroForm.elements.q.value.trim();
     load();
-    document.getElementById("tours").scrollIntoView({ behavior: "smooth" });
-  });
-
-  // "Xem chi tiết": trang chi tiết tour do thành viên khác phụ trách.
-  // Phát sự kiện "tour:view" để trang đó bắt và xử lý; nếu chưa có ai xử lý thì báo tạm.
-  list.addEventListener("click", (event) => {
-    const link = event.target.closest(".tour-card-link");
-    if (!link) return;
-    const detail = { id: link.dataset.tourId, name: link.dataset.tourName };
-    const handled = !document.dispatchEvent(new CustomEvent("tour:view", { detail, cancelable: true }));
-    if (!handled) {
-      event.preventDefault();
-      notice.textContent = `Trang chi tiết "${detail.name}" đang được phát triển.`;
-    }
+    document.getElementById("tours")?.scrollIntoView({ behavior: "smooth" });
   });
 
   load();
+
+  // Lắng nghe sự kiện Real-time từ máy chủ
+  subscribeRealtime(["tour:changed", "availability:updated", "review:changed"], (event) => {
+    loadSoon();
+    if (event.type === "tour:changed" && event.payload?.action === "created" && event.payload?.status === "active") {
+      showRealtimeToast({
+        title: "Hành trình mới vừa mở bán!",
+        message: `Tour "${event.payload.tourName}" vừa được cập nhật lên hệ thống.`,
+        tone: "success",
+        actionLabel: "Khám phá ngay",
+        actionHref: `/tour-detail.html?id=${encodeURIComponent(event.payload.tourId)}`,
+      });
+    }
+  });
 }
