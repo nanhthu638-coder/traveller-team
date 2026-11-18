@@ -49,12 +49,19 @@ function reviewAction(booking, detailUrl) {
 function bookingCard(booking) {
   const detailUrl = `/booking-detail.html?id=${encodeURIComponent(booking.id)}`;
   const { tour, passengers } = booking;
+  const cancellationNotice = booking.status === "cancelled"
+    ? `<div class="bh-cancellation-notice" role="status">
+        <div><strong>Tour của bạn đã bị hủy</strong><span>Lý do: ${escapeHtml(booking.rejectReason || booking.cancellationRequest?.reason || "Ban quản trị đã hủy tour.")}</span></div>
+        <a href="${detailUrl}">Xem chi tiết hủy ở đây <span aria-hidden="true">→</span></a>
+      </div>`
+    : "";
   return `
     <article class="bh-card" data-booking-id="${escapeHtml(booking.id)}">
       <a class="bh-card-image" href="${detailUrl}" tabindex="-1" aria-hidden="true">
         <img src="${imageUrl(tour.image, 700)}" alt="" loading="lazy" />
       </a>
       <div class="bh-card-body">
+        ${cancellationNotice}
         <div class="bh-card-top">
           <p class="bh-code">Mã đặt tour <strong>${escapeHtml(booking.code)}</strong></p>
           <div class="bh-badges">${statusBadge(BOOKING_STATUS, booking.status)}${statusBadge(PAYMENT_STATUS, booking.paymentStatus)}</div>
@@ -269,18 +276,22 @@ subscribeRealtime(["booking:status-updated", "booking:cancellation-decided", "pa
         });
       } else if (p.status === "cancelled") {
         showRealtimeToast({
-          title: `Đơn ${p.code || ""} đã hủy`,
+          title: `Tour của bạn đã bị hủy`,
           message: p.rejectReason ? `Lý do: ${p.rejectReason}` : "Đơn đặt tour của bạn đã được chuyển sang trạng thái hủy.",
           tone: "warn",
-          actionLabel: "Xem chi tiết",
+          actionLabel: "Xem chi tiết hủy ở đây",
           actionHref: `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}`,
         });
       }
     } else if (event.type === "booking:cancellation-decided") {
       showRealtimeToast({
         title: p.decision === "approved" ? `Đã duyệt yêu cầu hủy đơn ${p.code || ""}` : `Từ chối yêu cầu hủy đơn ${p.code || ""}`,
-        message: p.decision === "approved" ? "Đơn đặt tour của bạn đã được hủy theo yêu cầu." : "Ban quản trị đã từ chối yêu cầu hủy đơn của bạn.",
-        tone: p.decision === "approved" ? "info" : "warn",
+        message: p.decision === "approved"
+          ? `Tour của bạn đã bị hủy.${p.rejectReason ? ` Lý do: ${p.rejectReason}` : ""}`
+          : "Ban quản trị đã từ chối yêu cầu hủy đơn của bạn.",
+        tone: p.decision === "approved" ? "danger" : "warn",
+        actionLabel: p.decision === "approved" ? "Xem chi tiết hủy ở đây" : "",
+        actionHref: p.decision === "approved" ? `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}` : "",
       });
     }
   }

@@ -1765,6 +1765,9 @@ app.patch("/api/admin/bookings/:id/status", async (request, response, next) => {
 		if (!booking) return response.status(404).json({ error: "Không tìm thấy đơn đặt tour này." });
 		const nextStatus = request.body?.status;
 		const reason = cleanText(request.body?.reason, 500);
+		if (nextStatus === "cancelled" && !reason) {
+			return response.status(400).json({ error: "Vui lòng nhập lý do huỷ tour." });
+		}
 
 		// Luồng ngoại lệ: Đơn đã được xử lý: Không cho phép xác nhận lại.
 		if (booking.status !== "pending" && (nextStatus === "confirmed" || nextStatus === "cancelled")) {
@@ -1856,7 +1859,10 @@ app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next
 		cancellation.status = decision;
 		cancellation.processedAt = new Date().toISOString();
 		cancellation.processedBy = admin.id;
-		if (decision === "approved") booking.status = "cancelled";
+		if (decision === "approved") {
+			booking.status = "cancelled";
+			booking.rejectReason = cleanText(cancellation.reason, 500) || "Khách hàng yêu cầu huỷ tour";
+		}
 		booking.updatedAt = new Date().toISOString();
 		try {
 			await persistStore();
@@ -1874,6 +1880,7 @@ app.patch("/api/admin/bookings/:id/cancellation", async (request, response, next
 			status: booking.status,
 			tourId: booking.tour?.id,
 			tourName: booking.tour?.name,
+			rejectReason: booking.rejectReason || cancellation.reason || "",
 		});
 		if (decision === "approved" && booking.tour?.id) {
 			const tourObj = getAllTours().find((t) => t.id === booking.tour.id);

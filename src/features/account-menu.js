@@ -15,8 +15,8 @@ const MENU_HTML = `
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
       <span class="notification-count" data-notification-count hidden></span>
     </button>
-    <section class="notification-panel" id="notification-panel" aria-label="Thông báo biểu mẫu" hidden>
-      <h2>Biểu mẫu đã xử lý</h2>
+    <section class="notification-panel" id="notification-panel" aria-label="Thông báo" hidden>
+      <h2>Thông báo</h2>
       <div class="notification-list" data-notification-list aria-live="polite">
         <p class="notification-empty">Đang tải thông báo...</p>
       </div>
@@ -67,25 +67,52 @@ function setNotificationsOpen(open) {
   root.querySelector(".notification-panel").hidden = !open;
 }
 
-function renderNotifications(inquiries) {
+function renderNotifications(inquiries, cancelledBookings = []) {
   if (!root) return;
   const resolved = inquiries.filter((inquiry) => inquiry.status === "resolved");
+  const cancelled = cancelledBookings.filter((booking) => booking.status === "cancelled");
+  const totalCount = resolved.length + cancelled.length;
   const count = root.querySelector("[data-notification-count]");
-  count.textContent = resolved.length > 99 ? "99+" : String(resolved.length);
-  count.hidden = resolved.length === 0;
+  count.textContent = totalCount > 99 ? "99+" : String(totalCount);
+  count.hidden = totalCount === 0;
   root.querySelector(".notification-trigger").setAttribute(
     "aria-label",
-    resolved.length ? `Thông báo, ${resolved.length} biểu mẫu đã xử lý` : "Thông báo",
+    totalCount ? `Thông báo, ${totalCount} thông báo mới` : "Thông báo",
   );
 
   const list = root.querySelector("[data-notification-list]");
   list.replaceChildren();
-  if (!resolved.length) {
+  if (!totalCount) {
     const empty = document.createElement("p");
     empty.className = "notification-empty";
-    empty.textContent = "Chưa có biểu mẫu nào được xử lý.";
+    empty.textContent = "Chưa có thông báo mới.";
     list.append(empty);
     return;
+  }
+
+  for (const booking of cancelled) {
+    const item = document.createElement("article");
+    item.className = "notification-item is-cancellation";
+    const heading = document.createElement("strong");
+    heading.textContent = "Tour của bạn đã bị hủy";
+    const reference = document.createElement("p");
+    reference.className = "notification-reference";
+    reference.textContent = `${booking.tour?.name || "Tour du lịch"} · Mã ${booking.code}`;
+    const reason = document.createElement("p");
+    reason.className = "notification-message";
+    reason.textContent = `Lý do hủy: ${booking.rejectReason || booking.cancellationRequest?.reason || "Ban quản trị đã hủy tour."}`;
+    const detailLink = document.createElement("a");
+    detailLink.className = "notification-detail-link";
+    detailLink.href = `/booking-detail.html?id=${encodeURIComponent(booking.id)}`;
+    detailLink.textContent = "Xem chi tiết hủy ở đây";
+    const cancelledAt = document.createElement("time");
+    cancelledAt.className = "notification-date";
+    cancelledAt.dateTime = booking.updatedAt || booking.createdAt;
+    cancelledAt.textContent = booking.updatedAt
+      ? `Đã hủy: ${new Date(booking.updatedAt).toLocaleString("vi-VN")}`
+      : "Đã hủy";
+    item.append(heading, reference, reason, detailLink, cancelledAt);
+    list.append(item);
   }
 
   for (const inquiry of resolved) {
@@ -129,12 +156,18 @@ async function loadInquiryNotifications() {
   list.append(loading);
 
   try {
-    const response = await fetch("/api/inquiries/mine");
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Không thể tải thông báo.");
-    if (!Array.isArray(data.inquiries)) throw new Error("Dữ liệu thông báo không hợp lệ.");
+    const [inquiriesResponse, bookingsResponse] = await Promise.all([
+      fetch("/api/inquiries/mine"),
+      fetch("/api/bookings?status=cancelled&sort=newest"),
+    ]);
+    const inquiriesData = await inquiriesResponse.json();
+    const bookingsData = await bookingsResponse.json();
+    if (!inquiriesResponse.ok) throw new Error(inquiriesData.error || "Không thể tải thông báo.");
+    if (!bookingsResponse.ok) throw new Error(bookingsData.error || "Không thể tải thông báo đơn hủy.");
+    if (!Array.isArray(inquiriesData.inquiries)) throw new Error("Dữ liệu thông báo không hợp lệ.");
+    if (!Array.isArray(bookingsData.bookings)) throw new Error("Dữ liệu đơn hủy không hợp lệ.");
     if (sequence !== notificationLoadSequence || !accountUserId) return;
-    renderNotifications(data.inquiries);
+    renderNotifications(inquiriesData.inquiries, bookingsData.bookings);
   } catch (error) {
     if (sequence !== notificationLoadSequence || !accountUserId) return;
     list.replaceChildren();
@@ -220,6 +253,12 @@ export function mountAccountMenu({ onLogout, withGuestLinks = false } = {}) {
       loadInquiryNotifications();
     }
   });
+  subscribeRealtime(["booking:status-updated", "booking:cancellation-decided"], (event) => {
+    const payload = event.payload || {};
+    if (payload.userId && payload.userId === accountUserId) {
+      loadInquiryNotifications();
+    }
+  });
 }
 
 /** Hiển thị avatar + tên khi đã đăng nhập, ẩn khi chưa. */
@@ -232,7 +271,7 @@ export function setAccountUser(user) {
   if (!user) {
     accountUserId = null;
     notificationLoadSequence += 1;
-    renderNotifications([]);
+    renderNotifications([], []);
     setOpen(false);
     setNotificationsOpen(false);
     return;

@@ -308,16 +308,22 @@ subscribeRealtime(["booking:status-updated", "booking:cancellation-decided", "pa
       });
     } else if (p.status === "cancelled") {
       showRealtimeToast({
-        title: "Đơn đặt tour đã bị từ chối / hủy",
+        title: "Tour của bạn đã bị hủy",
         message: p.rejectReason ? `Lý do: ${p.rejectReason}` : "Trạng thái đơn đã chuyển sang Đã hủy.",
         tone: "warn",
+        actionLabel: "Xem chi tiết hủy ở đây",
+        actionHref: `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}`,
       });
     }
   } else if (event.type === "booking:cancellation-decided") {
     showRealtimeToast({
       title: p.decision === "approved" ? "Yêu cầu hủy đơn đã được duyệt" : "Yêu cầu hủy đơn bị từ chối",
-      message: p.decision === "approved" ? "Đơn đặt tour của bạn đã được hủy." : "Ban quản trị đã từ chối yêu cầu hủy đơn.",
-      tone: p.decision === "approved" ? "info" : "warn",
+      message: p.decision === "approved"
+        ? `Tour của bạn đã bị hủy.${p.rejectReason ? ` Lý do: ${p.rejectReason}` : ""}`
+        : "Ban quản trị đã từ chối yêu cầu hủy đơn.",
+      tone: p.decision === "approved" ? "danger" : "warn",
+      actionLabel: p.decision === "approved" ? "Xem chi tiết hủy ở đây" : "",
+      actionHref: p.decision === "approved" ? `/booking-detail.html?id=${encodeURIComponent(p.bookingId)}` : "",
     });
   } else if (event.type === "payment:confirmed") {
     showRealtimeToast({

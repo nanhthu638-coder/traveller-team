@@ -886,6 +886,11 @@ async function handleRejectSubmit(event) {
   if (!pendingRejectBookingId) return;
 
   const reason = rejectReasonInput.value.trim();
+  if (!reason) {
+    showToast("Vui lòng nhập lý do huỷ tour.", "error");
+    rejectReasonInput.focus();
+    return;
+  }
   const bookingId = pendingRejectBookingId;
   const booking = currentBookings.find((b) => b.id === bookingId) || selectedBooking;
   const code = booking?.code || bookingId;
